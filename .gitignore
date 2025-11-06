@@ -1,0 +1,28 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Build output
+out/
+dist/
+*.vsix
+
+# Development tools (not needed in public repo)
+esbuild.js
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+.vscode-test/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local

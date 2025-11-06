@@ -1,0 +1,35 @@
+# Exclude development-only files from the VSIX package
+.vscode/**
+.vscode-test/**
+.github/**
+.git/**
+.gitignore
+.DS_Store
+*.vsix
+
+# Dependencies
+node_modules/**
+
+# Build output (compiled JS will be in out/)
+dist/**
+
+# TypeScript sources are not needed, except templates used at runtime
+src/**
+!src/templates/**
+
+# Tests
+src/test/**
+
+# Development tooling
+**/*.ts
+**/*.map
+**/tsconfig.json
+**/eslint.config.mjs
+esbuild.js
+eslint.config.mjs
+tsconfig.json
+vsc-extension-quickstart.md
+
+# Misc
+**/*.log
+.yarnrc

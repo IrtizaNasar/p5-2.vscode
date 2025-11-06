@@ -1,0 +1,76 @@
+{
+  "name": "p5js-project-generator",
+  "displayName": "p5.js Project Generator",
+  "description": "Generate new p5.js 2.x projects with online/offline library options",
+  "version": "1.0.0",
+  "icon":"icon.png",
+  "publisher": "Irti",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Snippets"
+  ],
+  "keywords": [
+    "p5.js",
+    "creative coding",
+    "project generator",
+    "canvas",
+    "art"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "p5js-generator.createProject",
+        "title": "Create a new p5.js 2.x Project",
+        "category": "p5.js"
+      },
+      {
+        "command": "p5js-generator.createProjectHere",
+        "title": "Create p5.js 2.x Project Here",
+        "category": "p5.js"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "p5js-generator.createProjectHere",
+          "when": "explorerResourceIsFolder",
+          "group": "2_workspace"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "p5js-generator.createProject"
+        },
+        {
+          "command": "p5js-generator.createProjectHere",
+          "when": "false"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "tsc -p ./",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/mocha": "^10.0.3",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "eslint": "^8.52.0",
+    "typescript": "^5.2.2",
+    "@vscode/test-cli": "^0.0.4",
+    "@vscode/test-electron": "^2.3.6"
+  }
+}
