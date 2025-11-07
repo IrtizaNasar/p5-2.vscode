@@ -1,16 +1,22 @@
 {
   "name": "p5js-project-generator",
-  "displayName": "p5.js Project Generator",
-  "description": "Generate new p5.js 2.x projects with online/offline library options",
-  "version": "1.0.0",
-  "icon":"icon.png",
+  "displayName": "p5.js 2.x Project Generator",
+  "description": "Generate new p5.js 2.x projects with online/offline library options. Includes autocomplete, IntelliSense, and parameter hints for most p5.js functions.",
+  "version": "1.0.2",
+  "icon": "icon.png",
   "publisher": "Irti",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IrtizaNasar/p5-2.vscode"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
-    "Other",
-    "Snippets"
+    "Programming Languages",
+    "Snippets",
+    "Other"
   ],
   "keywords": [
     "p5.js",
@@ -63,14 +69,15 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.74.0",
     "@types/mocha": "^10.0.3",
     "@types/node": "18.x",
+    "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
-    "eslint": "^8.52.0",
-    "typescript": "^5.2.2",
     "@vscode/test-cli": "^0.0.4",
-    "@vscode/test-electron": "^2.3.6"
+    "@vscode/test-electron": "^2.3.6",
+    "@vscode/vsce": "^3.6.2",
+    "eslint": "^8.52.0",
+    "typescript": "^5.2.2"
   }
 }

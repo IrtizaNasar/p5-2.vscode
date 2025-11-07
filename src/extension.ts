@@ -11,6 +11,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { registerP5CompletionProvider, registerP5HoverProvider, registerP5SignatureHelpProvider } from './utils/p5CompletionProvider';
 
 /**
  * Current p5.js version used by the extension
@@ -41,7 +42,18 @@ export function activate(context: vscode.ExtensionContext) {
         (uri: vscode.Uri) => createP5ProjectCommand(context, uri)
     );
 
-    context.subscriptions.push(createProjectCommand, createProjectHereCommand);
+    // Register p5.js autocomplete and IntelliSense features
+    const completionProvider = registerP5CompletionProvider(context);
+    const hoverProvider = registerP5HoverProvider(context);
+    const signatureHelpProvider = registerP5SignatureHelpProvider(context);
+
+    context.subscriptions.push(
+        createProjectCommand,
+        createProjectHereCommand,
+        completionProvider,
+        hoverProvider,
+        signatureHelpProvider
+    );
 }
 
 /**

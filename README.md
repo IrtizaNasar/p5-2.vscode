@@ -7,6 +7,9 @@ A Visual Studio Code extension that quickly generates new [p5.js 2.0](https://be
 ## Features
 
 - **Quick Project Setup** - Generate a complete p5.js 2.x project structure in seconds
+- **IntelliSense & Autocomplete** - Autocomplete support for most p5.js functions with parameter hints and documentation
+- **Hover Documentation** - Hover over any p5.js function to see detailed documentation and parameter information
+- **Signature Help** - Get parameter hints as you type function calls
 - **Flexible Library Options** - Choose between online (CDN) or offline (local files) library loading
 - **Minimal Templates** - Start with clean, bare-bones templates ready for your creative code
 - **Addon Support** - Optionally include p5.sound for audio functionality
@@ -75,6 +78,21 @@ This extension generates projects using **p5.js 2.0**, the latest version of the
 1. Open `index.html` in your web browser
 2. Start editing `sketch.js` to create your artwork
 3. Refresh the browser to see your changes
+
+### Autocomplete & IntelliSense
+
+The extension automatically provides autocomplete for p5.js 2.0 functions when working in:
+- Files named `sketch.js` or matching `*.p5.js` patterns
+- JavaScript files in directories containing `index.html` with p5.js references
+- Files containing p5.js function patterns (setup, draw, createCanvas, etc.)
+
+**Features:**
+- **Autocomplete**: Type any p5.js function name to see suggestions with signatures
+- **Parameter Hints**: See parameter types and descriptions as you type
+- **Hover Documentation**: Hover over any p5.js function to see full documentation
+- **Signature Help**: Press `Ctrl+Shift+Space` (or `Cmd+Shift+Space` on macOS) when typing a function to see parameter hints
+
+Function definitions are based on the [p5.js 2.0 Reference](https://beta.p5js.org/reference/). Most commonly used functions are included.
 
 ### Local Development Server
 
