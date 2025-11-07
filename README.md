@@ -158,7 +158,8 @@ Issues and pull requests are welcome! Please feel free to contribute to make thi
 
 ## License
 
-This extension is open source. The p5.js library is licensed under the LGPL 2.1 license.
+This VS Code extension is open source and licensed under the MIT License. 
+The p5.js library (which this extension helps you work with) is licensed under the LGPL 2.1 license.
 
 ---
 
