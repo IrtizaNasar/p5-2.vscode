@@ -16,6 +16,7 @@ A Visual Studio Code extension that quickly generates new [p5.js 2.0](https://be
 - **Library Versions** - Select between minified or full p5.js library for offline projects
 - **Context Menu Integration** - Create projects directly from the Explorer context menu
 - **Smart Project Structure** - Automatically creates organized folders for assets, CSS, and JavaScript
+- **Extension Pack** - Includes Live Server extension for easy local development
 
 ## Requirements
 
@@ -96,7 +97,12 @@ Function definitions are based on the [p5.js 2.0 Reference](https://beta.p5js.or
 
 ### Local Development Server
 
-For projects with media files, use a local server:
+For projects with media files, use a local server. **Live Server is included in this extension pack**, so you can:
+
+1. Right-click on `index.html` → "Open with Live Server"
+2. Or use the Live Server button in the status bar
+
+Alternatively, you can use command line tools:
 
 ```bash
 # Using Python
@@ -104,12 +110,9 @@ python -m http.server 8000
 
 # Using Node.js
 npx http-server
-
-# Using VS Code Live Server extension
-# Right-click index.html -> "Open with Live Server"
 ```
 
-Then open `http://localhost:8000` in your browser.
+Then open `http://localhost:8000` (or the port shown) in your browser.
 
 ## Resources
 
@@ -124,6 +127,10 @@ Then open `http://localhost:8000` in your browser.
 This extension does not add any VS Code settings. All configuration is done through the project creation wizard.
 
 ## Release Notes
+
+### 1.0.3
+
+- Added Live Server extension to extension pack for easy local development
 
 ### 1.0.2
 
