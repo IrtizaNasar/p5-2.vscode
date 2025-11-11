@@ -128,6 +128,10 @@ This extension does not add any VS Code settings. All configuration is done thro
 
 ## Release Notes
 
+### 1.0.4
+
+- Fixed extension activation so autocomplete and hover documentation work properly
+
 ### 1.0.3
 
 - Added Live Server extension to extension pack for easy local development
