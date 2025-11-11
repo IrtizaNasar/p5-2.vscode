@@ -27,6 +27,7 @@ export async function isP5File(document: vscode.TextDocument): Promise<boolean> 
     ];
     
     if (p5FileNamePatterns.some(pattern => pattern.test(fileName))) {
+        console.log(`[p5.js] File detected by name pattern: ${fileName}`);
         return true;
     }
     
@@ -37,8 +38,9 @@ export async function isP5File(document: vscode.TextDocument): Promise<boolean> 
     if (fs.existsSync(indexPath)) {
         try {
             const indexContent = fs.readFileSync(indexPath, 'utf8');
-            // Check for p5.js references in HTML
-            if (/p5\.(min\.)?js|cdn\.jsdelivr\.net.*p5/i.test(indexContent)) {
+            // Check for p5.js references in HTML - expanded patterns
+            if (/p5\.(min\.)?js|cdn\.jsdelivr\.net.*p5|unpkg\.com.*p5|p5js\.org/i.test(indexContent)) {
+                console.log(`[p5.js] File detected by index.html in same directory: ${fileName}`);
                 return true;
             }
         } catch (error) {
@@ -53,7 +55,8 @@ export async function isP5File(document: vscode.TextDocument): Promise<boolean> 
         if (fs.existsSync(parentIndexPath)) {
             try {
                 const indexContent = fs.readFileSync(parentIndexPath, 'utf8');
-                if (/p5\.(min\.)?js|cdn\.jsdelivr\.net.*p5/i.test(indexContent)) {
+                if (/p5\.(min\.)?js|cdn\.jsdelivr\.net.*p5|unpkg\.com.*p5|p5js\.org/i.test(indexContent)) {
+                    console.log(`[p5.js] File detected by index.html in parent directory: ${fileName}`);
                     return true;
                 }
             } catch (error) {
@@ -66,7 +69,7 @@ export async function isP5File(document: vscode.TextDocument): Promise<boolean> 
         }
     }
     
-    // Check file content for p5.js patterns
+    // Check file content for p5.js patterns - expanded list
     const content = document.getText();
     const p5Patterns = [
         /\bfunction\s+(setup|draw|preload)\s*\(/i,
@@ -75,13 +78,26 @@ export async function isP5File(document: vscode.TextDocument): Promise<boolean> 
         /\bfill\s*\(/i,
         /\bstroke\s*\(/i,
         /\bellipse\s*\(/i,
-        /\brect\s*\(/i
+        /\brect\s*\(/i,
+        /\bpoint\s*\(/i,
+        /\bline\s*\(/i,
+        /\btriangle\s*\(/i,
+        /\bquad\s*\(/i,
+        /\bcircle\s*\(/i,
+        /\barc\s*\(/i,
+        /\bnoFill\s*\(/i,
+        /\bnoStroke\s*\(/i,
+        /\bcolorMode\s*\(/i,
+        /\bpush\s*\(/i,
+        /\bpop\s*\(/i
     ];
     
     if (p5Patterns.some(pattern => pattern.test(content))) {
+        console.log(`[p5.js] File detected by content pattern: ${fileName}`);
         return true;
     }
     
+    console.log(`[p5.js] File NOT detected as p5.js: ${fileName}`);
     return false;
 }
 
@@ -146,13 +162,26 @@ export function registerP5CompletionProvider(context: vscode.ExtensionContext): 
                     return undefined;
                 }
                 
-                // Get the word at the cursor position
-                const wordRange = document.getWordRangeAtPosition(position);
-                const word = wordRange ? document.getText(wordRange) : '';
+                // Get the line text before cursor to filter completions
+                const line = document.lineAt(position.line);
+                const textBeforeCursor = line.text.substring(0, position.character);
                 
                 // Create completion items for all p5.js functions
-                const completions = p5Functions.map(func => createCompletionItem(func));
+                let completions = p5Functions.map(func => createCompletionItem(func));
                 
+                // Filter completions based on what user is typing
+                // Get the prefix being typed (word before cursor)
+                const prefixMatch = textBeforeCursor.match(/(\w+)$/);
+                if (prefixMatch) {
+                    const prefix = prefixMatch[1].toLowerCase();
+                    if (prefix.length > 0) {
+                        completions = completions.filter(item => 
+                            item.label.toString().toLowerCase().startsWith(prefix)
+                        );
+                    }
+                }
+                
+                console.log(`[p5.js] Providing ${completions.length} completion items (prefix: "${prefixMatch ? prefixMatch[1] : 'none'}")`);
                 return completions;
             },
             
@@ -186,21 +215,48 @@ export function registerP5HoverProvider(context: vscode.ExtensionContext): vscod
                 // Check if this is a p5.js file
                 const isP5 = await isP5File(document);
                 if (!isP5) {
+                    console.log(`[p5.js] Hover: File not detected as p5.js`);
                     return undefined;
                 }
                 
-                // Get the word at the cursor position
-                const wordRange = document.getWordRangeAtPosition(position);
+                // Get the word at the cursor position - try with regex to catch function calls
+                const line = document.lineAt(position.line);
+                const lineText = line.text;
+                const charAtPosition = lineText.charAt(position.character);
+                
+                // Try to get word range at position
+                let wordRange = document.getWordRangeAtPosition(position);
+                
+                // If no word range, try to find function name before cursor (for cases like "ellipse(")
                 if (!wordRange) {
+                    // Look for word characters before the cursor
+                    const textBeforeCursor = lineText.substring(0, position.character);
+                    const match = textBeforeCursor.match(/(\w+)\s*\(?$/);
+                    if (match) {
+                        const startPos = position.character - match[1].length;
+                        wordRange = new vscode.Range(
+                            new vscode.Position(position.line, startPos),
+                            new vscode.Position(position.line, position.character)
+                        );
+                    }
+                }
+                
+                if (!wordRange) {
+                    console.log(`[p5.js] Hover: No word range found at position`);
                     return undefined;
                 }
                 
                 const word = document.getText(wordRange);
+                console.log(`[p5.js] Hover: Checking word "${word}"`);
+                
                 const func = findFunction(word);
                 
                 if (!func) {
+                    console.log(`[p5.js] Hover: Function "${word}" not found`);
                     return undefined;
                 }
+                
+                console.log(`[p5.js] Hover: Showing documentation for "${func.name}"`);
                 
                 const markdown = new vscode.MarkdownString();
                 markdown.appendMarkdown(`**${func.name}** - ${func.description}\n\n`);
@@ -221,7 +277,7 @@ export function registerP5HoverProvider(context: vscode.ExtensionContext): vscod
                 
                 markdown.appendMarkdown(`\n\n[View in p5.js Reference](https://beta.p5js.org/reference/#${func.name})`);
                 
-                return new vscode.Hover(markdown);
+                return new vscode.Hover(markdown, wordRange);
             }
         }
     );

@@ -2,6 +2,10 @@
 
 All notable changes to the "p5.js 2.x Project Generator" extension will be documented in this file.
 
+## [1.0.4]
+
+- Fixed extension activation so autocomplete and hover documentation work properly
+
 ## [1.0.3]
 
 - Added Live Server extension to extension pack for easy local development
