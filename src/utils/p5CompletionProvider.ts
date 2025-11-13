@@ -275,7 +275,7 @@ export function registerP5HoverProvider(context: vscode.ExtensionContext): vscod
                     markdown.appendMarkdown(`\n**Returns:** \`${func.returnType}\``);
                 }
                 
-                markdown.appendMarkdown(`\n\n[View in p5.js Reference](https://beta.p5js.org/reference/#${func.name})`);
+                markdown.appendMarkdown(`\n\n[View in p5.js Reference](https://beta.p5js.org/reference/p5/${func.name})`);
                 
                 return new vscode.Hover(markdown, wordRange);
             }

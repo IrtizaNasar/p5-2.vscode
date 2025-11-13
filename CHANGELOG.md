@@ -2,6 +2,10 @@
 
 All notable changes to the "p5.js 2.x Project Generator" extension will be documented in this file.
 
+## [1.0.5]
+
+- Fixed reference links in hover documentation to navigate directly to specific function pages on beta.p5js.org
+
 ## [1.0.4]
 
 - Fixed extension activation so autocomplete and hover documentation work properly
