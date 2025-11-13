@@ -90,10 +90,10 @@ The extension automatically provides autocomplete for p5.js 2.0 functions when w
 **Features:**
 - **Autocomplete**: Type any p5.js function name to see suggestions with signatures
 - **Parameter Hints**: See parameter types and descriptions as you type
-- **Hover Documentation**: Hover over any p5.js function to see full documentation
+- **Hover Documentation**: Hover over any p5.js function to see full documentation with direct links to the official reference
 - **Signature Help**: Press `Ctrl+Shift+Space` (or `Cmd+Shift+Space` on macOS) when typing a function to see parameter hints
 
-Function definitions are based on the [p5.js 2.0 Reference](https://beta.p5js.org/reference/). Most commonly used functions are included.
+Function definitions are based on the [p5.js 2.0 Reference](https://beta.p5js.org/reference/). Most commonly used functions are included. Hover documentation includes direct links to each function's reference page.
 
 ### Local Development Server
 
@@ -127,6 +127,10 @@ Then open `http://localhost:8000` (or the port shown) in your browser.
 This extension does not add any VS Code settings. All configuration is done through the project creation wizard.
 
 ## Release Notes
+
+### 1.0.5
+
+- Fixed reference links in hover documentation to navigate directly to specific function pages
 
 ### 1.0.4
 
