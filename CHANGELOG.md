@@ -2,6 +2,10 @@
 
 All notable changes to the "p5.js 2.x Project Generator" extension will be documented in this file.
 
+## [1.0.6]
+
+- Updated p5.js library to version 2.1.1 for both CDN and local library files
+
 ## [1.0.5]
 
 - Fixed reference links in hover documentation to navigate directly to specific function pages on beta.p5js.org

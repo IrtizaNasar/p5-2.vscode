@@ -16,7 +16,7 @@ import { registerP5CompletionProvider, registerP5HoverProvider, registerP5Signat
 /**
  * Current p5.js version used by the extension
  */
-const P5_VERSION = '2.0.5';
+const P5_VERSION = '2.1.1';
 
 /**
  * CDN base URL for p5.js library
