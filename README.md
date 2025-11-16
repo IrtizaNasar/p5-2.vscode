@@ -128,6 +128,10 @@ This extension does not add any VS Code settings. All configuration is done thro
 
 ## Release Notes
 
+### 1.0.6
+
+- Updated p5.js library to version 2.1.1 for both CDN and local library files
+
 ### 1.0.5
 
 - Fixed reference links in hover documentation to navigate directly to specific function pages
