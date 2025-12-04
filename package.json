@@ -2,7 +2,7 @@
   "name": "p5js-project-generator",
   "displayName": "p5.js 2.x Project Generator",
   "description": "Generate new p5.js 2.x projects with online/offline library options. Includes autocomplete, IntelliSense, and parameter hints for most p5.js functions.",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "icon": "icon.png",
   "publisher": "Irti",
   "repository": {

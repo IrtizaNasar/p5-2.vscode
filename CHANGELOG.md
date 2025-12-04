@@ -2,6 +2,10 @@
 
 All notable changes to the "p5.js 2.x Project Generator" extension will be documented in this file.
 
+## [1.0.7]
+
+- Updated p5.sound library to version 0.2.0 (compatible with p5.js 2.1.1) for both minified and non-minified local files
+
 ## [1.0.6]
 
 - Updated p5.js library to version 2.1.1 for both CDN and local library files

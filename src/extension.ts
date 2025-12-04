@@ -24,6 +24,16 @@ const P5_VERSION = '2.1.1';
 const P5_CDN_BASE = `https://cdn.jsdelivr.net/npm/p5@${P5_VERSION}/lib`;
 
 /**
+ * Current p5.sound version used by the extension
+ */
+const P5_SOUND_VERSION = '0.2.0';
+
+/**
+ * CDN URL for p5.sound library
+ */
+const P5_SOUND_CDN = `https://cdn.jsdelivr.net/npm/p5.sound@${P5_SOUND_VERSION}/dist/p5.sound.min.js`;
+
+/**
  * Extension activation function
  * Called when the extension is activated
  */
@@ -32,13 +42,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register command for creating project with folder selection
     const createProjectCommand = vscode.commands.registerCommand(
-        'p5js-generator.createProject', 
+        'p5js-generator.createProject',
         () => createP5ProjectCommand(context)
     );
 
     // Register command for creating project in selected folder
     const createProjectHereCommand = vscode.commands.registerCommand(
-        'p5js-generator.createProjectHere', 
+        'p5js-generator.createProjectHere',
         (uri: vscode.Uri) => createP5ProjectCommand(context, uri)
     );
 
@@ -153,7 +163,7 @@ async function getProjectConfiguration(): Promise<ProjectConfig | undefined> {
     }
 
     let useMinifiedLibrary = true; // Default for online
-    
+
     // Only ask about minification for offline projects
     if (libraryModeChoice.value === 'offline') {
         const libraryVersionChoice = await vscode.window.showQuickPick([
@@ -176,7 +186,7 @@ async function getProjectConfiguration(): Promise<ProjectConfig | undefined> {
         if (libraryVersionChoice === undefined) {
             return undefined;
         }
-        
+
         useMinifiedLibrary = libraryVersionChoice.value;
     }
 
@@ -280,7 +290,7 @@ async function createProject(
     config: ProjectConfig,
     progress: vscode.Progress<{ increment?: number; message?: string }>
 ): Promise<void> {
-    
+
     progress.report({ increment: 0, message: "Setting up project structure" });
 
     // Remove existing directory if it exists
@@ -290,12 +300,12 @@ async function createProject(
 
     // Create project directory structure
     createDirectoryStructure(projectPath, config);
-    
+
     progress.report({ increment: 25, message: "Creating project files" });
 
     // Create project files
     await createProjectFiles(context, projectPath, config);
-    
+
     progress.report({ increment: 75, message: "Copying library files" });
 
     // Copy library files if offline mode
@@ -318,7 +328,7 @@ function createDirectoryStructure(projectPath: string, config: ProjectConfig): v
 
     // Create subdirectories
     const directories = ['assets', 'css'];
-    
+
     if (!config.useOnlineLibrary) {
         directories.push('js');
         if (config.includeAddons) {
@@ -343,16 +353,16 @@ async function createProjectFiles(
     projectPath: string,
     config: ProjectConfig
 ): Promise<void> {
-    
+
     // Create HTML file
     await createHtmlFile(context, projectPath, config);
-    
+
     // Create JavaScript file
     await createJavaScriptFile(context, projectPath);
-    
+
     // Create CSS file
     await createCssFile(context, projectPath);
-    
+
     // Create README file
     await createReadmeFile(projectPath, config);
 }
@@ -369,34 +379,34 @@ async function createHtmlFile(
     projectPath: string,
     config: ProjectConfig
 ): Promise<void> {
-    
+
     const templateName = config.useOnlineLibrary ? 'index-online.html' : 'index-offline.html';
     const templatePath = path.join(context.extensionPath, 'src', 'templates', templateName);
-    
+
     let htmlContent = fs.readFileSync(templatePath, 'utf8');
-    
+
     // Replace template variables
     htmlContent = htmlContent.replace(/\{\{PROJECT_NAME\}\}/g, config.projectName);
     htmlContent = htmlContent.replace(/\{\{P5_VERSION\}\}/g, P5_VERSION);
-    
+
     // Handle main p5.js script tag for offline projects
     if (!config.useOnlineLibrary) {
         const p5FileName = config.useMinifiedLibrary ? 'p5.min.js' : 'p5.js';
         htmlContent = htmlContent.replace(/p5\.min\.js/g, p5FileName);
     }
-    
+
     // Handle addon scripts
     let addonScripts = '';
     if (config.includeAddons) {
         if (config.useOnlineLibrary) {
-            addonScripts = `<script src="${P5_CDN_BASE}/addons/p5.sound.min.js"></script>`;
+            addonScripts = `<script src="${P5_SOUND_CDN}"></script>`;
         } else {
             addonScripts = '<script src="js/addons/p5.sound.min.js"></script>';
         }
     }
-    
+
     htmlContent = htmlContent.replace(/\{\{ADDONS\}\}/g, addonScripts);
-    
+
     fs.writeFileSync(path.join(projectPath, 'index.html'), htmlContent);
 }
 
@@ -438,26 +448,26 @@ async function copyLibraryFiles(
     includeAddons: boolean,
     useMinifiedLibrary: boolean
 ): Promise<void> {
-    
+
     const libSourcePath = path.join(context.extensionPath, 'resources', 'lib');
     const jsDir = path.join(projectPath, 'js');
-    
+
     // Copy appropriate p5.js library version
     const p5FileName = useMinifiedLibrary ? 'p5.min.js' : 'p5.js';
     const p5SourcePath = path.join(libSourcePath, p5FileName);
     const p5DestPath = path.join(jsDir, p5FileName);
-    
+
     if (!fs.existsSync(p5SourcePath)) {
         throw new Error(`${p5FileName} library file not found in extension resources`);
     }
-    
+
     fs.copyFileSync(p5SourcePath, p5DestPath);
-    
+
     // Copy addon libraries if requested
     if (includeAddons) {
         const soundSourcePath = path.join(libSourcePath, 'addons', 'p5.sound.min.js');
         const soundDestPath = path.join(jsDir, 'addons', 'p5.sound.min.js');
-        
+
         if (fs.existsSync(soundSourcePath)) {
             fs.copyFileSync(soundSourcePath, soundDestPath);
         }
