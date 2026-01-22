@@ -1,4 +1,4 @@
-/*! p5.js v2.1.1 November 10, 2025 */
+/*! p5.js v2.1.2 December 16, 2025 */
 var p5 = (function () {
   'use strict';
 
@@ -15,7 +15,7 @@ var p5 = (function () {
    * @property {String} VERSION
    * @final
    */
-  const VERSION = '2.1.1';
+  const VERSION = '2.1.2';
 
   // GRAPHICS RENDERER
   /**
@@ -4309,10 +4309,11 @@ var p5 = (function () {
         cursor = type;
       } else if (typeof type === 'string') {
         let coords = '';
-        if (x && y && (typeof x === 'number' && typeof y === 'number')) {
+        if (typeof x === 'number') { // fix for #8323
+          y = typeof y === 'number' ? y : 0;
           // Note that x and y values must be unit-less positive integers < 32
           // https://developer.mozilla.org/en-US/docs/Web/CSS/cursor
-          coords = `${x} ${y}`;
+          coords = `${Math.max(x, 0)} ${Math.max(y, 0)}`;
         }
         if (
           type.substring(0, 7) === 'http://' ||
@@ -26067,18 +26068,114 @@ var p5 = (function () {
     };
 
     /**
-     * Get or set multiple spline properties at once.
+     * Sets multiple properties for spline curves at once.
      *
-     * Similar to <a href="#/p5/splineProperty">splineProperty()</a>:
-     * `splineProperty('tightness', t)` is the same as
-     * `splineProperties({'tightness': t})`
+     * `splineProperties()` accepts an object with key-value pairs to configure
+     * how spline curves are drawn. This is a convenient way to set multiple
+     * spline properties with a single function call, rather than calling
+     * <a href="#/p5/splineProperty">splineProperty()</a> multiple times.
+     *
+     * The properties object can include:
+     * - `tightness`: A number that controls how tightly the curve fits to the
+     *   vertex points. The default value is 0. Positive values make the curve
+     *   tighter (straighter), while negative values make it looser. Values
+     *   between -5 and 5 work best.
+     * - `ends`: Controls whether to draw the end segments of the spline. Set to
+     *   `EXCLUDE` to skip drawing the segments between the first and second
+     *   points and between the second-to-last and last points. This is useful
+     *   when you want to use the first and last points as control points only.
+     *
+     * `splineProperties()` affects curves drawn with
+     * <a href="#/p5/splineVertex">splineVertex()</a> within
+     * <a href="#/p5/beginShape">beginShape()</a> and
+     * <a href="#/p5/endShape">endShape()</a>, as well as curves drawn with
+     * <a href="#/p5/spline">spline()</a>. The properties remain active until
+     * changed by another call to `splineProperties()` or
+     * <a href="#/p5/splineProperty">splineProperty()</a>.
      *
      * @method splineProperties
-     * @param {Object} properties An object containing key-value pairs to set.
-     */
-    /**
+     * @param  {Object} values an object containing spline property key-value pairs
+     * @chainable
+     *
+     * @example
+     * <div>
+     * <code>
+     * function setup() {
+     *   createCanvas(100, 100);
+     *   background(220);
+     *
+     *   // Set spline tightness using splineProperties
+     *   splineProperties({
+     *     tightness: 0.5
+     *   });
+     *
+     *   // Draw a spline curve
+     *   noFill();
+     *   stroke(0);
+     *   strokeWeight(2);
+     *   
+     *   beginShape();
+     *   splineVertex(20, 80);
+     *   splineVertex(30, 30);
+     *   splineVertex(70, 30);
+     *   splineVertex(80, 80);
+     *   endShape();
+     *
+     *   // Show vertex points
+     *   fill(255, 0, 0);
+     *   noStroke();
+     *   circle(20, 80, 6);
+     *   circle(30, 30, 6);
+     *   circle(70, 30, 6);
+     *   circle(80, 80, 6);
+     *
+     *   describe('A smooth curved line with tightness 0.5 connecting four red points.');
+     * }
+     * </code>
+     * </div>
+     *
+     * @example
+     * <div>
+     * <code>
+     * function setup() {
+     *   createCanvas(100, 100);
+     *   background(220);
+     *
+     *   // Exclude end segments - first and last points become control points
+     *   splineProperties({
+     *     tightness: 0,
+     *     ends: EXCLUDE
+     *   });
+     *
+     *   // Draw curve only between middle points
+     *   noFill();
+     *   stroke(0);
+     *   strokeWeight(2);
+     *   
+     *   beginShape();
+     *   splineVertex(10, 50);  // Control point (affects curve but not drawn to)
+     *   splineVertex(30, 20);  // Start of visible curve
+     *   splineVertex(70, 80);  // End of visible curve
+     *   splineVertex(90, 50);  // Control point (affects curve but not drawn to)
+     *   endShape();
+     *
+     *   // Show all points
+     *   fill(200, 0, 0);
+     *   noStroke();
+     *   circle(10, 50, 6);  // Control point
+     *   circle(90, 50, 6);  // Control point
+     *   
+     *   fill(0, 0, 255);
+     *   circle(30, 20, 6);  // Visible curve point
+     *   circle(70, 80, 6);  // Visible curve point
+     *
+     *   describe('A curved line between two blue points, with red control points at the ends.');
+     * }
+     * </code>
+     * </div>
+     *
      * @method splineProperties
-     * @returns {Object} The current spline properties.
+     * @return {Object}
      */
     fn.splineProperties = function(values) {
       return this._renderer.splineProperties(values);
@@ -29640,7 +29737,10 @@ var p5 = (function () {
      *   createCanvas(100, 100);
      *
      *   background(200);
-     *
+     *   
+     *   // Making point to 5 pixels
+     *   strokeWeight(5);
+     * 
      *   // Top-left.
      *   point(30, 20);
      *
@@ -29666,6 +29766,9 @@ var p5 = (function () {
      *   createCanvas(100, 100);
      *
      *   background(200);
+     * 
+     *   // Making point to 5 pixels.
+     *   strokeWeight(5);
      *
      *   // Top-left.
      *   point(30, 20);
@@ -29696,6 +29799,9 @@ var p5 = (function () {
      *   createCanvas(100, 100);
      *
      *   background(200);
+     * 
+     *   // Making point to 5 pixels.
+     *   strokeWeight(5);
      *
      *   // Top-left.
      *   let a = createVector(30, 20);
@@ -49347,6 +49453,8 @@ var p5 = (function () {
       _cam.projMatrix = this.projMatrix.copy();
       _cam.yScale = this.yScale;
 
+      _cam.cameraType = this.cameraType;
+
       return _cam;
     }
 
@@ -50447,15 +50555,18 @@ var p5 = (function () {
     p5.Camera = Camera;
 
     RendererGL.prototype.camera = function(...args) {
+      this.states.setValue('curCamera', this.states.curCamera.clone());
       this.states.curCamera.camera(...args);
     };
 
     RendererGL.prototype.perspective = function(...args) {
+      this.states.setValue('curCamera', this.states.curCamera.clone());
       this.states.curCamera.perspective(...args);
     };
 
     RendererGL.prototype.linePerspective = function(enable) {
       if (enable !== undefined) {
+        this.states.setValue('curCamera', this.states.curCamera.clone());
         // Set the line perspective if enable is provided
         this.states.curCamera.useLinePerspective = enable;
       } else {
@@ -50465,10 +50576,12 @@ var p5 = (function () {
     };
 
     RendererGL.prototype.ortho = function(...args) {
+      this.states.setValue('curCamera', this.states.curCamera.clone());
       this.states.curCamera.ortho(...args);
     };
 
     RendererGL.prototype.frustum = function(...args) {
+      this.states.setValue('curCamera', this.states.curCamera.clone());
       this.states.curCamera.frustum(...args);
     };
 
@@ -52114,7 +52227,7 @@ var p5 = (function () {
         // if our vertex shader failed compilation?
         if (!gl.getShaderParameter(this._vertShader, gl.COMPILE_STATUS)) {
           const glError = gl.getShaderInfoLog(this._vertShader);
-          if (typeof IS_MINIFIED !== 'undefined') {
+          if (typeof IS_MINIFIED !== 'undefined' || typeof p5 === 'undefined') {
             console.error(glError);
           } else {
             p5._friendlyError(
@@ -52132,7 +52245,7 @@ var p5 = (function () {
         // if our frag shader failed compilation?
         if (!gl.getShaderParameter(this._fragShader, gl.COMPILE_STATUS)) {
           const glError = gl.getShaderInfoLog(this._fragShader);
-          if (typeof IS_MINIFIED !== 'undefined') {
+          if (typeof IS_MINIFIED !== 'undefined' || typeof p5 === 'undefined') {
             console.error(glError);
           } else {
             p5._friendlyError(
@@ -67389,6 +67502,12 @@ var p5 = (function () {
       this.defaultAspectRatio = this.fbo.width / this.fbo.height;
       this.defaultCameraFOV =
         2 * Math.atan(this.fbo.height / 2 / this.defaultEyeZ);
+    }
+
+    copy() {
+      const _cam = super.copy();
+      _cam.fbo = this.fbo;
+      return _cam;
     }
   }
 
@@ -104770,6 +104889,22 @@ var p5 = (function () {
     };
 
     /**
+     * @private
+     * Returns the current number of octaves used by noise().
+     */
+    fn._getNoiseOctaves = function() {
+      return perlin_octaves;
+    };
+
+    /**
+     * @private
+     * Returns the current falloff factor used by noise().
+     */
+    fn._getNoiseAmpFalloff = function() {
+      return perlin_amp_falloff;
+    };
+
+    /**
      * Sets the seed value for the <a href="#/p5/noise">noise()</a> function.
      *
      * By default, <a href="#/p5/noise">noise()</a> produces different results
@@ -111652,23 +111787,15 @@ var p5 = (function () {
       let boxes = lines.map((line, i) => this[type].bind(this)
       (line, x, y + i * textLeading));
 
-      // adjust the bounding boxes based on horiz. text alignment
-      if (lines.length > 1) {
-        // When width is not provided (e.g., fontBounds path), fall back to the widest line.
-        const maxWidth = boxes.reduce((m, b) => Math.max(m, b.w || 0), 0);
-
-        boxes.forEach((bb) => {
-            const w = (width ?? maxWidth);
-            bb.x += p5.Renderer2D.prototype._xAlignOffset.call(this, textAlign, w);
-          });
+      if (lines.length > 1 && typeof width !== 'undefined') { // fix for #7984
+        // adjust the bounding boxes for horizontal text alignment in 2d
+        // the WebGL mode version does additional alignment adjustments
+        boxes.forEach(bb => bb.x += p5.Renderer2D.prototype._xAlignOffset.call(this, textAlign, width));
       }
 
-      // adjust the bounding boxes based on vert. text alignment
-      if (typeof height !== 'undefined') {
-        // Call the 2D mode version: the WebGL mode version does additional
-        // alignment adjustments to account for how WebGL renders text.
-        p5.Renderer2D.prototype._yAlignOffset.call(this, boxes, height);
-      }
+      // adjust the bounding boxes for vertical text alignment in 2d
+      // the WebGL mode version does additional alignment adjustments
+      p5.Renderer2D.prototype._yAlignOffset.call(this, boxes, height || 0); // fix for #7984
 
       // get the bounds for the text block
       let bounds = boxes[0];
@@ -112238,6 +112365,21 @@ var p5 = (function () {
       return this._pInst;
     };
 
+    Renderer.prototype._middleAlignOffset = function() {
+      const { textFont, textSize } = this.states;
+      const font = textFont?.font;
+      const ctx = this.textDrawingContext();
+      const metrics = ctx.measureText('X');
+      let sCapHeight = (font?.data || {})['OS/2']?.sCapHeight;
+      if (sCapHeight) {
+        const unitsPerEm = font.data.head.unitsPerEm;
+        sCapHeight *= textSize / unitsPerEm;
+      } else {
+        sCapHeight = metrics.fontBoundingBoxAscent;
+      }
+      return metrics.alphabeticBaseline + sCapHeight / 2;
+    };
+
     if (p5.Renderer2D) {
       p5.Renderer2D.prototype.textCanvas = function () {
         return this.canvas;
@@ -112327,7 +112469,7 @@ var p5 = (function () {
           case fn.BASELINE:
             break;
           case textCoreConstants._CTX_MIDDLE:
-            yOff = ydiff / 2;
+            yOff = ydiff / 2 + this._middleAlignOffset();
             break;
           case fn.BOTTOM:
             yOff = ydiff;
@@ -112345,7 +112487,7 @@ var p5 = (function () {
     }
 
     if (p5.RendererGL) {
-      p5.RendererGL.prototype.textCanvas = function() {
+      p5.RendererGL.prototype.textCanvas = function () {
         if (!this._textCanvas) {
           this._textCanvas = document.createElement('canvas');
           this._textCanvas.width = 1;
@@ -112356,7 +112498,7 @@ var p5 = (function () {
         }
         return this._textCanvas;
       };
-      p5.RendererGL.prototype.textDrawingContext = function() {
+      p5.RendererGL.prototype.textDrawingContext = function () {
         if (!this._textDrawingContext) {
           const textCanvas = this.textCanvas();
           this._textDrawingContext = textCanvas.getContext('2d');
@@ -112364,7 +112506,7 @@ var p5 = (function () {
         return this._textDrawingContext;
       };
       const oldRemove = p5.RendererGL.prototype.remove;
-      p5.RendererGL.prototype.remove = function() {
+      p5.RendererGL.prototype.remove = function () {
         if (this._textCanvas) {
           this._textCanvas.parentElement.removeChild(this._textCanvas);
         }
@@ -112408,6 +112550,13 @@ var p5 = (function () {
         return this._yAlignOffset(lineData, adjustedH);
       };
 
+      p5.RendererGL.prototype._verticalAlignFont = function() {
+        const ctx = this.textDrawingContext();
+        const metrics = ctx.measureText('X');
+        return -metrics.alphabeticBaseline ||
+          (-metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent);
+      };
+
       p5.RendererGL.prototype._yAlignOffset = function (dataArr, height) {
 
         if (typeof height === 'undefined') {
@@ -112420,12 +112569,12 @@ var p5 = (function () {
           ((textLeading - textSize) * (numLines - 1));
         switch (textBaseline) { // drawingContext ?
           case fn.TOP:
-            yOff = textSize;
+            yOff = this._verticalAlignFont();
             break;
           case fn.BASELINE:
             break;
           case textCoreConstants._CTX_MIDDLE:
-            yOff = -totalHeight / 2 + textSize + (height || 0) / 2;
+            yOff = (-totalHeight + textSize + (height || 0)) / 2 + this._verticalAlignFont() + this._middleAlignOffset();
             break;
           case fn.BOTTOM:
             yOff = -(totalHeight - textSize) + (height || 0);
@@ -112434,7 +112583,6 @@ var p5 = (function () {
             console.warn(`${textBaseline} is not supported in WebGL mode.`); // FES?
             break;
         }
-        yOff += this.states.textFont.font?._verticalAlign(textSize) || 0; // Does this function exist?
         dataArr.forEach(ele => ele.y += yOff);
         return dataArr;
       };
@@ -120540,63 +120688,148 @@ var p5 = (function () {
     textToModel(str, x, y, width, height, options) {
       ({ width, height, options } = this._parseArgs(width, height, options));
       const extrude = options?.extrude || 0;
-      const contours = this.textToContours(str, x, y, width, height, options);
 
+      let contours = this.textToContours(str, x, y, width, height, options);
+      // Step 2: build base flat geometry - single shape
       const geom = this._pInst.buildGeometry(() => {
-        if (extrude === 0) {
-          const prevValidateFaces = this._pInst._renderer._validateFaces;
-          this._pInst._renderer._validateFaces = true;
-          this._pInst.beginShape();
-          this._pInst.normal(0, 0, 1);
-          for (const contour of contours) {
-            this._pInst.beginContour();
-            for (const { x, y } of contour) {
-              this._pInst.vertex(x, y);
-            }
-            this._pInst.endContour(this._pInst.CLOSE);
-          }
-          this._pInst.endShape();
-          this._pInst._renderer._validateFaces = prevValidateFaces;
-        } else {
-          const prevValidateFaces = this._pInst._renderer._validateFaces;
-          this._pInst._renderer._validateFaces = true;
+        const prevValidateFaces = this._pInst._renderer._validateFaces;
+        this._pInst._renderer._validateFaces = true;
 
-          // Draw front faces
-          for (const side of [1, -1]) {
-            this._pInst.beginShape();
-            for (const contour of contours) {
-              this._pInst.beginContour();
-              for (const { x, y } of contour) {
-                this._pInst.vertex(x, y, side * extrude * 0.5);
-              }
-              this._pInst.endContour(this._pInst.CLOSE);
-            }
-            this._pInst.endShape();
+        this._pInst.beginShape();
+        for (const contour of contours) {
+          this._pInst.beginContour();
+          for (const pt of contour) {
+            this._pInst.vertex(pt.x, pt.y, 0);
           }
-          this._pInst._renderer._validateFaces = prevValidateFaces;
-
-          // Draw sides
-          for (const contour of contours) {
-            this._pInst.beginShape(this._pInst.QUAD_STRIP);
-            for (const v of contour) {
-              for (const side of [-1, 1]) {
-                this._pInst.vertex(v.x, v.y, side * extrude * 0.5);
-              }
-            }
-            this._pInst.endShape();
-          }
+          this._pInst.endContour(this._pInst.CLOSE);
         }
+
+        this._pInst.endShape(this._pInst.CLOSE);
+
+        this._pInst._renderer._validateFaces = prevValidateFaces;
       });
-      if (extrude !== 0) {
-        geom.computeNormals();
-        for (const face of geom.faces) {
-          if (face.every(idx => geom.vertices[idx].z <= -extrude * 0.5 + 0.1)) {
-            for (const idx of face) geom.vertexNormals[idx].set(0, 0, -1);
-            face.reverse();
-          }
+
+      if (extrude === 0) {
+        return geom;
+      }
+
+      // The tessellation process creates separate vertices for each triangle,
+      // even when they share the same position. We need to deduplicate them
+      // to find which faces are actually connected, so we can identify the
+      // outer edges for extrusion.
+
+      const vertexIndices = {};
+      const vertexId = v => `${v.x.toFixed(6)}-${v.y.toFixed(6)}-${v.z.toFixed(6)}`;
+      const newVertices = [];
+      const newVertexIndex = [];
+
+      for (const v of geom.vertices) {
+        const id = vertexId(v);
+        if (!(id in vertexIndices)) {
+          const index = newVertices.length;
+          vertexIndices[id] = index;
+          newVertices.push(v.copy());
+        }
+        newVertexIndex.push(vertexIndices[id]);
+      }
+
+      // Remap faces to use deduplicated vertices
+      const newFaces = geom.faces.map(f => f.map(i => newVertexIndex[i]));
+
+      //Find outer edges (edges that appear in only one face)
+      const seen = {};
+      for (const face of newFaces) {
+        for (let off = 0; off < face.length; off++) {
+          const a = face[off];
+          const b = face[(off + 1) % face.length];
+          const id = `${Math.min(a, b)}-${Math.max(a, b)}`;
+          if (!seen[id]) seen[id] = [];
+          seen[id].push([a, b]);
         }
       }
-      return geom;
+      const validEdges = [];
+      for (const key in seen) {
+        if (seen[key].length === 1) {
+          validEdges.push(seen[key][0]);
+        }
+      }
+
+      // Step 5: Create extruded geometry
+      const extruded = this._pInst.buildGeometry(() => {});
+      const half = extrude * 0.5;
+      extruded.vertices = [];
+      extruded.faces = [];
+      extruded.edges = []; // INITIALIZE EDGES ARRAY
+
+      // Add side face vertices (separate for each edge for flat shading)
+      for (const [a, b] of validEdges) {
+        const vA = newVertices[a];
+        const vB = newVertices[b];
+
+        // Skip if vertices are too close (degenerate edge)
+        // We only need to check the perimeter edge length since the other edge
+        // is the extrude direction, which is always > 0 for extruded geometry
+
+        const edgeVector = new Vector(vB.x - vA.x, vB.y - vA.y, vB.z - vA.z);
+        const extrudeVector = new Vector(0, 0, extrude);
+        const crossProduct = Vector.cross(edgeVector, extrudeVector);
+        const dist = edgeVector.mag();
+        if (crossProduct.mag() < 0.0001 || dist < 0.0001) continue;
+        // Front face vertices
+        const frontA = extruded.vertices.length;
+        extruded.vertices.push(new Vector(vA.x, vA.y, vA.z + half));
+        const frontB = extruded.vertices.length;
+        extruded.vertices.push(new Vector(vB.x, vB.y, vB.z + half));
+        const backA = extruded.vertices.length;
+        extruded.vertices.push(new Vector(vA.x, vA.y, vA.z - half));
+        const backB = extruded.vertices.length;
+        extruded.vertices.push(new Vector(vB.x, vB.y, vB.z - half));
+
+        extruded.faces.push([frontA, backA, backB]);
+        extruded.faces.push([frontA, backB, frontB]);
+        extruded.edges.push([frontA, frontB]);
+        extruded.edges.push([backA, backB]);
+        extruded.edges.push([frontA, backA]);
+        extruded.edges.push([frontB, backB]);
+      }
+
+      // Add front face (with unshared vertices for flat shading)
+      const frontVertexOffset = extruded.vertices.length;
+      for (const v of newVertices) {
+        extruded.vertices.push(new Vector(v.x, v.y, v.z + half));
+      }
+      for (const face of newFaces) {
+        if (face.length < 3) continue;
+        const mappedFace = face.map(i => i + frontVertexOffset);
+        extruded.faces.push(mappedFace);
+
+        // ADD EDGES FOR FRONT FACE
+        for (let i = 0; i < mappedFace.length; i++) {
+          const nextIndex = (i + 1) % mappedFace.length;
+          extruded.edges.push([mappedFace[i], mappedFace[nextIndex]]);
+        }
+      }
+
+      // Add back face (reversed winding order)
+      const backVertexOffset = extruded.vertices.length;
+      for (const v of newVertices) {
+        extruded.vertices.push(new Vector(v.x, v.y, v.z - half));
+      }
+
+      for (const face of newFaces) {
+        if (face.length < 3) continue;
+        const mappedFace = [...face].reverse().map(i => i + backVertexOffset);
+        extruded.faces.push(mappedFace);
+
+        // ADD EDGES FOR BACK FACE
+        for (let i = 0; i < mappedFace.length; i++) {
+          const nextIndex = (i + 1) % mappedFace.length;
+          extruded.edges.push([mappedFace[i], mappedFace[nextIndex]]);
+        }
+      }
+
+      extruded.computeNormals();
+      return extruded;
     }
 
     variations() {
@@ -120649,25 +120882,14 @@ var p5 = (function () {
 
     /////////////////////////////// HELPERS ////////////////////////////////
 
-    _verticalAlign(size) {
-      const { sCapHeight } = this.data?.['OS/2'] || {};
-      const { unitsPerEm = 1000 } = this.data?.head || {};
-      const { ascender = 0, descender = 0 } = this.data?.hhea || {};
-      const current = ascender / 2;
-      const target = (sCapHeight || (ascender + descender)) / 2;
-      const offset = target - current;
-      return offset * size / unitsPerEm;
-    }
-
     /*
       Returns an array of line objects, each containing { text, x, y, glyphs: [ {g, path} ] }
     */
     _lineateAndPathify(str, x, y, width, height, options = {}) {
 
       let renderer = options?.graphics?._renderer || this._pInst._renderer;
-
-      // save the baseline
-      let setBaseline = renderer.drawingContext.textBaseline;
+      renderer.push();
+      renderer.textFont(this);
 
       // lineate and compute bounds for the text
       let { lines, bounds } = renderer._computeBounds
@@ -120684,8 +120906,7 @@ var p5 = (function () {
       const axs = this._currentAxes(renderer);
       let pathsForLine = lines.map(l => this._lineToGlyphs(l, { scale, axs }));
 
-      // restore the baseline
-      renderer.drawingContext.textBaseline = setBaseline;
+      renderer.pop();
 
       return pathsForLine;
     }
@@ -120769,7 +120990,7 @@ var p5 = (function () {
 
     _position(renderer, lines, bounds, width, height) {
 
-      let { textAlign, textLeading } = renderer.states;
+      let { textAlign, textLeading} = renderer.states;
       let metrics = this._measureTextDefault(renderer, 'X');
       let ascent = metrics.fontBoundingBoxAscent;
 
@@ -121362,7 +121583,8 @@ var p5 = (function () {
      * <code>
      * // Some other forms of loading fonts:
      * loadFont("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap");
-     * loadFont(`@font-face { font-family: "Bricolage Grotesque", serif; font-optical-sizing: auto; font-weight: 400; font-style: normal; font-variation-settings: "wdth" 100; }`);
+     *
+     * loadFont('@font-face { font-family: "Bricolage Grotesque", serif; font-optical-sizing: auto; font-weight: 400; font-style: normal; font-variation-settings: "wdth" 100; }');
      * </code>
      * </div>
      */
@@ -121391,7 +121613,15 @@ var p5 = (function () {
       let isCSS = path.includes('@font-face');
 
       if (!isCSS) {
-        const info = await fetch(path, { method: 'HEAD' });
+        let info;
+        try {
+          info = await fetch(path, { method: 'HEAD' });
+        } catch (e) {
+          // Sometimes files fail when requested with HEAD. Fallback to a
+          // regular GET. It loads more data, but at least then it's cached
+          // for the likely case when we have to fetch the whole thing.
+          info = await fetch(path);
+        }
         const isCSSFile = info.headers.get('content-type')?.startsWith('text/css');
         if (isCSSFile) {
           isCSS = true;
@@ -131450,12 +131680,20 @@ var p5 = (function () {
       const nodeData = getNodeDataFromID(dag, this.id);
       if (nodeData && nodeData.identifier) {
         this._originalIdentifier = nodeData.identifier;
+      }
+      if (nodeData) {
         this._originalBaseType = nodeData.baseType;
         this._originalDimension = nodeData.dimension;
       }
     }
     copy() {
       return createStrandsNode(this.id, this.dimension, this.strandsContext);
+    }
+    typeInfo() {
+      return {
+        baseType: this._originalBaseType || BaseType.FLOAT,
+        dimension: this.dimension
+      };
     }
     bridge(value) {
       const { dag, cfg } = this.strandsContext;
@@ -131467,8 +131705,8 @@ var p5 = (function () {
         newValueID = value.id;
       } else {
         const newVal = primitiveConstructorNode(
-          this.strandsContext, 
-          { baseType, dimension: this.dimension }, 
+          this.strandsContext,
+          { baseType, dimension: this.dimension },
           value
         );
         newValueID = newVal.id;
@@ -131522,8 +131760,8 @@ var p5 = (function () {
         newValueID = value.id;
       } else {
         const newVal = primitiveConstructorNode(
-          this.strandsContext, 
-          { baseType, dimension: this.dimension }, 
+          this.strandsContext,
+          { baseType, dimension: this.dimension },
           value
         );
         newValueID = newVal.id;
@@ -132808,7 +133046,7 @@ var p5 = (function () {
     }
   }
 
-  var noiseGLSL = "// Based on https://github.com/stegu/webgl-noise/blob/22434e04d7753f7e949e8d724ab3da2864c17a0f/src/noise3D.glsl\n// MIT licensed, adapted for p5.strands\n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n  return mod289(((x*34.0)+10.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat baseNoise(vec3 v)\n{\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n  // First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n  // Other corners\n  vec3 g = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g;\n  vec3 i1 = min( g.xyz, l.zxy );\n  vec3 i2 = max( g.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n  // Permutations\n  i = mod289(i);\n  vec4 p = permute( permute( permute(\n          i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n        + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))\n      + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n  // Gradients: 7x7 points over a square, mapped onto an octahedron.\n  // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n  //Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n  // Mix final noise value\n  vec4 m = max(0.5 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 105.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),\n        dot(p2,x2), dot(p3,x3) ) );\n}\n\nfloat noise(vec3 st) {\n  float result = 0.0;\n  float amplitude = 1.0;\n  float frequency = 1.0;\n\n  for (int i = 0; i < 4; i++) {\n    result += amplitude * baseNoise(st * frequency);\n    frequency *= 2.0;\n    amplitude *= 0.5;\n  }\n\n  return result;\n}\n";
+  var noiseGLSL = "// Based on https://github.com/stegu/webgl-noise/blob/22434e04d7753f7e949e8d724ab3da2864c17a0f/src/noise3D.glsl\n// MIT licensed, adapted for p5.strands\n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n  return mod289(((x*34.0)+10.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat baseNoise(vec3 v)\n{\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n  // First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n  // Other corners\n  vec3 g = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g;\n  vec3 i1 = min( g.xyz, l.zxy );\n  vec3 i2 = max( g.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n  // Permutations\n  i = mod289(i);\n  vec4 p = permute( permute( permute(\n          i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n        + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))\n      + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n  // Gradients: 7x7 points over a square, mapped onto an octahedron.\n  // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n  //Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n  // Mix final noise value\n  vec4 m = max(0.5 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 105.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),\n        dot(p2,x2), dot(p3,x3) ) );\n}\n\nfloat noise(vec3 st, int octaves, float ampFalloff) {\n  float result = 0.0;\n  float amplitude = 1.0;\n  float frequency = 1.0;\n\n  for (int i = 0; i < 8; i++) {\n    if (i >= octaves) break;\n    result += amplitude * baseNoise(st * frequency);\n    frequency *= 2.0;\n    amplitude *= ampFalloff;\n  }\n\n  return result;\n}\n";
 
   //////////////////////////////////////////////
   // User nodes
@@ -132894,6 +133132,20 @@ var p5 = (function () {
     }
     // Add GLSL noise. TODO: Replace this with a backend-agnostic implementation
     const originalNoise = fn.noise;
+    const originalNoiseDetail = fn.noiseDetail;
+
+    strandsContext._noiseOctaves = null;
+    strandsContext._noiseAmpFalloff = null;
+
+    fn.noiseDetail = function (lod, falloff) {
+      if (!strandsContext.active) {
+        return originalNoiseDetail.apply(this, arguments);
+      }
+
+      strandsContext._noiseOctaves = lod;
+      strandsContext._noiseAmpFalloff = falloff;
+    };
+
     fn.noise = function (...args) {
       if (!strandsContext.active) {
         return originalNoise.apply(this, args); // fallback to regular p5.js noise
@@ -132921,9 +133173,20 @@ var p5 = (function () {
           `It looks like you've called noise() with ${args.length} arguments. It only supports 1D to 3D input.`
         );
       }
+
+      const octaves = strandsContext._noiseOctaves !== null
+        ? strandsContext._noiseOctaves
+        : fn._getNoiseOctaves();
+      const falloff = strandsContext._noiseAmpFalloff !== null
+        ? strandsContext._noiseAmpFalloff
+        : fn._getNoiseAmpFalloff();
+
+      nodeArgs.push(octaves);
+      nodeArgs.push(falloff);
+
       const { id, dimension } = functionCallNode(strandsContext, 'noise', nodeArgs, {
         overloads: [{
-          params: [DataType.float3],
+          params: [DataType.float3, DataType.int1, DataType.float1],
           returnType: DataType.float1,
         }]
       });
@@ -132995,8 +133258,18 @@ var p5 = (function () {
       const originalp5Fn = fn[typeInfo.fnName];
       fn[typeInfo.fnName] = function(...args) {
         if (strandsContext.active) {
-          const { id, dimension } = primitiveConstructorNode(strandsContext, typeInfo, args);
-          return createStrandsNode(id, dimension, strandsContext);
+          if (args.length === 1 && args[0].dimension && args[0].dimension === typeInfo.dimension) {
+            const { id, dimension } = functionCallNode(strandsContext, typeInfo.fnName, args, {
+              overloads: [{
+                params: [args[0].typeInfo()],
+                returnType: typeInfo,
+              }]
+            });
+            return createStrandsNode(id, dimension, strandsContext);
+          } else {
+            const { id, dimension } = primitiveConstructorNode(strandsContext, typeInfo, args);
+            return createStrandsNode(id, dimension, strandsContext);
+          }
         } else if (originalp5Fn) {
           return originalp5Fn.apply(this, args);
         } else {
@@ -133241,37 +133514,39 @@ var p5 = (function () {
 
     p5.Shader.prototype.modify = function(shaderModifier, scope = {}) {
       if (shaderModifier instanceof Function) {
-        // Reset the context object every time modify is called;
-        // const backend = glslBackend;
-        initStrandsContext(strandsContext, glslBackend, { active: true });
-        createShaderHooksFunctions(strandsContext, fn, this);
-        // TODO: expose this, is internal for debugging for now.
-        const options = { srcLocations: false };
+        try {
+          // Reset the context object every time modify is called;
+          // const backend = glslBackend;
+          initStrandsContext(strandsContext, glslBackend, { active: true });
+          createShaderHooksFunctions(strandsContext, fn, this);
+          // TODO: expose this, is internal for debugging for now.
+          const options = { srcLocations: false };
 
-        // 1. Transpile from strands DSL to JS
-        let strandsCallback;
-        {
-          // #7955 Wrap function declaration code in brackets so anonymous functions are not top level statements, which causes an error in acorn when parsing
-          // https://github.com/acornjs/acorn/issues/1385
-          const sourceString = `(${shaderModifier.toString()})`;
-          strandsCallback = transpileStrandsToJS(p5, sourceString, options.srcLocations, scope);
+          // 1. Transpile from strands DSL to JS
+          let strandsCallback;
+          {
+            // #7955 Wrap function declaration code in brackets so anonymous functions are not top level statements, which causes an error in acorn when parsing
+            // https://github.com/acornjs/acorn/issues/1385
+            const sourceString = `(${shaderModifier.toString()})`;
+            strandsCallback = transpileStrandsToJS(p5, sourceString, options.srcLocations, scope);
+          }
+
+          // 2. Build the IR from JavaScript API
+          const globalScope = createBasicBlock(strandsContext.cfg, BlockType.GLOBAL);
+          pushBlock(strandsContext.cfg, globalScope);
+          strandsCallback();
+          popBlock(strandsContext.cfg);
+
+          // 3. Generate shader code hooks object from the IR
+          // .......
+          const hooksObject = generateShaderCode(strandsContext);
+
+          // Call modify with the generated hooks object
+          return oldModify.call(this, hooksObject);
+        } finally {
+          // Reset the strands runtime context
+          deinitStrandsContext(strandsContext);
         }
-
-        // 2. Build the IR from JavaScript API
-        const globalScope = createBasicBlock(strandsContext.cfg, BlockType.GLOBAL);
-        pushBlock(strandsContext.cfg, globalScope);
-        strandsCallback();
-        popBlock(strandsContext.cfg);
-
-        // 3. Generate shader code hooks object from the IR
-        // .......
-        const hooksObject = generateShaderCode(strandsContext);
-
-        // Reset the strands runtime context
-        deinitStrandsContext(strandsContext);
-
-        // Call modify with the generated hooks object
-        return oldModify.call(this, hooksObject);
       }
       else {
         return oldModify.call(this, shaderModifier)
