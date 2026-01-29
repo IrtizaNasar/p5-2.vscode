@@ -2252,6 +2252,365 @@ export const p5Functions: P5Function[] = [
         ],
         returnType: 'string',
         category: 'Data'
+    },
+    // Base Shader Functions (p5.js 2.0)
+    {
+        name: 'baseColorShader',
+        description: 'Get the shader used when no lights or materials are applied. Can be modified with .modify() to customize vertex and fragment hooks.',
+        signature: 'baseColorShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'baseMaterialShader',
+        description: 'Get the default shader used with lights, materials, and textures. Can be modified with .modify() to customize rendering behavior through hooks.',
+        signature: 'baseMaterialShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'baseNormalShader',
+        description: 'Get the shader used for rendering normal materials. Can be modified with .modify() to customize vertex and fragment hooks.',
+        signature: 'baseNormalShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'baseStrokeShader',
+        description: 'Get the shader used for rendering strokes. Can be modified with .modify() to customize vertex and fragment hooks.',
+        signature: 'baseStrokeShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'baseFilterShader',
+        description: 'Get the base shader used for image filters. Can be modified with .modify() to create custom filter effects.',
+        signature: 'baseFilterShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'imageShader',
+        description: 'Get the shader used for rendering images/textures. Can be modified with .modify() to customize rendering.',
+        signature: 'imageShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'createShader',
+        description: 'Creates a new p5.Shader object from vertex and fragment shader code',
+        signature: 'createShader(vertSrc, fragSrc)',
+        parameters: [
+            { name: 'vertSrc', type: 'string', description: 'Vertex shader source code' },
+            { name: 'fragSrc', type: 'string', description: 'Fragment shader source code' }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'createFilterShader',
+        description: 'Creates a new filter shader from fragment shader code',
+        signature: 'createFilterShader(fragSrc)',
+        parameters: [
+            { name: 'fragSrc', type: 'string', description: 'Fragment shader source code for the filter' }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'loadShader',
+        description: 'Loads vertex and fragment shaders from files to create a p5.Shader object',
+        signature: 'loadShader(vertFilename, fragFilename, [callback], [errorCallback])',
+        parameters: [
+            { name: 'vertFilename', type: 'string', description: 'Path to the vertex shader file' },
+            { name: 'fragFilename', type: 'string', description: 'Path to the fragment shader file' },
+            { name: 'callback', type: 'function', description: 'Callback function called when shader is loaded', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Callback function called on error', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'loadFilterShader',
+        description: 'Loads a fragment shader from a file to create a filter shader',
+        signature: 'loadFilterShader(fragFilename, [callback], [errorCallback])',
+        parameters: [
+            { name: 'fragFilename', type: 'string', description: 'Path to the fragment shader file' },
+            { name: 'callback', type: 'function', description: 'Callback function called when shader is loaded', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Callback function called on error', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'shader',
+        description: 'Sets the p5.Shader object to be used for subsequent shapes',
+        signature: 'shader(s)',
+        parameters: [
+            { name: 's', type: 'p5.Shader', description: 'The shader to use' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'resetShader',
+        description: 'Restores the default shaders',
+        signature: 'resetShader()',
+        parameters: [],
+        category: 'Material'
+    },
+    {
+        name: 'strokeShader',
+        description: 'Sets a custom shader for rendering strokes',
+        signature: 'strokeShader(s)',
+        parameters: [
+            { name: 's', type: 'p5.Shader', description: 'The shader to use for strokes' }
+        ],
+        category: 'Material'
+    },
+    // p5.Shader methods (commonly used after baseShader().modify())
+    {
+        name: 'modify',
+        description: 'Returns a new shader based on the original, but with custom snippets replacing default behavior. Used with baseColorShader(), baseMaterialShader(), etc.',
+        signature: 'shader.modify(callback, [variables])',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Function with p5.strands code or hooks object to modify the shader' },
+            { name: 'variables', type: 'object', description: 'Optional object with local variables for p5.strands', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    {
+        name: 'setUniform',
+        description: 'Sets the shader\'s uniform (global) variables',
+        signature: 'shader.setUniform(uniformName, data)',
+        parameters: [
+            { name: 'uniformName', type: 'string', description: 'Name of the uniform variable' },
+            { name: 'data', type: 'number|number[]|p5.Image|p5.Graphics|p5.MediaElement|p5.Texture', description: 'Data to send to the uniform' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'inspectHooks',
+        description: 'Logs the hooks available in this shader and their current implementation',
+        signature: 'shader.inspectHooks()',
+        parameters: [],
+        category: 'Material'
+    },
+    {
+        name: 'copyToContext',
+        description: 'Copies the shader from one drawing context to another',
+        signature: 'shader.copyToContext(context)',
+        parameters: [
+            { name: 'context', type: 'p5|p5.Graphics', description: 'The target drawing context' }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Material'
+    },
+    // Strands Hook Functions (used inside shader.modify())
+    {
+        name: 'getObjectInputs',
+        description: 'Registers a callback to modify vertex data before any positioning has been applied. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
+        signature: 'getObjectInputs(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getWorldInputs',
+        description: 'Registers a callback to modify vertex data after transforms like translate() and scale() but before camera. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
+        signature: 'getWorldInputs(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getCameraInputs',
+        description: 'Registers a callback to modify vertex data after camera transformation but before projection. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
+        signature: 'getCameraInputs(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getPixelInputs',
+        description: 'Registers a callback to modify per-pixel fragment inputs before final color calculation. Available in baseMaterialShader and baseStrokeShader.',
+        signature: 'getPixelInputs(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives Inputs object with normal, texCoord, color, shininess, metalness, materials. Must return modified inputs.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getFinalColor',
+        description: 'Registers a callback to change the final color of each pixel after all lighting and mixing is done in the fragment shader.',
+        signature: 'getFinalColor(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives vec4 color and must return modified vec4 color.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'combineColors',
+        description: 'Registers a callback to customize how color components are combined in the fragment shader.',
+        signature: 'combineColors(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives ColorComponents struct with baseColor, opacity, ambientColor, specularColor, diffuse, ambient, specular, emissive. Must return combined vec4 color.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getColor',
+        description: 'Registers a callback to set the final color for each pixel in a filter shader.',
+        signature: 'getColor(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Callback that returns the final color for filter shaders.' }
+        ],
+        category: 'Strands'
+    },
+    // Uniform creation functions (used inside shader.modify())
+    {
+        name: 'uniformFloat',
+        description: 'Creates a float uniform variable for use in shader.modify(). The function returns the value each time the shader is applied.',
+        signature: 'uniformFloat(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns the float value for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformInt',
+        description: 'Creates an integer uniform variable for use in shader.modify().',
+        signature: 'uniformInt(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns the integer value for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformVector2',
+        description: 'Creates a vec2 uniform variable for use in shader.modify().',
+        signature: 'uniformVector2(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns a 2-component array for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformVector3',
+        description: 'Creates a vec3 uniform variable for use in shader.modify().',
+        signature: 'uniformVector3(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns a 3-component array for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformVector4',
+        description: 'Creates a vec4 uniform variable for use in shader.modify().',
+        signature: 'uniformVector4(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns a 4-component array for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformTexture',
+        description: 'Creates a texture/sampler2D uniform variable for use in shader.modify().',
+        signature: 'uniformTexture(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns a p5.Image, p5.Graphics, or p5.Texture for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    // Additional Material Functions
+    {
+        name: 'ambientMaterial',
+        description: 'Sets the ambient color of the surface material',
+        signature: 'ambientMaterial(color)',
+        parameters: [
+            { name: 'color', type: 'string|number|number[]|p5.Color', description: 'Color value for ambient material' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'emissiveMaterial',
+        description: 'Sets the emissive color of the surface material',
+        signature: 'emissiveMaterial(color)',
+        parameters: [
+            { name: 'color', type: 'string|number|number[]|p5.Color', description: 'Color value for emissive material' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'specularMaterial',
+        description: 'Sets the specular color of the surface material',
+        signature: 'specularMaterial(color)',
+        parameters: [
+            { name: 'color', type: 'string|number|number[]|p5.Color', description: 'Color value for specular material' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'normalMaterial',
+        description: 'Sets the surface material to normal material, which maps surface normals to RGB colors',
+        signature: 'normalMaterial()',
+        parameters: [],
+        category: 'Material'
+    },
+    {
+        name: 'shininess',
+        description: 'Sets the shininess of the specular highlight when using specularMaterial()',
+        signature: 'shininess(shine)',
+        parameters: [
+            { name: 'shine', type: 'number', description: 'Shininess value, typically from 1 to infinity' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'metalness',
+        description: 'Sets the metalness of the material, controlling how mirror-like the surface appears',
+        signature: 'metalness(value)',
+        parameters: [
+            { name: 'value', type: 'number', description: 'Metalness value between 0 and 1' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'texture',
+        description: 'Sets the texture for shapes',
+        signature: 'texture(tex)',
+        parameters: [
+            { name: 'tex', type: 'p5.Image|p5.MediaElement|p5.Graphics|p5.Texture|p5.Framebuffer', description: 'The texture to apply' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'textureMode',
+        description: 'Sets the coordinate space for texture mapping',
+        signature: 'textureMode(mode)',
+        parameters: [
+            { name: 'mode', type: 'string', description: 'Either IMAGE or NORMAL' }
+        ],
+        category: 'Material'
+    },
+    {
+        name: 'textureWrap',
+        description: 'Sets the global texture wrapping mode',
+        signature: 'textureWrap(wrapX, [wrapY])',
+        parameters: [
+            { name: 'wrapX', type: 'string', description: 'Either CLAMP, REPEAT, or MIRROR' },
+            { name: 'wrapY', type: 'string', description: 'Either CLAMP, REPEAT, or MIRROR', optional: true }
+        ],
+        category: 'Material'
     }
 ];
 

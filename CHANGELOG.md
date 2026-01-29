@@ -2,6 +2,14 @@
 
 All notable changes to the "p5.js 2.x Project Generator" extension will be documented in this file.
 
+## [1.0.9]
+
+- Added autocomplete support for base shader functions: `baseColorShader()`, `baseMaterialShader()`, `baseNormalShader()`, `baseStrokeShader()`, `baseFilterShader()`, `imageShader()`
+- Added autocomplete for shader methods: `modify()`, `setUniform()`, `inspectHooks()`, `copyToContext()`
+- Added autocomplete for Strands hook functions: `getObjectInputs()`, `getWorldInputs()`, `getCameraInputs()`, `getPixelInputs()`, `getFinalColor()`, `combineColors()`, `getColor()`
+- Added autocomplete for uniform creation functions: `uniformFloat()`, `uniformInt()`, `uniformVector2()`, `uniformVector3()`, `uniformVector4()`, `uniformTexture()`
+- Added additional material functions: `ambientMaterial()`, `emissiveMaterial()`, `specularMaterial()`, `normalMaterial()`, `shininess()`, `metalness()`, `texture()`, `textureMode()`, `textureWrap()`
+
 ## [1.0.8]
 
 - Updated p5.js library to version 2.1.2 for both CDN and local library files (minified and non-minified)
