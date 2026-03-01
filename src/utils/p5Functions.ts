@@ -2253,7 +2253,7 @@ export const p5Functions: P5Function[] = [
         returnType: 'string',
         category: 'Data'
     },
-    // Base Shader Functions (p5.js 2.0)
+    // Base Shader Functions 
     {
         name: 'baseColorShader',
         description: 'Get the shader used when no lights or materials are applied. Can be modified with .modify() to customize vertex and fragment hooks.',

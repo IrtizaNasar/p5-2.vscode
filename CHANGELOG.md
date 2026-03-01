@@ -2,6 +2,11 @@
 
 All notable changes to the "p5.js 2.x Project Generator" extension will be documented in this file.
 
+## [1.1.0]
+
+- Updated p5.js library to version 2.2.1 for both CDN (online) and local library files (offline)
+- p5.sound remains at version 0.2.0
+
 ## [1.0.9]
 
 - Added autocomplete support for base shader functions: `baseColorShader()`, `baseMaterialShader()`, `baseNormalShader()`, `baseStrokeShader()`, `baseFilterShader()`, `imageShader()`
