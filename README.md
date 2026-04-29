@@ -2,7 +2,7 @@
 
 # p5.js 2.x Project Generator
 
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/Irti.p5js-project-generator?label=VS%20Code&style=flat-square&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=Irti.p5js-project-generator) [![Open VSX](https://img.shields.io/open-vsx/v/Irti/p5js-project-generator.svg?label=Open%20VSX&style=flat-square)](https://open-vsx.org/extension/Irti/p5js-project-generator)
+[![VS Code Marketplace](https://vsmarketplacebadges.dev/version/Irti.p5js-project-generator.svg?label=VS%20Code&style=flat-square&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=Irti.p5js-project-generator) [![Open VSX](https://img.shields.io/open-vsx/v/Irti/p5js-project-generator.svg?label=Open%20VSX&style=flat-square)](https://open-vsx.org/extension/Irti/p5js-project-generator)
 
 A Visual Studio Code extension that quickly generates new [p5.js 2.0](https://beta.p5js.org/) projects with a clean, minimal setup. Perfect for artists, designers, educators, and anyone getting started with creative coding.
 
