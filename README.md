@@ -74,7 +74,7 @@ your-project/
 
 ## Getting Started with p5.js 2.0
 
-This extension generates projects using **p5.js 2.2.1**, the latest version of the p5.js library. Learn more at [p5js.org](https://p5js.org/).
+This extension generates projects using **p5.js 2.2.2**, the latest version of the p5.js library. Learn more at [p5js.org](https://p5js.org/).
 
 ### Running Your Project
 
@@ -129,6 +129,11 @@ Then open `http://localhost:8000` (or the port shown) in your browser.
 This extension does not add any VS Code settings. All configuration is done through the project creation wizard.
 
 ## Release Notes
+
+### 1.1.1
+
+- Updated p5.js library to version **2.2.2** for both CDN (online) and local library files (offline, minified and full)
+- p5.sound remains at version 0.2.0
 
 ### 1.1.0
 
