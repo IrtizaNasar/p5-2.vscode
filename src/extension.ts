@@ -16,7 +16,7 @@ import { registerP5CompletionProvider, registerP5HoverProvider, registerP5Signat
 /**
  * Current p5.js version used by the extension
  */
-const P5_VERSION = '2.2.2';
+const P5_VERSION = '2.2.3';
 
 /**
  * CDN base URL for p5.js library
@@ -26,7 +26,7 @@ const P5_CDN_BASE = `https://cdn.jsdelivr.net/npm/p5@${P5_VERSION}/lib`;
 /**
  * Current p5.sound version used by the extension
  */
-const P5_SOUND_VERSION = '0.2.0';
+const P5_SOUND_VERSION = '0.3.0';
 
 /**
  * CDN URL for p5.sound library
