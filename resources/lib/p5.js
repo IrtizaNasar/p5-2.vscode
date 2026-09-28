@@ -1,4 +1,4 @@
-/*! p5.js v2.2.3 March 21, 2026 */
+/*! p5.js v2.3.4 September 25, 2026 */
 var p5 = (function () {
   'use strict';
 
@@ -15,7 +15,7 @@ var p5 = (function () {
    * @property {String} VERSION
    * @final
    */
-  const VERSION = '2.2.3';
+  const VERSION = '2.3.4';
 
   // GRAPHICS RENDERER
   /**
@@ -31,18 +31,18 @@ var p5 = (function () {
   const P2D = 'p2d';
 
   /**
-   * A high-dynamic-range (HDR) variant of the default, two-dimensional renderer.
+   * An expanded color space (P3) variant of the default, two-dimensional renderer.
    *
    * When available, this mode can allow for extended color ranges and more
    * dynamic color representation. Use it similarly to `P2D`:
-   * `createCanvas(400, 400, P2DHDR)`.
+   * `createCanvas(400, 400, P2DP3)`.
    *
-   * @typedef {'p2d-hdr'} P2DHDR
-   * @property {P2DHDR} P2DHDR
+   * @typedef {'p2d-p3'} P2DP3
+   * @property {P2DP3} P2DP3
    * @final
    */
 
-  const P2DHDR = 'p2d-hdr';
+  const P2DP3 = 'p2d-p3';
 
   /**
    * One of the two render modes in p5.js, used for computationally intensive tasks like 3D rendering and shaders.
@@ -1343,7 +1343,7 @@ var p5 = (function () {
     OPTION: OPTION,
     OVERLAY: OVERLAY,
     P2D: P2D,
-    P2DHDR: P2DHDR,
+    P2DP3: P2DP3,
     PATH: PATH,
     PI: PI,
     PIE: PIE,
@@ -1403,8 +1403,6 @@ var p5 = (function () {
    * @module Transform
    * @submodule Transform
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
   function transform$1(p5, fn){
@@ -1821,8 +1819,7 @@ var p5 = (function () {
      */
     fn.rotate = function(angle, axis) {
       // p5._validateParameters('rotate', arguments);
-      this._renderer.rotate(this._toRadians(angle), axis);
-      return this;
+      return this._renderer.rotate(this._toRadians(angle), axis);
     };
 
     /**
@@ -1944,8 +1941,7 @@ var p5 = (function () {
     fn.rotateX = function(angle) {
       this._assert3d('rotateX');
       // p5._validateParameters('rotateX', arguments);
-      this._renderer.rotateX(this._toRadians(angle));
-      return this;
+      return this._renderer.rotateX(this._toRadians(angle));
     };
 
     /**
@@ -2067,8 +2063,7 @@ var p5 = (function () {
     fn.rotateY = function(angle) {
       this._assert3d('rotateY');
       // p5._validateParameters('rotateY', arguments);
-      this._renderer.rotateY(this._toRadians(angle));
-      return this;
+      return this._renderer.rotateY(this._toRadians(angle));
     };
 
     /**
@@ -2190,8 +2185,7 @@ var p5 = (function () {
     fn.rotateZ = function(angle) {
       this._assert3d('rotateZ');
       // p5._validateParameters('rotateZ', arguments);
-      this._renderer.rotateZ(this._toRadians(angle));
-      return this;
+      return this._renderer.rotateZ(this._toRadians(angle));
     };
 
     /**
@@ -2367,9 +2361,7 @@ var p5 = (function () {
         z = 1;
       }
 
-      this._renderer.scale(x, y, z);
-
-      return this;
+      return this._renderer.scale(x, y, z);
     };
 
     /**
@@ -2675,11 +2667,10 @@ var p5 = (function () {
     fn.translate = function(x, y, z) {
       // p5._validateParameters('translate', arguments);
       if (this._renderer.isP3D) {
-        this._renderer.translate(x, y, z);
+        return this._renderer.translate(x, y, z);
       } else {
-        this._renderer.translate(x, y);
+        return this._renderer.translate(x, y);
       }
-      return this;
     };
 
     /**
@@ -3229,7 +3220,6 @@ var p5 = (function () {
    * @module Structure
    * @submodule Structure
    * @for p5
-   * @requires core
    */
 
   function structure(p5, fn){
@@ -3778,20 +3768,19 @@ var p5 = (function () {
    * @module Environment
    * @submodule Environment
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
   // import { Vector } from '../math/p5.Vector';
 
   function environment$1(p5, fn, lifecycles){
     const standardCursors = [ARROW, CROSS, HAND, MOVE, TEXT, WAIT];
+    const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
 
     fn._frameRate = 0;
-    fn._lastFrameTime = window.performance.now();
+    fn._lastFrameTime = globalThis.performance.now();
     fn._targetFrameRate = 60;
 
-    const _windowPrint = window.print;
+    const windowPrint = isBrowser ? window.print : null;
     let windowPrintDisabled = false;
 
     lifecycles.presetup = function(){
@@ -3799,11 +3788,13 @@ var p5 = (function () {
         'resize'
       ];
 
-      for(const event of events){
-        window.addEventListener(event, this[`_on${event}`].bind(this), {
-          passive: false,
-          signal: this._removeSignal
-        });
+      if(isBrowser){
+        for(const event of events){
+          window.addEventListener(event, this[`_on${event}`].bind(this), {
+            passive: false,
+            signal: this._removeSignal
+          });
+        }
       }
     };
 
@@ -3834,9 +3825,9 @@ var p5 = (function () {
      * }
      */
     fn.print = function(...args) {
-      if (!args.length) {
+      if (!args.length && windowPrint !== null) {
         if (!windowPrintDisabled) {
-          _windowPrint();
+          windowPrint();
           if (
             window.confirm(
               'You just tried to print the webpage. Do you want to prevent this from running again?'
@@ -3973,7 +3964,7 @@ var p5 = (function () {
      *   }
      * }
      */
-    fn.focused = document.hasFocus();
+    fn.focused = isBrowser ? document.hasFocus() : true;
 
     /**
      * Changes the cursor's appearance.
@@ -3990,6 +3981,8 @@ var p5 = (function () {
      * cursor, `x` and `y` set the location pointed to within the image. They are
      * both 0 by default, so the cursor points to the image's top-left corner. `x`
      * and `y` must be less than the image's width and height, respectively.
+     *
+     * Calling `cursor()` without an argument returns the current cursor type as a string.
      *
      * @method cursor
      * @param {(ARROW|CROSS|HAND|MOVE|TEXT|WAIT|String)} type Built-in: either ARROW, CROSS, HAND, MOVE, TEXT, or WAIT.
@@ -4056,9 +4049,17 @@ var p5 = (function () {
      *   }
      * }
      */
+    /**
+     * @method cursor
+     * @return {(ARROW|CROSS|HAND|MOVE|TEXT|WAIT|String)} the current cursor type
+     */
     fn.cursor = function(type, x, y) {
       let cursor = 'auto';
       const canvas = this._curElement.elt;
+      if (typeof type === 'undefined') {
+        let curstr = canvas.style.cursor;
+        return curstr.length ? curstr : 'default';
+      }
       if (standardCursors.includes(type)) {
         // Standard css cursor
         cursor = type;
@@ -4258,7 +4259,7 @@ var p5 = (function () {
      * - `WEBGL2` whose value is `'webgl2'`,
      * - `WEBGL` whose value is `'webgl'`, or
      * - `P2D` whose value is `'p2d'`. This is the default for 2D sketches.
-     * - `P2DHDR` whose value is `'p2d-hdr'` (used for HDR 2D sketches, if available).
+     * - `P2DP3` whose value is `'p2d-p3'` (used for P3 2D sketches, if available).
      *
      * See <a href="#/p5/setAttributes">setAttributes()</a> for ways to set the
      * WebGL version.
@@ -4345,7 +4346,7 @@ var p5 = (function () {
      * @alt
      * This example does not render anything.
      */
-    fn.displayWidth = screen.width;
+    fn.displayWidth = isBrowser ? window.screen.width : 0;
 
     /**
      * A `Number` variable that stores the height of the screen display.
@@ -4373,7 +4374,7 @@ var p5 = (function () {
      * @alt
      * This example does not render anything.
      */
-    fn.displayHeight = screen.height;
+    fn.displayHeight = isBrowser ? window.screen.height : 0;
 
     /**
      * A `Number` variable that stores the width of the browser's viewport.
@@ -4499,21 +4500,11 @@ var p5 = (function () {
     };
 
     function getWindowWidth() {
-      return (
-        window.innerWidth ||
-        (document.documentElement && document.documentElement.clientWidth) ||
-        (document.body && document.body.clientWidth) ||
-        0
-      );
+      return isBrowser ? document.documentElement.clientWidth : 0;
     }
 
     function getWindowHeight() {
-      return (
-        window.innerHeight ||
-        (document.documentElement && document.documentElement.clientHeight) ||
-        (document.body && document.body.clientHeight) ||
-        0
-      );
+      return isBrowser ? document.documentElement.clientHeight : 0;
     }
 
     /**
@@ -4573,7 +4564,6 @@ var p5 = (function () {
      * }
      */
     fn.fullscreen = function(val) {
-      // p5._validateParameters('fullscreen', arguments);
       // no arguments, return fullscreen or not
       if (typeof val === 'undefined') {
         return (
@@ -4644,7 +4634,6 @@ var p5 = (function () {
      * @returns {Number} current pixel density of the sketch.
      */
     fn.pixelDensity = function(val) {
-      // p5._validateParameters('pixelDensity', arguments);
       let returnValue;
       if (typeof val === 'number') {
         if (val !== this._renderer._pixelDensity) {
@@ -10152,8 +10141,6 @@ var p5 = (function () {
    * @module Color
    * @submodule Creating & Reading
    * @for p5
-   * @requires core
-   * @requires color_conversion
    */
 
 
@@ -10185,6 +10172,13 @@ var p5 = (function () {
     static colorMap = {};
     static #colorjsMaxes = {};
     static #grayscaleMap = {};
+
+    // This property is here where duck typing (checking if obj.isColor) needs
+    // to be used over more standard type checking (obj instanceof Color). This
+    // needs to happen where we are building multiple files, such as in p5.webgpu.js,
+    // where if we `import { Color }` directly, it will be a separate copy of the
+    // Color class from the one imported in the main p5.js bundle.
+    isColor = true;
 
     // Used to add additional color modes to p5.js
     // Uses underlying library's definition
@@ -10488,7 +10482,7 @@ var p5 = (function () {
      if (format === undefined && this._defaultStringValue !== undefined) {
         return this._defaultStringValue;
      }
-     
+
       let outputFormat = format;
       if (format === '#rrggbb') {
         outputFormat = 'hex';
@@ -10501,10 +10495,10 @@ var p5 = (function () {
         colorString = serialize(this._color, {
           format: outputFormat
         });
-        
+
         if (format === '#rrggbb') {
           colorString = String(colorString);
-          if (colorString.length === 4) { 
+          if (colorString.length === 4) {
               const r = colorString[1];
               const g = colorString[2];
               const b = colorString[3];
@@ -10676,7 +10670,7 @@ var p5 = (function () {
       const colorjsMax = Color.#colorjsMaxes[RGB][0];
       const newval = map(new_red, max[0], max[1], colorjsMax[0], colorjsMax[1]);
 
-      if(this.mode === RGB || this.mode === RGBHDR){
+      if(this.mode === RGB || this.mode === RGBP3){
         this._color.coords[0] = newval;
       }else {
         // Will do an imprecise conversion to 'srgb', not recommended
@@ -10728,7 +10722,7 @@ var p5 = (function () {
       const colorjsMax = Color.#colorjsMaxes[RGB][1];
       const newval = map(new_green, max[0], max[1], colorjsMax[0], colorjsMax[1]);
 
-      if(this.mode === RGB || this.mode === RGBHDR){
+      if(this.mode === RGB || this.mode === RGBP3){
         this._color.coords[1] = newval;
       }else {
         // Will do an imprecise conversion to 'srgb', not recommended
@@ -10780,7 +10774,7 @@ var p5 = (function () {
       const colorjsMax = Color.#colorjsMaxes[RGB][2];
       const newval = map(new_blue, max[0], max[1], colorjsMax[0], colorjsMax[1]);
 
-      if(this.mode === RGB || this.mode === RGBHDR){
+      if(this.mode === RGB || this.mode === RGBP3){
         this._color.coords[2] = newval;
       }else {
         // Will do an imprecise conversion to 'srgb', not recommended
@@ -10848,7 +10842,7 @@ var p5 = (function () {
         if(!Array.isArray(v)){
           return [0, v];
         }else {
-          return v
+          return v;
         }
       });
 
@@ -10872,7 +10866,7 @@ var p5 = (function () {
         max = [0, max];
       }
 
-      if(this.mode === RGB || this.mode === RGBHDR){
+      if(this.mode === RGB || this.mode === RGBP3){
         const colorjsMax = Color.#colorjsMaxes[this.mode][0];
         return map(
           this._color.coords[0],
@@ -10896,7 +10890,7 @@ var p5 = (function () {
         max = [0, max];
       }
 
-      if(this.mode === RGB || this.mode === RGBHDR){
+      if(this.mode === RGB || this.mode === RGBP3){
         const colorjsMax = Color.#colorjsMaxes[this.mode][1];
         return map(
           this._color.coords[1],
@@ -10915,7 +10909,7 @@ var p5 = (function () {
         max = [0, max];
       }
 
-      if(this.mode === RGB || this.mode === RGBHDR){
+      if(this.mode === RGB || this.mode === RGBP3){
         const colorjsMax = Color.#colorjsMaxes[this.mode][2];
         return map(
           this._color.coords[2],
@@ -11141,7 +11135,7 @@ var p5 = (function () {
 
     // Register color modes and initialize Color maxes to what p5 has set for itself
     p5.Color.addColorMode(RGB, sRGB);
-    p5.Color.addColorMode(RGBHDR, P3);
+    p5.Color.addColorMode(RGBP3, P3);
     p5.Color.addColorMode(HSB, HSBSpace);
     p5.Color.addColorMode(HSL, HSLSpace);
     p5.Color.addColorMode(HWB, HWBSpace);
@@ -11187,19 +11181,19 @@ var p5 = (function () {
 
       decorateGet('Red', {
         [RGB]: 0,
-        [RGBHDR]: 0
+        [RGBP3]: 0
       });
       decorateGet('Green', {
         [RGB]: 1,
-        [RGBHDR]: 1
+        [RGBP3]: 1
       });
       decorateGet('Blue', {
         [RGB]: 2,
-        [RGBHDR]: 2
+        [RGBP3]: 2
       });
       decorateGet('Alpha', {
         [RGB]: 3,
-        [RGBHDR]: 3,
+        [RGBP3]: 3,
         [HSB]: 3,
         [HSL]: 3,
         [HWB]: 3,
@@ -11237,8 +11231,6 @@ var p5 = (function () {
    * @module Color
    * @submodule Creating & Reading
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
 
@@ -11249,11 +11241,11 @@ var p5 = (function () {
    */
   const RGB = 'rgb';
   /**
-   * @typedef {'rgbhdr'} RGBHDR
-   * @property {RGBHDR} RGBHDR
+   * @typedef {'rgbp3'} RGBP3
+   * @property {RGBP3} RGBP3
    * @final
    */
-  const RGBHDR = 'rgbhdr';
+  const RGBP3 = 'rgbp3';
   /**
    * HSB (hue, saturation, brightness) is a type of color model.
    * You can learn more about it at
@@ -11309,7 +11301,7 @@ var p5 = (function () {
 
   function creatingReading(p5, fn){
     fn.RGB = RGB;
-    fn.RGBHDR = RGBHDR;
+    fn.RGBP3 = RGBP3;
     fn.HSB = HSB;
     fn.HSL = HSL;
     fn.HWB = HWB;
@@ -11326,7 +11318,7 @@ var p5 = (function () {
     p5.Renderer.states.colorMode = RGB;
     p5.Renderer.states.colorMaxes = {
       [RGB]: [255, 255, 255, 255],
-      [RGBHDR]: [255, 255, 255, 255],
+      [RGBP3]: [255, 255, 255, 255],
       [HSB]: [360, 100, 100, 1],
       [HSL]: [360, 100, 100, 1],
       [HWB]: [360, 100, 100, 1],
@@ -11369,13 +11361,7 @@ var p5 = (function () {
      * or HSLA colors, depending on the current `colorMode()`. The last parameter
      * sets the alpha (transparency) value.
      *
-     * @method color
-     * @param  {Number} gray number specifying value between white and black.
-     * @param  {Number} [alpha] alpha value relative to current color range
-     *                                 (default is 0-255).
-     * @return {p5.Color} resulting color.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11391,8 +11377,9 @@ var p5 = (function () {
      *
      *   describe('A yellow square on a gray canvas.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11417,8 +11404,9 @@ var p5 = (function () {
      *     'Two circles on a gray canvas. The circle in the top-left corner is yellow and the one at the bottom-right is gray.'
      *   );
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11434,8 +11422,9 @@ var p5 = (function () {
      *
      *   describe('A magenta square on a gray canvas.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11458,8 +11447,9 @@ var p5 = (function () {
      *
      *   describe('Two bright green rectangles on a gray canvas.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11495,8 +11485,9 @@ var p5 = (function () {
      *
      *   describe('Four blue squares in the corners of a gray canvas.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11519,8 +11510,9 @@ var p5 = (function () {
      *
      *   describe('Two sea green rectangles. A darker rectangle on the left and a brighter one on the right.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11543,8 +11535,9 @@ var p5 = (function () {
      *
      *   describe('Two green rectangles. A darker rectangle on the left and a brighter one on the right.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11569,6 +11562,47 @@ var p5 = (function () {
      *
      *   describe('Two blue rectangles. A darker rectangle on the left and a brighter one on the right.');
      * }
+     * ```
+     *
+     * p5.strands is an experimental mode for writing shader code with p5.js-like
+     * syntax instead of GLSL. In p5.strands shader callbacks, `color()` accepts
+     * the same input formats but returns a `vec4` instead of a `p5.Color`
+     * object, with RGBA components normalized to the 0–1 range. All colors in
+     * strands are RGB-based; `colorMode()` has no effect inside shader
+     * callbacks. Color utility functions such as `red()`, `green()`, `blue()`,
+     * `alpha()`, `hue()`, `saturation()`, `brightness()`, and `lightness()`
+     * also return values in the 0–1 range when used in strands.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   // Same syntax as regular sketch code...
+     *   let c = color(255, 0, 0);
+     *   // ...but c is a vec4 with normalized RGBA (0-1), not a p5.Color.
+     *   finalColor.set(c);
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A red sphere on a gray background.');
+     * }
+     * ```
+     *
+     * @method color
+     * @param  {Number} gray number specifying value between white and black.
+     * @param  {Number} [alpha] alpha value relative to current color range
+     *                                 (default is 0-255).
+     * @return {p5.Color} resulting color.
      */
     /**
      * @method color
@@ -11624,12 +11658,7 @@ var p5 = (function () {
      * to 255. If the <a href="/reference/p5/colorMode/">colorMode()</a> is set to RGB, it
      * returns the red value in the given range.
      *
-     * @method red
-     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
-     *                                         color components, or CSS color string.
-     * @return {Number} the red value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11652,8 +11681,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is red.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11676,8 +11706,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is red.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11700,8 +11731,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is red.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11727,6 +11759,40 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is red.');
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `red()` operates on `vec4` values and
+     * returns the red channel as a normalized value in the 0–1 range.
+     * `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c = color(200, 100, 50);
+     *   let r = red(c);
+     *   finalColor.set(vec4(r, 0, 0, 1.0));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A sphere colored using only its red channel.');
+     * }
+     * ```
+     *
+     * @method red
+     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
+     *                                         color components, or CSS color string.
+     * @return {Number} the red value.
      */
     fn.red = function(c) {
       // p5._validateParameters('red', arguments);
@@ -11745,12 +11811,7 @@ var p5 = (function () {
      * to 255. If the <a href="/reference/p5/colorMode/">colorMode()</a> is set to RGB, it
      * returns the green value in the given range.
      *
-     * @method green
-     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
-     *                                         color components, or CSS color string.
-     * @return {Number} the green value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11773,8 +11834,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is dark green.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11797,8 +11859,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is dark green.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11821,8 +11884,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is dark green.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11848,6 +11912,40 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is dark green.');
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `green()` operates on `vec4` values and
+     * returns the green channel as a normalized value in the 0–1 range.
+     * `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c = color(50, 200, 100);
+     *   let g = green(c);
+     *   finalColor.set(vec4(0, g, 0, 1.0));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A sphere colored using only its green channel.');
+     * }
+     * ```
+     *
+     * @method green
+     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
+     *                                         color components, or CSS color string.
+     * @return {Number} the green value.
      */
     fn.green = function(c) {
       // p5._validateParameters('green', arguments);
@@ -11866,12 +11964,7 @@ var p5 = (function () {
      * to 255. If the <a href="/reference/p5/colorMode/">colorMode()</a> is set to RGB, it
      * returns the blue value in the given range.
      *
-     * @method blue
-     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
-     *                                         color components, or CSS color string.
-     * @return {Number} the blue value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11894,8 +11987,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is royal blue.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11918,8 +12012,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is royal blue.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11942,8 +12037,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is royal blue.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -11969,6 +12065,40 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light purple and the right one is royal blue.');
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `blue()` operates on `vec4` values and
+     * returns the blue channel as a normalized value in the 0–1 range.
+     * `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c = color(50, 100, 200);
+     *   let b = blue(c);
+     *   finalColor.set(vec4(0, 0, b, 1.0));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A sphere colored using only its blue channel.');
+     * }
+     * ```
+     *
+     * @method blue
+     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
+     *                                         color components, or CSS color string.
+     * @return {Number} the blue value.
      */
     fn.blue = function(c) {
       // p5._validateParameters('blue', arguments);
@@ -11983,12 +12113,7 @@ var p5 = (function () {
      * <a href="#/p5.Color">p5.Color</a> object, an array of color components, or
      * a CSS color string.
      *
-     * @method alpha
-     * @param {p5.Color|Number[]|String} color <a href="#/p5.Color">p5.Color</a> object, array of
-     *                                         color components, or CSS color string.
-     * @return {Number} the alpha value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12011,8 +12136,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light blue and the right one is charcoal gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12035,8 +12161,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light blue and the right one is charcoal gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12059,6 +12186,40 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is light blue and the right one is charcoal gray.');
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `alpha()` operates on `vec4` values and
+     * returns the alpha channel as a normalized value in the 0–1 range.
+     * `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c = color(255, 0, 0, 128);
+     *   let a = alpha(c);
+     *   finalColor.set(vec4(1.0, 0, 0, a * 0.5));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A semi-transparent sphere.');
+     * }
+     * ```
+     *
+     * @method alpha
+     * @param {p5.Color|Number[]|String} color <a href="#/p5.Color">p5.Color</a> object, array of
+     *                                         color components, or CSS color string.
+     * @return {Number} the alpha value.
      */
     fn.alpha = function(c) {
       // p5._validateParameters('alpha', arguments);
@@ -12078,12 +12239,7 @@ var p5 = (function () {
      * <a href="/reference/p5/colorMode/">colorMode()</a> is set to HSB or HSL, it returns the hue
      * value in the given mode.
      *
-     * @method hue
-     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
-     *                                         color components, or CSS color string.
-     * @return {Number} the hue value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12111,8 +12267,9 @@ var p5 = (function () {
      *     'Two rectangles. The rectangle on the left is salmon pink and the one on the right is black.'
      *   );
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12140,8 +12297,9 @@ var p5 = (function () {
      *     'Two rectangles. The rectangle on the left is salmon pink and the one on the right is black.'
      *   );
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12169,6 +12327,40 @@ var p5 = (function () {
      *     'Two rectangles. The rectangle on the left is salmon pink and the one on the right is black.'
      *   );
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `hue()` operates on `vec4` values and
+     * returns the hue as a normalized value in the 0–1 range.
+     * `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c = color(0, 255, 128);
+     *   let h = hue(c);
+     *   finalColor.set(vec4(h, h, h, 1.0));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A sphere shaded in grayscale based on hue.');
+     * }
+     * ```
+     *
+     * @method hue
+     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
+     *                                         color components, or CSS color string.
+     * @return {Number} the hue value.
      */
     fn.hue = function(c) {
       let colorMode = HSL;
@@ -12204,12 +12396,7 @@ var p5 = (function () {
      * <a href="/reference/p5/colorMode/">colorMode()</a> is set to HSB or HSL, it returns the
      * saturation value in the given mode.
      *
-     * @method saturation
-     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
-     *                                         color components, or CSS color string.
-     * @return {Number} the saturation value
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12235,8 +12422,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is dark gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12262,8 +12450,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12289,8 +12478,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12316,8 +12506,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is white.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12343,6 +12534,40 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is white.');
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `saturation()` operates on `vec4` values
+     * and returns the saturation as a normalized value in the 0–1 range.
+     * `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c = color(255, 128, 128);
+     *   let s = saturation(c);
+     *   finalColor.set(vec4(s, s, s, 1.0));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A sphere shaded in grayscale based on saturation.');
+     * }
+     * ```
+     *
+     * @method saturation
+     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
+     *                                         color components, or CSS color string.
+     * @return {Number} the saturation value
      */
     fn.saturation = function(c) {
       const colorMode = (this._renderer.states.colorMode === HSB) ? HSB : HSL;
@@ -12362,12 +12587,7 @@ var p5 = (function () {
      * to 100. If the <a href="/reference/p5/colorMode/">colorMode()</a> is set to HSB, it
      * returns the brightness value in the given range.
      *
-     * @method brightness
-     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
-     *                                         color components, or CSS color string.
-     * @return {Number} the brightness value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12393,8 +12613,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is white.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12420,8 +12641,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is white.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12447,8 +12669,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is white.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12474,6 +12697,40 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is white.');
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `brightness()` operates on `vec4` values
+     * and returns the brightness as a normalized value in the 0–1 range.
+     * `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c = color(0, 50, 100);
+     *   let b = brightness(c);
+     *   finalColor.set(vec4(b, b, b, 1.0));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A sphere shaded in grayscale based on brightness.');
+     * }
+     * ```
+     *
+     * @method brightness
+     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
+     *                                         color components, or CSS color string.
+     * @return {Number} the brightness value.
      */
     fn.brightness = function(c) {
       return this.color(c)._getBrightness(
@@ -12492,12 +12749,7 @@ var p5 = (function () {
      * to 100. If the <a href="/reference/p5/colorMode/">colorMode()</a> is set to HSL, it
      * returns the lightness value in the given range.
      *
-     * @method lightness
-     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
-     *                                         color components, or CSS color string.
-     * @return {Number} the lightness value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12523,8 +12775,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12550,8 +12803,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12577,8 +12831,9 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12604,6 +12859,40 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The left one is salmon pink and the right one is gray.');
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `lightness()` operates on `vec4` values
+     * and returns the lightness as a normalized value in the 0–1 range.
+     * `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c = color(0, 100, 75);
+     *   let l = lightness(c);
+     *   finalColor.set(vec4(l, l, l, 1.0));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A sphere shaded in grayscale based on lightness.');
+     * }
+     * ```
+     *
+     * @method lightness
+     * @param {p5.Color|Number[]|String} color <a href="/reference/p5/p5.Color/">p5.Color</a> object, array of
+     *                                         color components, or CSS color string.
+     * @return {Number} the lightness value.
      */
     fn.lightness = function(c) {
       return this.color(c)._getLightness(
@@ -12624,13 +12913,7 @@ var p5 = (function () {
      * The way that colors are interpolated depends on the current
      * <a href="#/p5/colorMode">colorMode()</a>.
      *
-     * @method lerpColor
-     * @param  {p5.Color} c1  interpolate from this color.
-     * @param  {p5.Color} c2  interpolate to this color.
-     * @param  {Number}   amt number between 0 and 1.
-     * @return {p5.Color}     interpolated color.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -12665,6 +12948,42 @@ var p5 = (function () {
      *     'Four rectangles. From left to right, the rectangles are tan, brown, brownish purple, and purple.'
      *   );
      * }
+     * ```
+     *
+     * In p5.strands shader callbacks, `lerpColor()` interpolates between
+     * `vec4` colors and returns a normalized `vec4` with RGBA components in
+     * the 0–1 range. `colorMode()` has no effect inside shader callbacks.
+     *
+     * ```js example
+     * let myShader;
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildMaterialShader(myShaderBuilder);
+     * }
+     *
+     * function myShaderBuilder() {
+     *   finalColor.begin();
+     *   let c1 = color('red');
+     *   let c2 = color('blue');
+     *   let mixed = lerpColor(c1, c2, 0.5);
+     *   finalColor.set(mixed);
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(40);
+     *
+     *   describe('A purple sphere, a blend of red and blue.');
+     * }
+     * ```
+     *
+     * @method lerpColor
+     * @param  {p5.Color} c1  interpolate from this color.
+     * @param  {p5.Color} c2  interpolate to this color.
+     * @param  {Number}   amt number between 0 and 1.
+     * @return {p5.Color}     interpolated color.
      */
     fn.lerpColor = function(c1, c2, amt) {
       // p5._validateParameters('lerpColor', arguments);
@@ -12727,10 +13046,194 @@ var p5 = (function () {
     creatingReading(p5, p5.prototype);
   }
 
+  /////////////////////
+  // Enums for nodes //
+  /////////////////////
+  const NodeType = {
+    OPERATION: 'operation',
+    LITERAL: 'literal',
+    VARIABLE: 'variable',
+    CONSTANT: 'constant',
+    STRUCT: 'struct',
+    PHI: 'phi',
+    STATEMENT: 'statement',
+    ASSIGNMENT: 'assignment',
+  };
+  const INSTANCE_ID_VARYING_NAME = '_p5_instanceID';
+  const HOOK_PARAM_PREFIX = '_p5_param_';
+  const NodeTypeToName = Object.fromEntries(
+    Object.entries(NodeType).map(([key, val]) => [val, key])
+  );
+  const NodeTypeRequiredFields = {
+    [NodeType.OPERATION]: ["opCode", "dependsOn", "dimension", "baseType"],
+    [NodeType.LITERAL]: ["value", "dimension", "baseType"],
+    [NodeType.VARIABLE]: ["identifier", "dimension", "baseType"],
+    [NodeType.CONSTANT]: ["value", "dimension", "baseType"],
+    [NodeType.STRUCT]: [""],
+    [NodeType.PHI]: ["dependsOn", "phiBlocks", "dimension", "baseType"],
+    [NodeType.STATEMENT]: ["statementType"],
+    [NodeType.ASSIGNMENT]: ["dependsOn"]
+  };
+  const StatementType = {
+    DISCARD: 'discard',
+    BREAK: 'break',
+    EARLY_RETURN: 'early_return',
+    EXPRESSION: 'expression', // Used when we want to output a single expression as a statement, e.g. a for loop condition
+    EMPTY: 'empty', // Used for empty statements like ; in for loops
+  };
+  const BaseType = {
+    FLOAT: "float",
+    INT: "int",
+    BOOL: "bool",
+    MAT: "mat",
+    DEFER: "defer",
+    ASSIGN_ON_USE: "assign_on_use",
+    SAMPLER2D: "sampler2D",
+    SAMPLER: "sampler",
+  };
+  const BasePriority = {
+    [BaseType.FLOAT]: 3,
+    [BaseType.INT]: 2,
+    [BaseType.BOOL]: 1,
+    [BaseType.MAT]: 0,
+    [BaseType.DEFER]: -1,
+    [BaseType.ASSIGN_ON_USE]: -2,
+    [BaseType.SAMPLER2D]: -10,
+    [BaseType.SAMPLER]: -11,
+  };
+  const DataType = {
+    float1: { fnName: "float", baseType: BaseType.FLOAT, dimension:1, priority: 3,  },
+    float2: { fnName: "vec2", baseType: BaseType.FLOAT, dimension:2, priority: 3,  },
+    float3: { fnName: "vec3", baseType: BaseType.FLOAT, dimension:3, priority: 3,  },
+    float4: { fnName: "vec4", baseType: BaseType.FLOAT, dimension:4, priority: 3,  },
+    int1: { fnName: "int", baseType: BaseType.INT, dimension:1, priority: 2,  },
+    int2: { fnName: "ivec2", baseType: BaseType.INT, dimension:2, priority: 2,  },
+    int3: { fnName: "ivec3", baseType: BaseType.INT, dimension:3, priority: 2,  },
+    int4: { fnName: "ivec4", baseType: BaseType.INT, dimension:4, priority: 2,  },
+    bool1: { fnName: "bool", baseType: BaseType.BOOL, dimension:1, priority: 1,  },
+    bool2: { fnName: "bvec2", baseType: BaseType.BOOL, dimension:2, priority: 1,  },
+    bool3: { fnName: "bvec3", baseType: BaseType.BOOL, dimension:3, priority: 1,  },
+    bool4: { fnName: "bvec4", baseType: BaseType.BOOL, dimension:4, priority: 1,  },
+    mat2: { fnName: "mat2x2", baseType: BaseType.MAT, dimension:2, priority: 0,  },
+    mat3: { fnName: "mat3x3", baseType: BaseType.MAT, dimension:3, priority: 0,  },
+    mat4: { fnName: "mat4x4", baseType: BaseType.MAT, dimension:4, priority: 0,  },
+    defer: { fnName:  null, baseType: BaseType.DEFER, dimension: null, priority: -1 },
+    assign_on_use: { fnName: null, baseType: BaseType.ASSIGN_ON_USE, dimension: null, priority: -2 },
+    sampler2D: { fnName: "sampler2D", baseType: BaseType.SAMPLER2D, dimension: 1, priority: -10 },
+    sampler: { fnName: "sampler", baseType: BaseType.SAMPLER, dimension: 1, priority: -11 },
+  };
+  const structType = function (hookType) {
+    let T = hookType.type === undefined ? hookType : hookType.type;
+    const structType = {
+      name: hookType.name,
+      properties: [],
+      typeName: T.typeName,
+    };
+    // TODO: handle struct properties that are themselves structs
+    for (const prop of T.properties) {
+      const propType = prop.type.dataType;
+      structType.properties.push(
+        {name: prop.name, dataType: propType }
+      );
+    }
+    return structType;
+  };
+  function isStructType(typeInfo) {
+    return !!(typeInfo && typeInfo.properties);
+  }
+  const GenType = {
+    FLOAT: { baseType: BaseType.FLOAT, dimension: null, priority: 3 },
+    INT: { baseType: BaseType.INT, dimension: null, priority: 2 },
+    BOOL: { baseType: BaseType.BOOL, dimension: null, priority: 1 },
+  };
+  function typeEquals(nodeA, nodeB) {
+    return (nodeA.dimension === nodeB.dimension) && (nodeA.baseType === nodeB.baseType);
+  }
+  const TypeInfoFromGLSLName = Object.fromEntries(
+    Object.values(DataType)
+      .filter(info => info.fnName !== null)
+      .map(info => [info.fnName, info])
+  );
+  const OpCode = {
+    Binary: {
+      ADD: 0,
+      SUBTRACT: 1,
+      MULTIPLY: 2,
+      DIVIDE: 3,
+      MODULO: 4,
+      EQUAL: 5,
+      NOT_EQUAL: 6,
+      GREATER_THAN: 7,
+      GREATER_EQUAL: 8,
+      LESS_THAN: 9,
+      LESS_EQUAL: 10,
+      LOGICAL_AND: 11,
+      LOGICAL_OR: 12,
+      MEMBER_ACCESS: 13,
+      ARRAY_ACCESS: 14,
+    },
+    Unary: {
+      LOGICAL_NOT: 100,
+      NEGATE: 101,
+      PLUS: 102,
+      SWIZZLE: 103,
+    },
+    Nary: {
+      FUNCTION_CALL: 200,
+      CONSTRUCTOR: 201,
+      TERNARY: 202}};
+  const OperatorTable = [
+    { arity: "unary", boolean: true, name: "not", symbol: "!", opCode: OpCode.Unary.LOGICAL_NOT },
+    { arity: "unary", name: "neg", symbol: "-", opCode: OpCode.Unary.NEGATE },
+    { arity: "unary", name: "plus", symbol: "+", opCode: OpCode.Unary.PLUS },
+    { arity: "binary", name: "add", symbol: "+", opCode: OpCode.Binary.ADD },
+    { arity: "binary", name: "sub", symbol: "-", opCode: OpCode.Binary.SUBTRACT },
+    { arity: "binary", name: "mult", symbol: "*", opCode: OpCode.Binary.MULTIPLY },
+    { arity: "binary", name: "div", symbol: "/", opCode: OpCode.Binary.DIVIDE },
+    { arity: "binary", name: "mod", symbol: "%", opCode: OpCode.Binary.MODULO },
+    { arity: "binary", boolean: true, name: "equalTo", symbol: "==", opCode: OpCode.Binary.EQUAL },
+    { arity: "binary", boolean: true, name: "notEqual", symbol: "!=", opCode: OpCode.Binary.NOT_EQUAL },
+    { arity: "binary", boolean: true, name: "greaterThan", symbol: ">", opCode: OpCode.Binary.GREATER_THAN },
+    { arity: "binary", boolean: true, name: "greaterEqual", symbol: ">=", opCode: OpCode.Binary.GREATER_EQUAL },
+    { arity: "binary", boolean: true, name: "lessThan", symbol: "<", opCode: OpCode.Binary.LESS_THAN },
+    { arity: "binary", boolean: true, name: "lessEqual", symbol: "<=", opCode: OpCode.Binary.LESS_EQUAL },
+    { arity: "binary", boolean: true, name: "and", symbol: "&&", opCode: OpCode.Binary.LOGICAL_AND },
+    { arity: "binary", boolean: true, name: "or", symbol: "||", opCode: OpCode.Binary.LOGICAL_OR },
+  ];
+  // export const SymbolToOpCode = {};
+  const OpCodeToSymbol = {};
+  const UnarySymbolToName = {};
+  const booleanOpCode = {};
+  for (const { symbol, opCode, name, arity, boolean } of OperatorTable) {
+    // SymbolToOpCode[symbol] = opCode;
+    OpCodeToSymbol[opCode] = symbol;
+    if (arity === 'unary') {
+      UnarySymbolToName[symbol] = name;
+    }
+    if (boolean) {
+      booleanOpCode[opCode] = true;
+    }
+  }
+  const BlockType = {
+    GLOBAL: 'global',
+    FUNCTION: 'function',
+    BRANCH: 'branch',
+    IF_COND: 'if_cond',
+    IF_BODY: 'if_body',
+    ELSE_COND: 'else_cond',
+    SCOPE_START: 'scope_start',
+    SCOPE_END: 'scope_end',
+    FOR: 'for',
+    MERGE: 'merge',
+    DEFAULT: 'default',
+  };
+  Object.fromEntries(
+    Object.entries(BlockType).map(([key, val]) => [val, key])
+  );
+
   /**
    * @module IO
    * @submodule Input
-   * @requires core
    */
 
   class XML {
@@ -17354,13 +17857,10 @@ var p5 = (function () {
   /**
    * @module Image
    * @submodule Image
-   * @requires core
-   * @requires constants
-   * @requires filters
    */
 
 
-  class Image {
+  let Image$1 = class Image {
     constructor(width, height) {
       this.width = width;
       this.height = height;
@@ -17376,6 +17876,9 @@ var p5 = (function () {
       this._modified = false;
       this.pixels = [];
     }
+
+    // This will get overwritten when exported as part of p5.
+    _friendlyError(_e) {}
 
     /**
      * Gets or sets the pixel density for high pixel density displays.
@@ -18946,7 +19449,7 @@ var p5 = (function () {
           props.displayIndex = index;
           this.drawingContext.putImageData(props.frames[index].image, 0, 0);
         } else {
-          p5._friendlyError(
+          this._friendlyError(
             'Cannot set GIF to a frame number that is higher than total number of frames or below zero.',
             'setFrame'
           );
@@ -19140,7 +19643,7 @@ var p5 = (function () {
         }
       }
     }
-  }
+  };
   function encodeAndDownloadGif(pImg, filename) {
     const props = pImg.gifProperties;
 
@@ -19442,7 +19945,9 @@ var p5 = (function () {
      * @param {Number} width
      * @param {Number} height
      */
-    p5.Image = Image;
+    p5.Image = Image$1;
+
+    Image$1.prototype._friendlyError = p5._friendlyError;
 
     /**
      * The image's width in pixels.
@@ -19608,89 +20113,126 @@ var p5 = (function () {
 
   /**
    * @module Math
-   * @requires constants
    */
 
 
-  /// HELPERS FOR REMAINDER METHOD
-  const calculateRemainder2D = function (xComponent, yComponent) {
-    if (xComponent !== 0) {
-      this.x = this.x % xComponent;
+  /**
+   * @private
+   * This function is used by binary vector operations to prioritize shorter vectors,
+   * and to emit a warning when lengths do not match.
+   */
+  const prioritizeSmallerDimension = function (currentVectorDimension, args) {
+    const resultDimension = Math.min(currentVectorDimension, args.length);
+    if (Array.isArray(args) && currentVectorDimension !== args.length) {
+      console.warn(
+        'When working with two vectors of different sizes, the smaller dimension is used. In this operation, both vector will be treated as ' + resultDimension + 'D vectors, and any additional values of the linger vector will be ignored.'
+      );
     }
-    if (yComponent !== 0) {
-      this.y = this.y % yComponent;
-    }
-    return this;
+    return resultDimension;
   };
 
-  const calculateRemainder3D = function (xComponent, yComponent, zComponent) {
-    if (xComponent !== 0) {
-      this.x = this.x % xComponent;
+  /**
+   * @private
+   * In-place, shrinks an array to a dimension.
+   */
+  const shrinkToDimension = function(arr, dim) {
+    while (arr.length > dim) {
+      arr.pop();
     }
-    if (yComponent !== 0) {
-      this.y = this.y % yComponent;
-    }
-    if (zComponent !== 0) {
-      this.z = this.z % zComponent;
-    }
-    return this;
   };
+
 
   class Vector {
-    // This is how it comes in with createVector()
-    // This check if the first argument is a function
-    constructor(...args) {
-      let values = args; // .map(arg => arg || 0);
-      if (typeof args[0] === 'function') {
-        this.isPInst = true;
-        this._fromRadians = args[0];
-        this._toRadians = args[1];
-        values = args.slice(2); // .map(arg => arg || 0);
-      }
-      let dimensions = values.length; // TODO: make default 3 if no arguments
-      if (dimensions === 0) {
-        this.dimensions = 2;
-        this._values = [0, 0, 0];
-      } else {
-        this.dimensions = dimensions;
-        this._values = values;
-      }
-    }
-
     /**
-     * Gets the values of the N-dimensional vector.
+     * The values of an N-dimensional vector.
      *
-     * This method returns an array of numbers that represent the vector.
+     * This array of numbers that represents the vector.
      * Each number in the array corresponds to a different component of the vector,
      * like its position in different directions (e.g., x, y, z).
      *
-     * @returns {Array<number>} The array of values representing the vector.
+     * You can update the values of the entire vector to a new set of values.
+     * You need to provide an array of numbers, where each number represents a component
+     * of the vector (e.g., x, y, z). The length of the array will become the number of
+     * dimensions of the vector.
+     *
+     * You can add (`add()`), multiply (`mult()`), divide (`div()`), and subtract (`sub()`)
+     * vectors from each other, and calculate remainder (`rem()`). Only use these functions
+     * on vectors when they are the same size: both 2-dimensional, or both 3-dimensional.
+     * When an operation uses two vectors of different sizes, the smaller dimension will be
+     * used, any additional values of the longer vector will be ignored.
+     *
+     * You can multiply, divide, or calculate remainder of a vector with a single number. Then,
+     * the same operation will be done on each element of the vector.
+     *
+     * @type {Array<number>} The array of values representing the vector.
+     * @throws Will throw an error if provided no arguments, or if the arguments
+     *         are not all finity numbers
      */
-    get values() {
-      return this._values;
-    }
+    values = [];
 
     /**
-     * Sets the values of the vector.
-     *
-     * This method allows you to update the entire vector with a new set of values.
-     * You need to provide an array of numbers, where each number represents a component
-     * of the vector (e.g., x, y, z). The length of the array should match the number of
-     * dimensions of the vector. If the array is shorter, the missing components will be
-     * set to 0. If the array is longer, the extra values will be ignored.
-     *
-     * @param {Array<number>} newValues - An array of numbers representing the new values for the vector.
-     *
+     * @private
+     * Check for disabled friendly errors.
+     * This is overridden in the addon function to check the p5 instance.
      */
-    set values(newValues) {
-      let dimensions = newValues.length;
-      if (dimensions === 0) {
-        this.dimensions = 2;
-        this._values = [0, 0, 0];
-      } else {
-        this.dimensions = dimensions;
-        this._values = newValues.slice();
+    static friendlyErrorsDisabled() {
+      return true;
+    }
+
+    // This is how it comes in with createVector()
+    // This check if the first argument is a function
+    constructor(...args) {
+
+      if (args.length === 0) {
+        this._friendlyError(
+          'Requires valid arguments.', 'p5.Vector'
+        );
       }
+
+      if (typeof args[0] === 'function') {
+        this.isPInst = true;
+        this._fromRadians = args.shift();
+        this._toRadians = args.shift();
+      }
+
+      this.values = args;
+      if (Array.isArray(args)) {
+        for (let i = 0; i < args.length; i++) {
+          const v = args[i];
+          if (typeof v !== 'number' || !Number.isFinite(v)) {
+            if (!Vector.friendlyErrorsDisabled()) {
+              this._friendlyError(
+                'Arguments contain non-finite numbers',
+                'p5.Vector'
+              );
+            }
+            this.values = [];
+            break;
+          }
+        }
+      } else {
+        this.values = [];
+      }
+
+      // This property is here where duck typing (checking if obj.isVector) needs
+      // to be used over more standard type checking (obj instanceof Vector). This
+      // needs to happen where we are building multiple files, such as in p5.webgpu.js,
+      // where if we `import { Vector }` directly, it will be a separate copy of the
+      // Vector class from the one imported in the main p5.js bundle.
+      this.isVector = true;
+    }
+
+    // This will get overwritten when exported as part of p5.
+    _friendlyError(_e) {}
+
+
+    /**
+     * Gets how many dimensions the vector has.
+     *
+     * @returns {Number} The number of dimensions. Can be 1, 2, or 3.
+     */
+    get dimensions(){
+      return this.values.length;
     }
 
     /**
@@ -19703,7 +20245,7 @@ var p5 = (function () {
      * @returns {Number} The x component of the vector. Returns 0 if the value is not defined.
      */
     get x() {
-      return this._values[0] || 0;
+      return this.values[0] || 0;
     }
 
     /**
@@ -19724,10 +20266,10 @@ var p5 = (function () {
      *          get a value from a position that doesn't exist in the vector.
      */
     getValue(index) {
-      if (index < this._values.length) {
-        return this._values[index];
+      if (index < this.values.length) {
+        return this.values[index];
       } else {
-        p5._friendlyError(
+        this._friendlyError(
           'The index parameter is trying to set a value outside the bounds of the vector',
           'p5.Vector.setValue'
         );
@@ -19749,10 +20291,10 @@ var p5 = (function () {
      * @throws Will throw an error if the index is outside the bounds of the vector, meaning if you try to set a value at a position that doesn't exist in the vector.
      */
     setValue(index, value) {
-      if (index < this._values.length) {
-        this._values[index] = value;
+      if (index < this.values.length) {
+        this.values[index] = value;
       } else {
-        p5._friendlyError(
+        this._friendlyError(
           'The index parameter is trying to set a value outside the bounds of the vector',
           'p5.Vector.setValue'
         );
@@ -19769,7 +20311,7 @@ var p5 = (function () {
      * @returns {Number} The y component of the vector. Returns 0 if the value is not defined.
      */
     get y() {
-      return this._values[1] || 0;
+      return this.values[1] || 0;
     }
 
     /**
@@ -19782,7 +20324,7 @@ var p5 = (function () {
      * @returns {Number} The z component of the vector. Returns 0 if the value is not defined.
      */
     get z() {
-      return this._values[2] || 0;
+      return this.values[2] || 0;
     }
 
     /**
@@ -19795,7 +20337,7 @@ var p5 = (function () {
      * @returns {Number} The w component of the vector. Returns 0 if the value is not defined.
      */
     get w() {
-      return this._values[3] || 0;
+      return this.values[3] || 0;
     }
 
     /**
@@ -19808,8 +20350,8 @@ var p5 = (function () {
      * @param {Number} xVal - The new value for the x component.
      */
     set x(xVal) {
-      if (this._values.length > 1) {
-        this._values[0] = xVal;
+      if (this.values.length > 1) {
+        this.values[0] = xVal;
       }
     }
 
@@ -19823,8 +20365,8 @@ var p5 = (function () {
      * @param {Number} yVal - The new value for the y component.
      */
     set y(yVal) {
-      if (this._values.length > 1) {
-        this._values[1] = yVal;
+      if (this.values.length > 1) {
+        this.values[1] = yVal;
       }
     }
 
@@ -19838,8 +20380,8 @@ var p5 = (function () {
      * @param {Number} zVal - The new value for the z component.
      */
     set z(zVal) {
-      if (this._values.length > 2) {
-        this._values[2] = zVal;
+      if (this.values.length > 2) {
+        this.values[2] = zVal;
       }
     }
 
@@ -19853,8 +20395,8 @@ var p5 = (function () {
      * @param {Number} wVal - The new value for the w component.
      */
     set w(wVal) {
-      if (this._values.length > 3) {
-        this._values[3] = wVal;
+      if (this.values.length > 3) {
+        this.values[3] = wVal;
       }
     }
 
@@ -19876,20 +20418,15 @@ var p5 = (function () {
      * }
      */
     toString() {
-      return `vector[${this._values.join(', ')}]`;
+      return `vector[${this.values.join(', ')}]`;
     }
 
     /**
-     * Sets the vector's `x`, `y`, and `z` components.
+     * Sets the the vector to a new value.
      *
      * `set()` can use separate numbers, as in `v.set(1, 2, 3)`, a
      * <a href="#/p5.Vector">p5.Vector</a> object, as in `v.set(v2)`, or an
      * array of numbers, as in `v.set([1, 2, 3])`.
-     *
-     * If a value isn't provided for a component, it will be set to 0. For
-     * example, `v.set(4, 5)` sets `v.x` to 4, `v.y` to 5, and `v.z` to 0.
-     * Calling `set()` with no arguments, as in `v.set()`, sets all the vector's
-     * components to 0.
      *
      * @param {Number} [x] x component of the vector.
      * @param {Number} [y] y component of the vector.
@@ -19934,13 +20471,12 @@ var p5 = (function () {
      */
     set(...args) {
       if (args[0] instanceof Vector) {
-        this._values = args[0].values.slice();
+        this.values = args[0].values.slice();
       } else if (Array.isArray(args[0])) {
-        this._values = args[0].map(arg => arg || 0);
+        this.values = args[0].map(arg => arg || 0);
       } else {
-        this._values = args.map(arg => arg || 0);
+        this.values = args.map(arg => arg || 0);
       }
-      this.dimensions = this._values.length;
       return this;
     }
 
@@ -19970,9 +20506,9 @@ var p5 = (function () {
      */
     copy() {
       if (this.isPInst) {
-        return new Vector(this._fromRadians, this._toRadians, ...this._values);
+        return new Vector(this._fromRadians, this._toRadians, ...this.values);
       } else {
-        return new Vector(...this._values);
+        return new Vector(...this.values);
       }
     }
 
@@ -19983,8 +20519,11 @@ var p5 = (function () {
      * another <a href="#/p5.Vector">p5.Vector</a> object, as in `v.add(v2)`, or
      * an array of numbers, as in `v.add([1, 2, 3])`.
      *
-     * If a value isn't provided for a component, it won't change. For
-     * example, `v.add(4, 5)` adds 4 to `v.x`, 5 to `v.y`, and 0 to `v.z`.
+     * You should add vectors only when they are the same size. When two vectors
+     * of different sizes are added, the smaller dimension will be used, any
+     * additional values of the longer vector will be ignored. For example,
+     * adding `[1, 2, 3]` and `[4, 5]` will result in `[5, 7]`.
+     *
      * Calling `add()` with no arguments, as in `v.add()`, has no effect.
      *
      * This method supports N-dimensional vectors.
@@ -20100,30 +20639,32 @@ var p5 = (function () {
      * @param  {p5.Vector|Number[]} value The vector to add
      * @chainable
      */
-    add(...args) {
-      if (args[0] instanceof Vector) {
-        args = args[0].values;
-      } else if (Array.isArray(args[0])) {
-        args = args[0];
+    add(args) {
+      const minDimension = prioritizeSmallerDimension(this.dimensions, args);
+      shrinkToDimension(this.values, minDimension);
+
+      for (let i = 0; i < this.values.length; i++) {
+        this.values[i] += args[i];
       }
-      args.forEach((value, index) => {
-        this._values[index] = (this._values[index] || 0) + (value || 0);
-      });
+
       return this;
     }
 
     /**
-     * Performs modulo (remainder) division with a vector's `x`, `y`, and `z`
-     * components.
+     * Performs modulo (remainder) division with a vector's components.
      *
      * `rem()` can use separate numbers, as in `v.rem(1, 2, 3)`,
      * another <a href="#/p5.Vector">p5.Vector</a> object, as in `v.rem(v2)`, or
      * an array of numbers, as in `v.rem([1, 2, 3])`.
      *
      * If only one value is provided, as in `v.rem(2)`, then all the components
-     * will be set to their values modulo 2. If two values are provided, as in
-     * `v.rem(2, 3)`, then `v.z` won't change. Calling `rem()` with no
+     * will be set to their values modulo 2. Calling `rem()` with no
      * arguments, as in `v.rem()`, has no effect.
+     *
+     * You should modulo vectors only when they are the same size. When two
+     * vectors of different sizes are used, the smaller dimension will be
+     * used, any additional values of the longer vector will be ignored.
+     * For example, taking `[3, 6, 9]` modulo `[2, 4]` will result in `[1, 2]`.
      *
      * The static version of `rem()`, as in `p5.Vector.rem(v2, v1)`, returns a
      * new <a href="#/p5.Vector">p5.Vector</a> object and doesn't change the
@@ -20209,7 +20750,7 @@ var p5 = (function () {
      *   let v2 = createVector(2, 3, 4);
      *
      *   // Divide without modifying the original vectors.
-     *   let v3 = p5.Vector.rem(v1, v2);
+     *  let v3 = p5.Vector.rem(v1, v2);
      *
      *   // Prints 'p5.Vector Object : [1, 1, 1]'.
      *   print(v3.toString());
@@ -20219,71 +20760,39 @@ var p5 = (function () {
      * @param {p5.Vector | Number[]}  value  divisor vector.
      * @chainable
      */
-    rem(x, y, z) {
-      if (x instanceof Vector) {
-        if ([x.x, x.y, x.z].every(Number.isFinite)) {
-          const xComponent = parseFloat(x.x);
-          const yComponent = parseFloat(x.y);
-          const zComponent = parseFloat(x.z);
-          return calculateRemainder3D.call(
-            this,
-            xComponent,
-            yComponent,
-            zComponent
-          );
-        }
-      } else if (Array.isArray(x)) {
-        if (x.every(element => Number.isFinite(element))) {
-          if (x.length === 2) {
-            return calculateRemainder2D.call(this, x[0], x[1]);
-          }
-          if (x.length === 3) {
-            return calculateRemainder3D.call(this, x[0], x[1], x[2]);
+    rem(args) {
+      const minDimension = prioritizeSmallerDimension(this.dimensions, args);
+
+      shrinkToDimension(this.values, minDimension);
+
+      if(Array.isArray(args)){
+        for (let i = 0; i < this.values.length; i++) {
+          if (args[i] > 0) {
+            this.values[i] = this.values[i] % args[i];
           }
         }
-      } else if (arguments.length === 1) {
-        if (Number.isFinite(arguments[0]) && arguments[0] !== 0) {
-          this.x = this.x % arguments[0];
-          this.y = this.y % arguments[0];
-          this.z = this.z % arguments[0];
-          return this;
-        }
-      } else if (arguments.length === 2) {
-        const vectorComponents = [...arguments];
-        if (vectorComponents.every(element => Number.isFinite(element))) {
-          if (vectorComponents.length === 2) {
-            return calculateRemainder2D.call(
-              this,
-              vectorComponents[0],
-              vectorComponents[1]
-            );
-          }
-        }
-      } else if (arguments.length === 3) {
-        const vectorComponents = [...arguments];
-        if (vectorComponents.every(element => Number.isFinite(element))) {
-          if (vectorComponents.length === 3) {
-            return calculateRemainder3D.call(
-              this,
-              vectorComponents[0],
-              vectorComponents[1],
-              vectorComponents[2]
-            );
-          }
+      } else if(args > 0) {
+        for (let i = 0; i < this.values.length; i++) {
+          this.values[i] = this.values[i] % args;
         }
       }
+
+      return this;
     }
 
     /**
-     * Subtracts from a vector's `x`, `y`, and `z` components.
+     * Subtracts from a vector's components.
      *
      * `sub()` can use separate numbers, as in `v.sub(1, 2, 3)`, another
      * <a href="#/p5.Vector">p5.Vector</a> object, as in `v.sub(v2)`, or an array
      * of numbers, as in `v.sub([1, 2, 3])`.
      *
-     * If a value isn't provided for a component, it won't change. For
-     * example, `v.sub(4, 5)` subtracts 4 from `v.x`, 5 from `v.y`, and 0 from `v.z`.
      * Calling `sub()` with no arguments, as in `v.sub()`, has no effect.
+     *
+     * You should subtract vectors only when they are the same size. When two
+     * vectors of different sizes are used, the smaller dimension will be
+     * used, any additional values of the longer vector will be ignored.
+     * For example, subtracting `[1, 2]` from `[3, 5, 7]` will result in `[2, 3]`.
      *
      * The static version of `sub()`, as in `p5.Vector.sub(v2, v1)`, returns a new
      * <a href="#/p5.Vector">p5.Vector</a> object and doesn't change the
@@ -20393,35 +20902,32 @@ var p5 = (function () {
      * @param  {p5.Vector|Number[]} value the vector to subtract
      * @chainable
      */
-    sub(...args) {
-      if (args[0] instanceof Vector) {
-        args[0].values.forEach((value, index) => {
-          this._values[index] -= value || 0;
-        });
-      } else if (Array.isArray(args[0])) {
-        args[0].forEach((value, index) => {
-          this._values[index] -= value || 0;
-        });
-      } else {
-        args.forEach((value, index) => {
-          this._values[index] -= value || 0;
-        });
+    sub(args) {
+      const minDimension = prioritizeSmallerDimension(this.dimensions, args);
+      shrinkToDimension(this.values, minDimension);
+
+      for (let i = 0; i < this.values.length; i++) {
+        this.values[i] -= args[i];
       }
+
       return this;
     }
 
     /**
-     * Multiplies a vector's `x`, `y`, and `z` components.
+     * Multiplies a vector's components.
      *
      * `mult()` can use separate numbers, as in `v.mult(1, 2, 3)`, another
      * <a href="#/p5.Vector">p5.Vector</a> object, as in `v.mult(v2)`, or an array
      * of numbers, as in `v.mult([1, 2, 3])`.
      *
      * If only one value is provided, as in `v.mult(2)`, then all the components
-     * will be multiplied by 2. If a value isn't provided for a component, it
-     * won't change. For example, `v.mult(4, 5)` multiplies `v.x` by, `v.y` by 5,
-     * and `v.z` by 1. Calling `mult()` with no arguments, as in `v.mult()`, has
+     * will be multiplied by 2. Calling `mult()` with no arguments, as in `v.mult()`, has
      * no effect.
+     *
+     * You should multiply vectors only when they are the same size. When two
+     * vectors of different sizes are multiplied, the smaller dimension will be
+     * used, any additional values of the longer vector will be ignored.
+     * For example, multiplying `[1, 2, 3]` by `[4, 5]` will result in `[4, 10]`.
      *
      * The static version of `mult()`, as in `p5.Vector.mult(v, 2)`, returns a new
      * <a href="#/p5.Vector">p5.Vector</a> object and doesn't change the
@@ -20584,59 +21090,38 @@ var p5 = (function () {
      * @param  {p5.Vector} v vector to multiply with the components of the original vector.
      * @chainable
      */
-    mult(...args) {
-      if (args.length === 1 && args[0] instanceof Vector) {
-        const v = args[0];
-        const maxLen = Math.min(this._values.length, v.values.length);
-        for (let i = 0; i < maxLen; i++) {
-          if (Number.isFinite(v.values[i]) && typeof v.values[i] === 'number') {
-            this._values[i] *= v.values[i];
-          } else {
-            console.warn(
-              'p5.Vector.prototype.mult:',
-              'v contains components that are either undefined or not finite numbers'
-            );
-            return this;
-          }
+    mult(args) {
+      const minDimension = prioritizeSmallerDimension(this.dimensions, args);
+      shrinkToDimension(this.values, minDimension);
+
+      if(Array.isArray(args)){
+        for (let i = 0; i < this.values.length; i++) {
+          this.values[i] *= args[i];
         }
-      } else if (args.length === 1 && Array.isArray(args[0])) {
-        const arr = args[0];
-        const maxLen = Math.min(this._values.length, arr.length);
-        for (let i = 0; i < maxLen; i++) {
-          if (Number.isFinite(arr[i]) && typeof arr[i] === 'number') {
-            this._values[i] *= arr[i];
-          } else {
-            console.warn(
-              'p5.Vector.prototype.mult:',
-              'arr contains elements that are either undefined or not finite numbers'
-            );
-            return this;
-          }
-        }
-      } else if (
-        args.length === 1 &&
-        typeof args[0] === 'number' &&
-        Number.isFinite(args[0])
-      ) {
-        for (let i = 0; i < this._values.length; i++) {
-          this._values[i] *= args[0];
+      } else {
+        for (let i = 0; i < this.values.length; i++) {
+          this.values[i] *= args;
         }
       }
+
       return this;
     }
 
     /**
-     * Divides a vector's `x`, `y`, and `z` components.
+     * Divides a vector's components.
      *
      * `div()` can use separate numbers, as in `v.div(1, 2, 3)`, another
      * <a href="#/p5.Vector">p5.Vector</a> object, as in `v.div(v2)`, or an array
      * of numbers, as in `v.div([1, 2, 3])`.
      *
      * If only one value is provided, as in `v.div(2)`, then all the components
-     * will be divided by 2. If a value isn't provided for a component, it
-     * won't change. For example, `v.div(4, 5)` divides `v.x` by, `v.y` by 5,
-     * and `v.z` by 1. Calling `div()` with no arguments, as in `v.div()`, has
+     * will be divided by 2. Calling `div()` with no arguments, as in `v.div()`, has
      * no effect.
+     *
+     * You should divide vectors only when they are the same size. When two
+     * vectors of different sizes are divided, the smaller dimension will be
+     * used, any additional values of the longer vector will be ignored.
+     * For example, dividing `[8, 12, 21]` by `[2, 3]` will result in `[4, 4]`.
      *
      * The static version of `div()`, as in `p5.Vector.div(v, 2)`, returns a new
      * <a href="#/p5.Vector">p5.Vector</a> object and doesn't change the
@@ -20800,57 +21285,41 @@ var p5 = (function () {
      * @param  {p5.Vector} v vector to divide the components of the original vector by.
      * @chainable
      */
-    div(...args) {
-      if (args.length === 0) return this;
-      if (args.length === 1 && args[0] instanceof Vector) {
-        const v = args[0];
-        if (
-          v._values.every(
-            val => Number.isFinite(val) && typeof val === 'number'
-          )
-        ) {
-          if (v._values.some(val => val === 0)) {
-            console.warn('p5.Vector.prototype.div:', 'divide by 0');
+    div(args) {
+      const minDimension = prioritizeSmallerDimension(this.dimensions, args);
+
+      if (Array.isArray(args)) {
+        for (let i = 0; i < minDimension; i++) {
+          if ((typeof args[i] !== 'number' || args[i] === 0)) {
+            if (!this.friendlyErrorsDisabled()) {
+              console.warn(
+                'p5.Vector.prototype.div',
+                'Arguments contain components that are 0'
+              );
+            }
             return this;
           }
-          this._values = this._values.map((val, i) => val / v._values[i]);
-        } else {
+        }
+      } else if(typeof args !== 'number' || args === 0) {
+        if (!this.friendlyErrorsDisabled()) {
           console.warn(
-            'p5.Vector.prototype.div:',
-            'vector contains components that are either undefined or not finite numbers'
+            'p5.Vector.prototype.div',
+            'Arguments contain components that are 0'
           );
         }
         return this;
       }
 
-      if (args.length === 1 && Array.isArray(args[0])) {
-        const arr = args[0];
-        if (arr.every(val => Number.isFinite(val) && typeof val === 'number')) {
-          if (arr.some(val => val === 0)) {
-            console.warn('p5.Vector.prototype.div:', 'divide by 0');
-            return this;
-          }
-          this._values = this._values.map((val, i) => val / arr[i]);
-        } else {
-          console.warn(
-            'p5.Vector.prototype.div:',
-            'array contains components that are either undefined or not finite numbers'
-          );
-        }
-        return this;
-      }
+      shrinkToDimension(this.values, minDimension);
 
-      if (args.every(val => Number.isFinite(val) && typeof val === 'number')) {
-        if (args.some(val => val === 0)) {
-          console.warn('p5.Vector.prototype.div:', 'divide by 0');
-          return this;
+      if(Array.isArray(args)){
+        for (let i = 0; i < this.values.length; i++) {
+          this.values[i] /= args[i];
         }
-        this._values = this._values.map((val, i) => val / args[0]);
       } else {
-        console.warn(
-          'p5.Vector.prototype.div:',
-          'arguments contain components that are either undefined or not finite numbers'
-        );
+        for (let i = 0; i < this.values.length; i++) {
+          this.values[i] /= args;
+        }
       }
 
       return this;
@@ -20888,7 +21357,12 @@ var p5 = (function () {
      * }
      */
     mag() {
-      return Math.sqrt(this.magSq());
+      let sum = 0;
+      for (let i = 0; i < this.values.length; i++) {
+        const component = this.values[i];
+        sum += component * component;
+      }
+      return Math.sqrt(sum);
     }
 
     /**
@@ -20904,7 +21378,8 @@ var p5 = (function () {
      *   // Create a p5.Vector object.
      *   let p = createVector(30, 40);
      *
-     *   // Draw a line from the origin.
+     *   // Draw a line from th
+     * e origin.
      *   line(0, 0, p.x, p.y);
      *
      *   // Style the text.
@@ -20919,10 +21394,12 @@ var p5 = (function () {
      * }
      */
     magSq() {
-      return this._values.reduce(
-        (sum, component) => sum + component * component,
-        0
-      );
+      let sum = 0;
+      for (let i = 0; i < this.values.length; i++) {
+        const component = this.values[i];
+        sum += component * component;
+      }
+      return sum;
     }
 
     /**
@@ -21022,12 +21499,16 @@ var p5 = (function () {
      * @return {Number}
      */
     dot(...args) {
+      let vals = args;
       if (args[0] instanceof Vector) {
-        return this.dot(...args[0]._values);
+        vals = args[0].values;
       }
-      return this._values.reduce((sum, component, index) => {
-        return sum + component * (args[index] || 0);
-      }, 0);
+      const minDimension = prioritizeSmallerDimension(this.dimensions, vals);
+      let sum = 0;
+      for (let i = 0; i < minDimension; i++) {
+        sum += this.values[i] * vals[i];
+      }
+      return sum;
     }
 
     /**
@@ -21036,6 +21517,9 @@ var p5 = (function () {
      * The cross product is a vector that points straight out of the plane created
      * by two vectors. The cross product's magnitude is the area of the parallelogram
      * formed by the original two vectors.
+     *
+     * The cross product is defined on 3-dimensional vectors, and will use the `x`, `y`,
+     * and `z` components. This method should only be used with 3D vectors.
      *
      * The static version of `cross()`, as in `p5.Vector.cross(v1, v2)`, is the same
      * as calling `v1.cross(v2)`.
@@ -21182,7 +21666,13 @@ var p5 = (function () {
      * }
      */
     dist(v) {
-      return v.copy().sub(this).mag();
+      const minDimension = prioritizeSmallerDimension(this.dimensions, v.values);
+      let sum = 0;
+      for (let i = 0; i < minDimension; i++) {
+        const component = this.values[i] - v.values[i];
+        sum += component * component;
+      }
+      return Math.sqrt(sum);
     }
 
     /**
@@ -21644,8 +22134,18 @@ var p5 = (function () {
      * }
      */
     setHeading(a) {
-      if (this.isPInst) a = this._toRadians(a);
-      let m = this.mag();
+      if (this.dimensions < 2 || (
+        this._values instanceof Array && this._values.slice(2).some(v => v !== 0))
+      ) {
+        p5._friendlyError(
+          'p5.Vector.setHeading() only supports 2D vectors (z === 0). ' +
+          'For 3D or higher-dimensional vectors, use rotate() or another ' +
+          'appropriate method instead.',
+          'p5.Vector.setHeading'
+        );
+        return this;
+      }
+      const m = this.mag();
       this.x = m * Math.cos(a);
       this.y = m * Math.sin(a);
       return this;
@@ -22344,6 +22844,7 @@ var p5 = (function () {
      * Returns the vector's components as an array of numbers.
      *
      * @return {Number[]} array with the vector's components.
+     * @deprecated To retrieve vector components, use `v.values`
      * @example
      * // META:norender
      * function setup() {
@@ -22430,15 +22931,15 @@ var p5 = (function () {
     equals(...args) {
       let values;
       if (args[0] instanceof Vector) {
-        values = args[0]._values;
+        values = args[0].values;
       } else if (Array.isArray(args[0])) {
         values = args[0];
       } else {
         values = args;
       }
 
-      for (let i = 0; i < this._values.length; i++) {
-        if (this._values[i] !== (values[i] || 0)) {
+      for (let i = 0; i < this.values.length; i++) {
+        if (this.values[i] !== (values[i] || 0)) {
           return false;
         }
       }
@@ -22458,8 +22959,8 @@ var p5 = (function () {
      * @chainable
      */
     clampToZero() {
-      for (let i = 0; i < this._values.length; i++) {
-        this._values[i] = this._clampToZero(this._values[i]);
+      for (let i = 0; i < this.values.length; i++) {
+        this.values[i] = this._clampToZero(this.values[i]);
       }
       return this;
     }
@@ -22716,7 +23217,7 @@ var p5 = (function () {
       if (!target) {
         target = v1.copy();
         if (arguments.length === 3) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter is undefined, it should be of type p5.Vector',
             'p5.Vector.add'
           );
@@ -22763,7 +23264,7 @@ var p5 = (function () {
       if (!target) {
         target = v1.copy();
         if (arguments.length === 3) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter is undefined, it should be of type p5.Vector',
             'p5.Vector.sub'
           );
@@ -22807,7 +23308,7 @@ var p5 = (function () {
       if (!target) {
         target = v.copy();
         if (arguments.length === 3) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter is undefined, it should be of type p5.Vector',
             'p5.Vector.mult'
           );
@@ -22833,7 +23334,7 @@ var p5 = (function () {
         target = v.copy();
       } else {
         if (!(target instanceof Vector)) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter should be of type p5.Vector',
             'p5.Vector.rotate'
           );
@@ -22877,7 +23378,7 @@ var p5 = (function () {
         target = v.copy();
 
         if (arguments.length === 3) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter is undefined, it should be of type p5.Vector',
             'p5.Vector.div'
           );
@@ -22945,7 +23446,7 @@ var p5 = (function () {
       if (!target) {
         target = v1.copy();
         if (arguments.length === 4) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter is undefined, it should be of type p5.Vector',
             'p5.Vector.lerp'
           );
@@ -22975,7 +23476,7 @@ var p5 = (function () {
       if (!target) {
         target = v1.copy();
         if (arguments.length === 4) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter is undefined, it should be of type p5.Vector',
             'p5.Vector.slerp'
           );
@@ -23029,7 +23530,7 @@ var p5 = (function () {
         target = v.copy();
       } else {
         if (!(target instanceof Vector)) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter should be of type p5.Vector',
             'p5.Vector.normalize'
           );
@@ -23055,7 +23556,7 @@ var p5 = (function () {
         target = v.copy();
       } else {
         if (!(target instanceof Vector)) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter should be of type p5.Vector',
             'p5.Vector.limit'
           );
@@ -23081,7 +23582,7 @@ var p5 = (function () {
         target = v.copy();
       } else {
         if (!(target instanceof Vector)) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter should be of type p5.Vector',
             'p5.Vector.setMag'
           );
@@ -23137,7 +23638,7 @@ var p5 = (function () {
         target = incidentVector.copy();
       } else {
         if (!(target instanceof Vector)) {
-          p5._friendlyError(
+          this._friendlyError(
             'The target parameter should be of type p5.Vector',
             'p5.Vector.reflect'
           );
@@ -23178,7 +23679,7 @@ var p5 = (function () {
       } else if (v1 instanceof Array) {
         v = new Vector().set(v1);
       } else {
-        p5._friendlyError(
+        this._friendlyError(
           'The v1 parameter should be of type Array or p5.Vector',
           'p5.Vector.equals'
         );
@@ -23266,6 +23767,11 @@ var p5 = (function () {
      */
     p5.Vector = Vector;
 
+    Vector.prototype._friendlyError = p5._friendlyError;
+    Vector.prototype.friendlyErrorsDisabled = function() {
+      return p5.disableFriendlyErrors;
+    };
+
     /**
      * The x component of the vector
      * @type {Number}
@@ -23289,6 +23795,14 @@ var p5 = (function () {
      * @property z
      * @name z
      */
+
+    /**
+     * The dimensions of the vector
+     * @type {Number}
+     * @for p5.Vector
+     * @property dimensions
+     * @name dimensions
+     */
   }
 
   if (typeof p5 !== 'undefined') {
@@ -23299,8 +23813,6 @@ var p5 = (function () {
    * @module Shape
    * @submodule Custom Shapes
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
 
@@ -23317,9 +23829,7 @@ var p5 = (function () {
 
   class Vertex {
     constructor(properties) {
-      for (const [key, value] of Object.entries(properties)) {
-        this[key] = value;
-      }
+      Object.assign(this, properties);
     }
     /*
     get array() {
@@ -23343,7 +23853,7 @@ var p5 = (function () {
     isClosing = false;
 
     constructor(...vertices) {
-      if (this.constructor === ShapePrimitive) {
+      if (new.target === ShapePrimitive) {
         throw new Error('ShapePrimitive is an abstract class: it cannot be instantiated.');
       }
       if (vertices.length > 0) {
@@ -23469,10 +23979,8 @@ var p5 = (function () {
   // ---- PATH PRIMITIVES ----
 
   class Anchor extends ShapePrimitive {
-    #vertexCapacity = 1;
-
     get vertexCapacity() {
-      return this.#vertexCapacity;
+      return 1;
     }
 
     accept(visitor) {
@@ -23488,7 +23996,7 @@ var p5 = (function () {
   class Segment extends ShapePrimitive {
     constructor(...vertices) {
       super(...vertices);
-      if (this.constructor === Segment) {
+      if (new.target === Segment) {
         throw new Error('Segment is an abstract class: it cannot be instantiated.');
       }
     }
@@ -23506,15 +24014,18 @@ var p5 = (function () {
     }
 
     getEndVertex() {
-      return this.vertices.at(-1);
+      return this.vertices[this.vertices.length - 1];
     }
   }
 
   class LineSegment extends Segment {
-    #vertexCapacity = 1;
-
+    // Consecutive line vertices on a path batch into a single LineSegment
+    // (see Shape.vertex()), so vertexCount may exceed this capacity. The
+    // capacity only governs addToShape() merging, which batching bypasses;
+    // it stays at 1 so the generic path never merges into a LineSegment
+    // (a closing vertex must remain its own segment).
     get vertexCapacity() {
-      return this.#vertexCapacity;
+      return 1;
     }
 
     accept(visitor) {
@@ -23712,10 +24223,8 @@ var p5 = (function () {
   // ---- ISOLATED PRIMITIVES ----
 
   class Point extends ShapePrimitive {
-    #vertexCapacity = 1;
-
     get vertexCapacity() {
-      return this.#vertexCapacity;
+      return 1;
     }
 
     accept(visitor) {
@@ -23724,10 +24233,8 @@ var p5 = (function () {
   }
 
   class Line extends ShapePrimitive {
-    #vertexCapacity = 2;
-
     get vertexCapacity() {
-      return this.#vertexCapacity;
+      return 2;
     }
 
     accept(visitor) {
@@ -23736,10 +24243,8 @@ var p5 = (function () {
   }
 
   class Triangle extends ShapePrimitive {
-    #vertexCapacity = 3;
-
     get vertexCapacity() {
-      return this.#vertexCapacity;
+      return 3;
     }
 
     accept(visitor) {
@@ -23748,10 +24253,8 @@ var p5 = (function () {
   }
 
   class Quad extends ShapePrimitive {
-    #vertexCapacity = 4;
-
     get vertexCapacity() {
-      return this.#vertexCapacity;
+      return 4;
     }
 
     accept(visitor) {
@@ -23759,13 +24262,131 @@ var p5 = (function () {
     }
   }
 
-  // ---- TESSELLATION PRIMITIVES ----
+  /*
+   * TODO: Future enhancement — align with arcVertex proposal (#6459)
+   * Currently stores start/stop angles and mode (OPEN/CHORD/PIE).
+   * For full SVG compatibility and arcs inside beginShape/endShape,
+   * we may want to add an arc-to-vertex variant that matches the
+   * arcVertex() API discussed in #6459.
+   */
 
-  class TriangleFan extends ShapePrimitive {
-    #vertexCapacity = Infinity;
+  class ArcPrimitive extends ShapePrimitive {
+    #x;
+    #y;
+    #w;
+    #h;
+    #start;
+    #stop;
+    #mode;
+    #vertexCapacity = 2;
+
+    constructor(startVertex, endVertex, x, y, w, h, start, stop, mode) {
+      // ShapePrimitive requires at least one vertex; pass a placeholder
+      super(startVertex, endVertex);
+      this.#x = x;
+      this.#y = y;
+      this.#w = w;
+      this.#h = h;
+      this.#start = start;
+      this.#stop = stop;
+      this.#mode = mode;
+    }
+
+    get x() { return this.#x; }
+    get y() { return this.#y; }
+    get w() { return this.#w; }
+    get h() { return this.#h; }
+    get start() { return this.#start; }
+    get stop() { return this.#stop; }
+    get mode() { return this.#mode; }
+    get startVertex() { return this.vertices[0]; }
+    get endVertex() { return this.vertices[1]; }
 
     get vertexCapacity() {
       return this.#vertexCapacity;
+    }
+
+    accept(visitor) {
+      visitor.visitArcPrimitive(this);
+    }
+  }
+
+  class EllipsePrimitive extends ShapePrimitive {
+    #x;
+    #y;
+    #w;
+    #h;
+    #vertexCapacity = 1;
+
+    constructor(centerVertex, x, y, w, h) {
+
+      super(centerVertex);
+      this.#x = x;
+      this.#y = y;
+      this.#w = w;
+      this.#h = h;
+    }
+
+    get x() { return this.#x; }
+    get y() { return this.#y; }
+    get w() { return this.#w; }
+    get h() { return this.#h; }
+
+    get vertexCapacity() {
+      return this.#vertexCapacity;
+    }
+
+    accept(visitor) {
+      visitor.visitEllipsePrimitive(this);
+    }
+  }
+
+  class RectPrimitive extends ShapePrimitive {
+    #x;
+    #y;
+    #w;
+    #h;
+    #tl;
+    #tr;
+    #br;
+    #bl;
+    #vertexCapacity = 1;
+
+    constructor(startVertex, x, y, w, h, tl, tr, br, bl) {
+      super(startVertex);
+      this.#x = x;
+      this.#y = y;
+      this.#w = w;
+      this.#h = h;
+      this.#tl = tl;
+      this.#tr = tr;
+      this.#br = br;
+      this.#bl = bl;
+    }
+
+    get x() { return this.#x; }
+    get y() { return this.#y; }
+    get w() { return this.#w; }
+    get h() { return this.#h; }
+    get tl() { return this.#tl; }
+    get tr() { return this.#tr; }
+    get br() { return this.#br; }
+    get bl() { return this.#bl; }
+
+    get vertexCapacity() {
+      return this.#vertexCapacity;
+    }
+
+    accept(visitor) {
+      visitor.visitRectPrimitive(this);
+    }
+  }
+
+  // ---- TESSELLATION PRIMITIVES ----
+
+  class TriangleFan extends ShapePrimitive {
+    get vertexCapacity() {
+      return Infinity;
     }
 
     accept(visitor) {
@@ -23774,10 +24395,8 @@ var p5 = (function () {
   }
 
   class TriangleStrip extends ShapePrimitive {
-    #vertexCapacity = Infinity;
-
     get vertexCapacity() {
-      return this.#vertexCapacity;
+      return Infinity;
     }
 
     accept(visitor) {
@@ -23786,10 +24405,8 @@ var p5 = (function () {
   }
 
   class QuadStrip extends ShapePrimitive {
-    #vertexCapacity = Infinity;
-
     get vertexCapacity() {
-      return this.#vertexCapacity;
+      return Infinity;
     }
 
     accept(visitor) {
@@ -23799,70 +24416,35 @@ var p5 = (function () {
 
   // ---- PRIMITIVE SHAPE CREATORS ----
 
-  class PrimitiveShapeCreators {
-    // TODO: make creators private?
-    // That'd probably be better, but for now, it may be convenient to use
-    // native Map properties like size, e.g. for testing, and it's simpler to
-    // not have to wrap all the properties that might be useful
-    creators;
-
-    constructor() {
-      let creators = new Map();
-
-      /* TODO: REFACTOR BASED ON THE CODE BELOW,
-         ONCE CONSTANTS ARE IMPLEMENTED AS SYMBOLS
-
-      // Store Symbols as strings for use in Map keys
-      const EMPTY_PATH = constants.EMPTY_PATH.description;
-      const PATH = constants.PATH.description;
-      //etc.
-
-      creators.set(`vertex-${EMPTY_PATH}`, (...vertices) => new Anchor(...vertices));
-      // etc.
-
-      get(vertexKind, shapeKind) {
-        const key = `${vertexKind}-${shapeKind.description}`;
-        return this.creators.get(key);
-      }
-      // etc.
-      */
-
-      // vertex
-      creators.set(`vertex-${EMPTY_PATH}`, (...vertices) => new Anchor(...vertices));
-      creators.set(`vertex-${PATH}`, (...vertices) => new LineSegment(...vertices));
-      creators.set(`vertex-${POINTS}`, (...vertices) => new Point(...vertices));
-      creators.set(`vertex-${LINES}`, (...vertices) => new Line(...vertices));
-      creators.set(`vertex-${TRIANGLES}`, (...vertices) => new Triangle(...vertices));
-      creators.set(`vertex-${QUADS}`, (...vertices) => new Quad(...vertices));
-      creators.set(`vertex-${TRIANGLE_FAN}`, (...vertices) => new TriangleFan(...vertices));
-      creators.set(`vertex-${TRIANGLE_STRIP}`, (...vertices) => new TriangleStrip(...vertices));
-      creators.set(`vertex-${QUAD_STRIP}`, (...vertices) => new QuadStrip(...vertices));
-
-      // bezierVertex (constructors all take order and vertices so they can be called in a uniform way)
-      creators.set(`bezierVertex-${EMPTY_PATH}`, (order, ...vertices) => new Anchor(...vertices));
-      creators.set(`bezierVertex-${PATH}`, (order, ...vertices) => new BezierSegment$1(order, ...vertices));
-
-      // splineVertex
-      creators.set(`splineVertex-${EMPTY_PATH}`, (...vertices) => new Anchor(...vertices));
-      creators.set(`splineVertex-${PATH}`, (...vertices) => new SplineSegment(...vertices));
-
-      this.creators = creators;
+  // Creators are stored in a static nested object keyed by vertex kind and
+  // then by shape kind, so a lookup is two property accesses with no key
+  // string to build, and nothing is constructed per Shape. Shape kinds are
+  // primitive constants (numbers/strings), which work as computed keys;
+  // Symbols would too, if constants become Symbols later.
+  const defaultPrimitiveShapeCreators = {
+    vertex: {
+      [EMPTY_PATH]: (...vertices) => new Anchor(...vertices),
+      [PATH]: (...vertices) => new LineSegment(...vertices),
+      [POINTS]: (...vertices) => new Point(...vertices),
+      [LINES]: (...vertices) => new Line(...vertices),
+      [TRIANGLES]: (...vertices) => new Triangle(...vertices),
+      [QUADS]: (...vertices) => new Quad(...vertices),
+      [TRIANGLE_FAN]: (...vertices) => new TriangleFan(...vertices),
+      [TRIANGLE_STRIP]: (...vertices) => new TriangleStrip(...vertices),
+      [QUAD_STRIP]: (...vertices) => new QuadStrip(...vertices)
+    },
+    // bezierVertex creators all take order and vertices so they can be
+    // called in a uniform way
+    bezierVertex: {
+      [EMPTY_PATH]: (order, ...vertices) => new Anchor(...vertices),
+      [PATH]: (order, ...vertices) =>
+        new BezierSegment$1(order, ...vertices)
+    },
+    splineVertex: {
+      [EMPTY_PATH]: (...vertices) => new Anchor(...vertices),
+      [PATH]: (...vertices) => new SplineSegment(...vertices)
     }
-
-    get(vertexKind, shapeKind) {
-      const key = `${vertexKind}-${shapeKind}`;
-      return this.creators.get(key);
-    }
-
-    set(vertexKind, shapeKind, creator) {
-      const key = `${vertexKind}-${shapeKind}`;
-      this.creators.set(key, creator);
-    }
-
-    clear() {
-      this.creators.clear();
-    }
-  }
+  };
 
   // ---- SHAPE ----
 
@@ -23886,7 +24468,7 @@ var p5 = (function () {
 
     constructor(
       vertexProperties,
-      primitiveShapeCreators = new PrimitiveShapeCreators()
+      primitiveShapeCreators = defaultPrimitiveShapeCreators
     ) {
       this.#initialVertexProperties = vertexProperties;
       this.#vertexProperties = vertexProperties;
@@ -24088,7 +24670,6 @@ var p5 = (function () {
       }
     }
 
-    // maybe call this clear() for consistency with PrimitiveShapeCreators.clear()?
     // note: p5.Geometry has a reset() method, but also clearColors()
     // looks like reset() isn't in the public reference, so maybe we can switch
     // everything to clear()? Not sure if reset/clear is used in other classes,
@@ -24151,9 +24732,8 @@ var p5 = (function () {
     }
 
     #createPrimitiveShape(vertexKind, shapeKind, ...vertices) {
-      let primitiveShapeCreator = this.#primitiveShapeCreators.get(
-        vertexKind, shapeKind
-      );
+      let primitiveShapeCreator =
+        this.#primitiveShapeCreators[vertexKind][shapeKind];
 
       return  vertexKind === 'bezierVertex' ?
         primitiveShapeCreator(this.#bezierOrder, ...vertices) :
@@ -24182,6 +24762,38 @@ var p5 = (function () {
     }
 
     vertex(position, textureCoordinates, { isClosing = false } = {}) {
+      // Fast path for the most common case: appending a line segment to a
+      // path that has already started. Equivalent to the general path below
+      // (a LineSegment's vertex capacity is 1, so addToShape() never merges
+      // it into the previous primitive), without the creator-map lookup and
+      // the generic merging logic.
+      const contours = this.contours;
+      const lastContour = contours[contours.length - 1];
+      if (
+        lastContour !== undefined &&
+        lastContour.primitives.length > 0 &&
+        lastContour.kind === PATH
+      ) {
+        const vertex = this.#createVertex(position, textureCoordinates);
+        const primitives = lastContour.primitives;
+        const lastPrimitive = primitives[primitives.length - 1];
+        if (
+          !isClosing &&
+          lastPrimitive instanceof LineSegment &&
+          !lastPrimitive.isClosing
+        ) {
+          // Consecutive line vertices accumulate into one polyline segment
+          lastPrimitive.vertices.push(vertex);
+          return;
+        }
+        const segment = new LineSegment(vertex);
+        segment.isClosing = isClosing;
+        segment._primitivesIndex = primitives.length;
+        segment._contoursIndex = contours.length - 1;
+        segment._shape = this;
+        primitives.push(segment);
+        return;
+      }
       const added = this.#generalVertex('vertex', position, textureCoordinates);
       added.isClosing = isClosing;
     }
@@ -24196,6 +24808,85 @@ var p5 = (function () {
 
     arcVertex(position, textureCoordinates) {
       this.#generalVertex('arcVertex', position, textureCoordinates);
+    }
+
+
+    arcPrimitive(x,y,w,h,start,stop,mode){
+      this.beginShape();
+      const centerX = x+w/2;
+      const centerY = y+h/2;
+      const radiusX = w / 2;
+      const radiusY = h / 2;
+
+      const startVertex = this.#createVertex(
+        new Vector(
+          centerX + radiusX * Math.cos(start),
+          centerY + radiusY * Math.sin(start)
+        )
+      );
+
+      const endVertex = this.#createVertex(
+        new Vector(
+          centerX + radiusX * Math.cos(stop),
+          centerY + radiusY * Math.sin(stop)
+        )
+      );
+
+      const primitive = new ArcPrimitive(
+        startVertex,
+        endVertex,
+        x, y, w, h,
+        start,
+        stop,
+        mode
+      );
+      primitive.addToShape(this);
+      this.endShape();
+      return this;
+
+    }
+
+    ellipsePrimitive(x,y,w,h){
+      const centerVertex = this.#createVertex(new Vector(x+w/2,y+h/2));
+
+      const primitive = new EllipsePrimitive(centerVertex, x, y, w, h);
+      return primitive.addToShape(this);
+    }
+
+    rectPrimitive(x, y, w, h, tl, tr, br, bl) {
+      const startVertex = this.#createVertex(new Vector(x, y));
+      const primitive = new RectPrimitive(startVertex, x, y, w, h, tl, tr, br, bl);
+      return primitive.addToShape(this);
+    }
+
+    point(x, y) {
+      const v0 = this.#createVertex(new Vector(x, y));
+      const primitive = new Point(v0);
+      return primitive.addToShape(this);
+    }
+
+    line(x1, y1, x2, y2) {
+      const v0 = this.#createVertex(new Vector(x1, y1));
+      const v1 = this.#createVertex(new Vector(x2, y2));
+      const primitive = new Line(v0, v1);
+      return primitive.addToShape(this);
+    }
+
+    triangle(x1, y1, x2, y2, x3, y3) {
+      const v0 = this.#createVertex(new Vector(x1, y1));
+      const v1 = this.#createVertex(new Vector(x2, y2));
+      const v2 = this.#createVertex(new Vector(x3, y3));
+      const primitive = new Triangle(v0, v1, v2);
+      return primitive.addToShape(this);
+    }
+
+    quad(x1, y1, x2, y2, x3, y3, x4, y4) {
+      const v0 = this.#createVertex(new Vector(x1, y1));
+      const v1 = this.#createVertex(new Vector(x2, y2));
+      const v2 = this.#createVertex(new Vector(x3, y3));
+      const v3 = this.#createVertex(new Vector(x4, y4));
+      const primitive = new Quad(v0, v1, v2, v3);
+      return primitive.addToShape(this);
     }
 
     beginContour(shapeKind = PATH) {
@@ -24230,7 +24921,7 @@ var p5 = (function () {
             const prevVertexProperties = this.#vertexProperties;
             this.#vertexProperties = { ...prevVertexProperties };
             for (const key in anchorVertex) {
-              if (['position', 'textureCoordinates'].includes(key)) continue;
+              if (key === 'position' || key === 'textureCoordinates') continue;
               this.#vertexProperties[key] = anchorVertex[key];
             }
             this.vertex(
@@ -24276,7 +24967,7 @@ var p5 = (function () {
   // abstract class
   class PrimitiveVisitor {
     constructor() {
-      if (this.constructor === PrimitiveVisitor) {
+      if (new.target === PrimitiveVisitor) {
         throw new Error('PrimitiveVisitor is an abstract class: it cannot be instantiated.');
       }
     }
@@ -24295,6 +24986,15 @@ var p5 = (function () {
     }
     visitArcSegment(arcSegment) {
       throw new Error('Method visitArcSegment() has not been implemented.');
+    }
+    visitArcPrimitive(arc) {
+      throw new Error('Method visitArcPrimitive() has not been implemented.');
+    }
+    visitEllipsePrimitive(ellipse) {
+      throw new Error('Method visitEllipsePrimitive() has not been implemented.');
+    }
+    visitRectPrimitive(rect) {
+      throw new Error('Method visitRectPrimitive() has not been implemented.');
     }
 
     // isolated primitives
@@ -24326,11 +25026,17 @@ var p5 = (function () {
   // requires testing
   class PrimitiveToPath2DConverter extends PrimitiveVisitor {
     path = new Path2D();
+    strokePath = null;
+    fillPath = null;
     strokeWeight;
+    hasFill;
+    hasStroke;
 
-    constructor({ strokeWeight }) {
+    constructor({ strokeWeight, hasFill = true, hasStroke = true }) {
       super();
       this.strokeWeight = strokeWeight;
+      this.hasFill = hasFill;
+      this.hasStroke = hasStroke;
     }
 
     // path primitives
@@ -24344,8 +25050,11 @@ var p5 = (function () {
         // and the starting vertex rather than having two caps
         this.path.closePath();
       } else {
-        let vertex = lineSegment.getEndVertex();
-        this.path.lineTo(vertex.position.x, vertex.position.y);
+        const vertices = lineSegment.vertices;
+        for (let i = 0; i < vertices.length; i++) {
+          const position = vertices[i].position;
+          this.path.lineTo(position.x, position.y);
+        }
       }
     }
     visitBezierSegment(bezierSegment) {
@@ -24444,6 +25153,120 @@ var p5 = (function () {
         this.path.closePath();
       }
     }
+    visitArcPrimitive(arc) {
+      const centerX = arc.x + arc.w / 2;
+      const centerY = arc.y + arc.h / 2;
+      const radiusX = arc.w / 2;
+      const radiusY = arc.h / 2;
+      const startX = centerX + radiusX * Math.cos(arc.start);
+      const startY = centerY + radiusY * Math.sin(arc.start);
+
+      const delta = arc.stop - arc.start;
+      const isFullCircle = Math.abs(delta % (2 * Math.PI)) < 0.00001 &&
+        Math.abs(delta) > 0.00001;
+
+      const createPieSlice = ! (
+        arc.mode === CHORD ||
+        arc.mode === OPEN ||
+        isFullCircle
+      );
+
+      if (this.hasFill) {
+        if (!this.fillPath) this.fillPath = new Path2D(this.path);
+
+        this.fillPath.moveTo(startX, startY);
+        this.fillPath.ellipse(centerX, centerY, radiusX, radiusY,
+          0, arc.start, arc.stop);
+        if (createPieSlice) {
+          this.fillPath.lineTo(centerX, centerY);
+        }
+        this.fillPath.closePath();
+      }
+
+      if (this.hasStroke) {
+        if (!this.strokePath) this.strokePath = new Path2D(this.path);
+
+        this.strokePath.moveTo(startX, startY);
+        this.strokePath.ellipse(centerX, centerY, radiusX, radiusY,
+          0, arc.start, arc.stop);
+        if (arc.mode === PIE && createPieSlice) {
+          this.strokePath.lineTo(centerX, centerY);
+        }
+        if (arc.mode === PIE || arc.mode === CHORD) {
+          this.strokePath.closePath();
+        }
+      }
+
+      // Clipping uses the base path rather than the specialized paint paths.
+      this.path.moveTo(startX, startY);
+      this.path.ellipse(centerX, centerY, radiusX, radiusY,
+        0, arc.start, arc.stop);
+    }
+    visitEllipsePrimitive(ellipse) {
+      const centerX = ellipse.x + ellipse.w / 2;
+      const centerY = ellipse.y + ellipse.h / 2;
+      const radiusX = ellipse.w / 2;
+      const radiusY = ellipse.h / 2;
+
+      this.path.moveTo(centerX + radiusX, centerY);
+      this.path.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+    }
+    visitRectPrimitive(rect) {
+      const x = rect.x;
+      const y = rect.y;
+      const w = rect.w;
+      const h = rect.h;
+      let tl = rect.tl;
+      let tr = rect.tr;
+      let br = rect.br;
+      let bl = rect.bl;
+
+      if (typeof tl === 'undefined') {
+        this.path.rect(x, y, w, h);
+      } else {
+        if (typeof tr === 'undefined') {
+          tr = tl;
+        }
+        if (typeof br === 'undefined') {
+          br = tr;
+        }
+        if (typeof bl === 'undefined') {
+          bl = br;
+        }
+
+        const absW = Math.abs(w);
+        const absH = Math.abs(h);
+        const hw = absW / 2;
+        const hh = absH / 2;
+
+        if (absW < 2 * tl) {
+          tl = hw;
+        }
+        if (absH < 2 * tl) {
+          tl = hh;
+        }
+        if (absW < 2 * tr) {
+          tr = hw;
+        }
+        if (absH < 2 * tr) {
+          tr = hh;
+        }
+        if (absW < 2 * br) {
+          br = hw;
+        }
+        if (absH < 2 * br) {
+          br = hh;
+        }
+        if (absW < 2 * bl) {
+          bl = hw;
+        }
+        if (absH < 2 * bl) {
+          bl = hh;
+        }
+
+        this.path.roundRect(x, y, w, h, [tl, tr, br, bl]);
+      }
+    }
     visitQuadStrip(quadStrip) {
       for (let i = 0; i < quadStrip.vertices.length - 3; i += 2) {
         const v0 = quadStrip.vertices[i];
@@ -24487,7 +25310,11 @@ var p5 = (function () {
       }
     }
     visitLineSegment(lineSegment) {
-      this.lastContour().push(lineSegment.getEndVertex());
+      const contour = this.lastContour();
+      const vertices = lineSegment.vertices;
+      for (let i = 0; i < vertices.length; i++) {
+        contour.push(vertices[i]);
+      }
     }
     visitBezierSegment(bezierSegment) {
       const contour = this.lastContour();
@@ -24569,6 +25396,144 @@ var p5 = (function () {
     visitQuadStrip(quadStrip) {
       // WebGL itself interprets the vertices as a strip, no reformatting needed
       this.contours.push(quadStrip.vertices.slice());
+    }
+    visitArcPrimitive(arc) {
+      const startVertex = arc.startVertex;
+      const endVertex = arc.endVertex;
+      const centerX = arc.x + arc.w / 2;
+      const centerY = arc.y + arc.h / 2;
+      const radiusX = arc.w / 2;
+      const radiusY = arc.h / 2;
+      const avgRadius = (radiusX + radiusY) / 2;
+
+      const arcLength = avgRadius * Math.abs(arc.stop - arc.start);
+
+      const numPoints = Math.max(3, Math.ceil(this.curveDetail * arcLength));
+      const verts = [];
+      const interpolateVertexProps = (v1, v2, t) => {
+      const props = {};
+      for (const [key, value] of Object.entries(v1)) {
+        if (key === 'position') continue;
+        if (typeof value === 'number' && typeof v2[key] === 'number') {
+          props[key] = value * (1 - t) + v2[key] * t;
+        } else {
+          props[key] = value;
+        }
+      }
+      return props;
+    };
+      if (arc.mode === PIE) {
+        const centerProps = interpolateVertexProps(startVertex, endVertex, 0.5);
+        centerProps.position = new Vector(centerX, centerY);
+        verts.push(new Vertex(centerProps));
+      }
+
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        const angle = arc.start + (arc.stop - arc.start) * t;
+        const vertexProps = interpolateVertexProps(startVertex, endVertex, t);
+
+        vertexProps.position = new Vector(
+          centerX + radiusX * Math.cos(angle),
+          centerY + radiusY * Math.sin(angle)
+        );
+
+        verts.push(new Vertex(vertexProps));
+      }
+
+      this.contours.push(verts);
+    }
+    visitEllipsePrimitive(ellipse) {
+      const centerX = ellipse.x + ellipse.w / 2;
+      const centerY = ellipse.y + ellipse.h / 2;
+      const radiusX = ellipse.w / 2;
+      const radiusY = ellipse.h / 2;
+      const avgRadius = (radiusX + radiusY) / 2;
+      const perimeter = 2 * Math.PI * avgRadius;
+      const numPoints = Math.max(3, Math.ceil(this.curveDetail * perimeter));
+      const verts = [];
+      const centerVertex = ellipse.vertices[0];
+      for (let i = 0; i <= numPoints; i++) {
+        const angle = (2 * Math.PI * i) / numPoints;
+        const vertexProps = {};
+        for (const [key, value] of Object.entries(centerVertex)) {
+          if (key === 'position') continue;
+          vertexProps[key] = value;
+        }
+        vertexProps.position = new Vector(
+          centerX + radiusX * Math.cos(angle),
+          centerY + radiusY * Math.sin(angle)
+        );
+        verts.push(new Vertex(vertexProps));
+      }
+
+      this.contours.push(verts);
+    }
+    visitRectPrimitive(rect) {
+      const x = rect.x;
+      const y = rect.y;
+      const w = rect.w;
+      const h = rect.h;
+      let tl = rect.tl;
+      let tr = rect.tr;
+      let br = rect.br;
+      let bl = rect.bl;
+
+      const startVertex = rect.vertices[0];
+      const getVertexProps = (px, py) => {
+        const props = {};
+        for (const [key, value] of Object.entries(startVertex)) {
+          if (key === 'position') continue;
+          props[key] = value;
+        }
+        props.position = new Vector(px, py);
+        return new Vertex(props);
+      };
+
+      const verts = [];
+      if (typeof tl === 'undefined') {
+        verts.push(getVertexProps(x, y));
+        verts.push(getVertexProps(x + w, y));
+        verts.push(getVertexProps(x + w, y + h));
+        verts.push(getVertexProps(x, y + h));
+        verts.push(getVertexProps(x, y));
+      } else {
+        if (typeof tr === 'undefined') tr = tl;
+        if (typeof br === 'undefined') br = tr;
+        if (typeof bl === 'undefined') bl = br;
+
+        const absW = Math.abs(w);
+        const absH = Math.abs(h);
+        const hw = absW / 2;
+        const hh = absH / 2;
+
+        if (absW < 2 * tl) tl = hw;
+        if (absH < 2 * tl) tl = hh;
+        if (absW < 2 * tr) tr = hw;
+        if (absH < 2 * tr) tr = hh;
+        if (absW < 2 * br) br = hw;
+        if (absH < 2 * br) br = hh;
+        if (absW < 2 * bl) bl = hw;
+        if (absH < 2 * bl) bl = hh;
+
+        const addCornerArc = (cx, cy, rx, ry, startAngle, endAngle) => {
+          const perimeter = Math.PI / 2 * (rx + ry) / 2;
+          const numPoints = Math.max(1, Math.ceil(this.curveDetail * perimeter));
+          for (let i = 0; i <= numPoints; i++) {
+            const angle = startAngle + (endAngle - startAngle) * (i / numPoints);
+            verts.push(getVertexProps(cx + rx * Math.cos(angle), cy + ry * Math.sin(angle)));
+          }
+        };
+
+        addCornerArc(x + tl, y + tl, tl, tl, Math.PI, 1.5 * Math.PI);
+        addCornerArc(x + w - tr, y + tr, tr, tr, 1.5 * Math.PI, 2 * Math.PI);
+        addCornerArc(x + w - br, y + h - br, br, br, 0, 0.5 * Math.PI);
+        addCornerArc(x + bl, y + h - bl, bl, bl, 0.5 * Math.PI, Math.PI);
+
+        verts.push(verts[0]);
+      }
+
+      this.contours.push(verts);
     }
   }
 
@@ -24903,6 +25868,8 @@ var p5 = (function () {
      *
      * Note: `bezierVertex()` won’t work when an argument is passed to
      * <a href="#/p5/beginShape">beginShape()</a>.
+     *
+     * Calling `bezierOrder()` without an argument returns the current Bézier order.
      *
      * @method bezierOrder
      * @param {Number} order The new order to set. Can be either 2 or 3, by default 3
@@ -26091,7 +27058,7 @@ var p5 = (function () {
       this[key] = value;
     }
 
-    getDiff() {
+    takeDiff() {
       const diff = this.#modified;
       this.#modified = {};
       return diff;
@@ -26139,6 +27106,11 @@ var p5 = (function () {
       rectMode: CORNER,
       ellipseMode: CENTER,
       strokeWeight: 1,
+      bezierOrder: 3,
+      splineProperties: new ClonableObject({
+        ends: INCLUDE,
+        tightness: 0
+      }),
 
       textFont: { family: 'sans-serif' },
       textLeading: 15,
@@ -26146,15 +27118,8 @@ var p5 = (function () {
       textSize: 12,
       textAlign: LEFT,
       textBaseline: BASELINE,
-      bezierOrder: 3,
-      splineProperties: new ClonableObject({
-        ends: INCLUDE,
-        tightness: 0
-      }),
       textWrap: WORD,
-
-      // added v2.0
-      fontStyle: NORMAL, // v1: textStyle
+      fontStyle: NORMAL, // v1: was textStyle
       fontStretch: NORMAL,
       fontWeight: NORMAL,
       lineHeight: NORMAL,
@@ -26167,12 +27132,14 @@ var p5 = (function () {
       this._isMainCanvas = isMainCanvas;
       this.pixels = [];
 
+      const defaultRatio = typeof window !== 'undefined' ?
+        Math.ceil(window.devicePixelRatio) :
+        1;
       if (isMainCanvas) {
-        this._pixelDensity = Math.ceil(window.devicePixelRatio) || 1;
+        this._pixelDensity = defaultRatio;
       } else {
-        
         const parentDensity = pInst._pInst?._renderer?._pixelDensity;
-        this._pixelDensity = parentDensity || Math.ceil(window.devicePixelRatio) || 1;
+        this._pixelDensity = parentDensity || defaultRatio;
       }
 
       this.width = w;
@@ -26198,6 +27165,12 @@ var p5 = (function () {
       this._clipInvert = false;
 
       this._currentShape = undefined; // Lazily generate current shape
+
+      // Lazily cached by _individualTextureCoordinates(); initialized here
+      // (rather than computed) so subclasses can rely on their own
+      // constructor state when getSupportedIndividualVertexProperties()
+      // is first consulted.
+      this._supportsIndividualTextureCoordinates = undefined;
     }
 
     get currentShape() {
@@ -26229,7 +27202,7 @@ var p5 = (function () {
     // and push it into the push pop stack
     push() {
       this._pushPopDepth++;
-      this._pushPopStack.push(this.states.getDiff());
+      this._pushPopStack.push(this.states.takeDiff());
     }
 
     // Pop the previous states out of the push pop stack and
@@ -26252,12 +27225,22 @@ var p5 = (function () {
       }
     }
 
-    bezierVertex(x, y, z = 0, u = 0, v = 0) {
-      const position = new Vector(x, y, z);
-      const textureCoordinates = this.getSupportedIndividualVertexProperties()
-        .textureCoordinates
+    // Builds the per-vertex texture-coordinates argument, caching whether
+    // the renderer supports them so the descriptor object isn't rebuilt on
+    // every vertex call.
+    _individualTextureCoordinates(u, v) {
+      if (this._supportsIndividualTextureCoordinates === undefined) {
+        this._supportsIndividualTextureCoordinates =
+          this.getSupportedIndividualVertexProperties().textureCoordinates;
+      }
+      return this._supportsIndividualTextureCoordinates
         ? new Vector(u, v)
         : undefined;
+    }
+
+    bezierVertex(x, y, z = 0, u = 0, v = 0) {
+      const position = new Vector(x, y, z);
+      const textureCoordinates = this._individualTextureCoordinates(u, v);
       this.currentShape.bezierVertex(position, textureCoordinates);
     }
 
@@ -26283,10 +27266,7 @@ var p5 = (function () {
 
     splineVertex(x, y, z = 0, u = 0, v = 0) {
       const position = new Vector(x, y, z);
-      const textureCoordinates = this.getSupportedIndividualVertexProperties()
-        .textureCoordinates
-        ? new Vector(u, v)
-        : undefined;
+      const textureCoordinates = this._individualTextureCoordinates(u, v);
       this.currentShape.splineVertex(position, textureCoordinates);
     }
 
@@ -26323,10 +27303,7 @@ var p5 = (function () {
 
     vertex(x, y, z = 0, u = 0, v = 0) {
       const position = new Vector(x, y, z);
-      const textureCoordinates = this.getSupportedIndividualVertexProperties()
-        .textureCoordinates
-        ? new Vector(u, v)
-        : undefined;
+      const textureCoordinates = this._individualTextureCoordinates(u, v);
       this.currentShape.vertex(position, textureCoordinates);
     }
 
@@ -26410,7 +27387,7 @@ var p5 = (function () {
       // get(x,y,w,h)
       }
 
-      const region = new Image(w*pd, h*pd);
+      const region = new Image$1(w*pd, h*pd);
       region.pixelDensity(pd);
       region.canvas
         .getContext('2d')
@@ -26424,9 +27401,12 @@ var p5 = (function () {
     }
 
     fill(...args) {
-      this.states.setValue('fillSet', true);
-      this.states.setValue('fillColor', this._pInst.color(...args));
-      this.updateShapeVertexProperties();
+      if (args.length > 0) {
+        this.states.setValue('fillSet', true);
+        this.states.setValue('fillColor', this._pInst.color(...args));
+        this.updateShapeVertexProperties();
+      }
+      return this.states.fillColor;
     }
 
     noFill() {
@@ -26434,14 +27414,16 @@ var p5 = (function () {
     }
 
     strokeWeight(w) {
-      if (w === undefined) {
+      if (typeof w === 'undefined') {
         return this.states.strokeWeight;
-      } else {
-        this.states.setValue('strokeWeight', w);
       }
+      this.states.setValue('strokeWeight', w);
     }
 
     stroke(...args) {
+      if (args.length === 0) {
+        return this.states.strokeColor;
+      }
       this.states.setValue('strokeSet', true);
       this.states.setValue('strokeColor', this._pInst.color(...args));
       this.updateShapeVertexProperties();
@@ -28275,7 +29257,6 @@ var p5 = (function () {
   }
 
   /**
-   * @requires constants
    */
 
 
@@ -28291,7 +29272,7 @@ var p5 = (function () {
     if (mode === CORNER) {
 
       // CORNER mode already corresponds to a bounding box (top-left corner, width, height).
-      // For negative widhts or heights, the absolute value is used.
+      // For negative widths or heights, the absolute value is used.
       bbox = {
         x: a,
         y: b,
@@ -28302,7 +29283,7 @@ var p5 = (function () {
     } else if (mode === CORNERS) {
 
       // CORNERS mode uses two opposite corners, in any configuration.
-      // Make sure to get the top left corner by using the minimum of the x and y coordniates.
+      // Make sure to get the top left corner by using the minimum of the x and y coordinates.
       bbox = {
         x: Math.min(a, c),
         y: Math.min(b, d),
@@ -28349,8 +29330,6 @@ var p5 = (function () {
    * @module Shape
    * @submodule 2D Primitives
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
 
@@ -29424,7 +30403,6 @@ var p5 = (function () {
      *   rect(-20, -30, 55, 55);
      * }
      */
-
     /**
      * @method rect
      * @param  {Number} x
@@ -29660,8 +30638,6 @@ var p5 = (function () {
    * @module Shape
    * @submodule Attributes
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
 
@@ -29692,6 +30668,8 @@ var p5 = (function () {
      * the constants `CENTER`, `RADIUS`, `CORNER`, and `CORNERS` are defined this
      * way. JavaScript is a case-sensitive language.
      *
+     * Calling `ellipseMode()` without an argument returns the current ellipseMode, either `CENTER`, `RADIUS`, `CORNER`, or `CORNERS`.
+     * 
      * @method ellipseMode
      * @param  {(CENTER|RADIUS|CORNER|CORNERS)} mode either CENTER, RADIUS, CORNER, or CORNERS
      * @chainable
@@ -29734,8 +30712,15 @@ var p5 = (function () {
      *   describe('A white circle with a gray circle at its top-left corner. Both circles have black outlines.');
      * }
      */
+    /**
+     * @method ellipseMode
+     * @return {(CENTER|RADIUS|CORNER|CORNERS)}      the current ellipseMode.
+     */
     fn.ellipseMode = function(m) {
       // p5._validateParameters('ellipseMode', arguments);
+      if (typeof m === 'undefined') { // getter
+        return this._renderer?.states.ellipseMode;
+      }
       if (
         m === CORNER ||
         m === CORNERS ||
@@ -29757,8 +30742,10 @@ var p5 = (function () {
      * In WebGL mode, `noSmooth()` causes all shapes to be drawn with jagged
      * (aliased) edges. The functions don't affect images or fonts.
      *
+     * Note: In WebGPU mode, you must `await` this function.
+     *
      * @method noSmooth
-     * @chainable
+     * @return {void|Promise<void>}
      *
      * @example
      * let heart;
@@ -29812,10 +30799,10 @@ var p5 = (function () {
         if ('imageSmoothingEnabled' in this.drawingContext) {
           this.drawingContext.imageSmoothingEnabled = false;
         }
+        return this;
       } else {
-        this.setAttributes('antialias', false);
+        return this.setAttributes('antialias', false);
       }
-      return this;
     };
 
     /**
@@ -29842,6 +30829,8 @@ var p5 = (function () {
      * The argument passed to `rectMode()` must be written in ALL CAPS because the
      * constants `CENTER`, `RADIUS`, `CORNER`, and `CORNERS` are defined this way.
      * JavaScript is a case-sensitive language.
+     *
+     * Calling `rectMode()` without an argument returns the current rectMode, either `CORNER`, `CORNERS`, `CENTER`, or `RADIUS`.
      *
      * @method rectMode
      * @param  {(CENTER|RADIUS|CORNER|CORNERS)} mode either CORNER, CORNERS, CENTER, or RADIUS
@@ -29911,8 +30900,15 @@ var p5 = (function () {
      *   describe('A small gray square drawn at the center of a white square.');
      * }
      */
+    /**
+     * @method rectMode
+     * @return {(CENTER|RADIUS|CORNER|CORNERS)}      the current rectMode.
+     */
     fn.rectMode = function(m) {
       // p5._validateParameters('rectMode', arguments);
+      if (typeof m === 'undefined') { // getter
+        return this._renderer?.states.rectMode;
+      }
       if (
         m === CORNER ||
         m === CORNERS ||
@@ -30037,6 +31033,9 @@ var p5 = (function () {
      */
     fn.strokeCap = function(cap) {
       // p5._validateParameters('strokeCap', arguments);
+      if (typeof cap === 'undefined') { // getter
+        return this._renderer.strokeCap();
+      }
       if (
         cap === ROUND ||
         cap === SQUARE ||
@@ -30057,6 +31056,8 @@ var p5 = (function () {
      * The argument passed to `strokeJoin()` must be written in ALL CAPS because
      * the constants `MITER`, `BEVEL`, and `ROUND` are defined this way.
      * JavaScript is a case-sensitive language.
+     *
+     * Calling `strokeJoin()` without an argument returns the current stroke join style, either `MITER`, `BEVEL`, or `ROUND`.
      *
      * @method strokeJoin
      * @param  {(MITER|BEVEL|ROUND)} join either MITER, BEVEL, or ROUND
@@ -30124,8 +31125,15 @@ var p5 = (function () {
      *   describe('A right-facing arrowhead shape with a rounded tip in center of canvas.');
      * }
      */
+    /**
+     * @method strokeJoin
+     * @return {(MITER|BEVEL|ROUND)}      the current stroke join style.
+     */
     fn.strokeJoin = function(join) {
       // p5._validateParameters('strokeJoin', arguments);
+      if (typeof join === 'undefined') { // getter
+        return this._renderer.strokeJoin();
+      }
       if (
         join === ROUND ||
         join === BEVEL ||
@@ -30140,8 +31148,11 @@ var p5 = (function () {
      * Sets the width of the stroke used for points, lines, and the outlines of
      * shapes.
      *
-     * Note: `strokeWeight()` is affected by transformations, especially calls to
-     * <a href="#/p5/scale">scale()</a>.
+     * Note: In 2D mode, `strokeWeight()` is affected by transformations,
+     * especially calls to <a href="#/p5/scale">scale()</a>. It isn't affected by
+     * transformations in WebGL and WebGPU modes.
+     * 
+     * Calling `strokeWeight()` without an argument returns the current stroke weight as a number.
      *
      * @method strokeWeight
      * @param  {Number} weight the weight of the stroke (in pixels).
@@ -30184,10 +31195,13 @@ var p5 = (function () {
      *   describe('Two horizontal black lines. The top line is thin and the bottom is five times thicker than the top.');
      * }
      */
+    /**
+     * @method strokeWeight
+     * @return {Number} the current stroke weight.
+     */
     fn.strokeWeight = function(w) {
       // p5._validateParameters('strokeWeight', arguments);
-      this._renderer.strokeWeight(w);
-      return this;
+      return this._renderer.strokeWeight(w);
     };
   }
 
@@ -30199,7 +31213,6 @@ var p5 = (function () {
    * @module Shape
    * @submodule Curves
    * @for p5
-   * @requires core
    */
 
   function curves(p5, fn){
@@ -31219,8 +32232,6 @@ var p5 = (function () {
    * @module Shape
    * @submodule Custom Shapes
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
   function vertex(p5, fn){
@@ -32417,8 +33428,6 @@ var p5 = (function () {
    * @module Color
    * @submodule Setting
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
 
@@ -32922,7 +33931,7 @@ var p5 = (function () {
      *
      *   describe('A canvas with a transparent green background.');
      * }
-     * <
+     *
      * @example
      * function setup() {
      *   createCanvas(100, 100);
@@ -32993,8 +34002,7 @@ var p5 = (function () {
      * @chainable
      */
     fn.background = function(...args) {
-      this._renderer.background(...args);
-      return this;
+      return this._renderer.background(...args);
     };
 
     /**
@@ -33086,9 +34094,9 @@ var p5 = (function () {
      *
      * Some additional color modes that p5.js supports are:
      *
-     * `RGBHDR` - High Dynamic Range RGB defined within the Display P3 color space.
+     * `RGBP3` - High Dynamic Range RGB defined within the Display P3 color space.
      *          Colors are expressed with an extended dynamic range. To render these colors
-     *          accurately, you must use the HDR canvas.
+     *          accurately, you must use the P3 canvas.
      *
      * `HWB`    - Hue, Whiteness, Blackness.
      *          Similar to HSB and HSL, this mode uses a hue angle.
@@ -33136,10 +34144,10 @@ var p5 = (function () {
      *   ranges are currently not handled, so results in those cases may be ambiguous.
      *
      * @method colorMode
-     * @param {RGB|HSB|HSL|RGBHDR|HWB|LAB|LCH|OKLAB|OKLCH} mode   either RGB, HSB, HSL,
+     * @param {RGB|HSB|HSL|RGBP3|HWB|LAB|LCH|OKLAB|OKLCH} mode   either RGB, HSB, HSL,
      *          or one of the extended modes described above.
      * @param {Number}  [max]  range for all values.
-     * @return {RGB|HSB|HSL|RGBHDR|HWB|LAB|LCH|OKLAB|OKLCH} The current color mode.
+     * @return {RGB|HSB|HSL|RGBP3|HWB|LAB|LCH|OKLAB|OKLCH} The current color mode.
      *
      * @example
      * function setup() {
@@ -33432,7 +34440,7 @@ var p5 = (function () {
      */
     /**
      * @method colorMode
-     * @param {RGB|HSB|HSL|RGBHDR|HWB|LAB|LCH|OKLAB|OKLCH} mode
+     * @param {RGB|HSB|HSL|RGBP3|HWB|LAB|LCH|OKLAB|OKLCH} mode
      * @param {Number} max1     range for the red or hue depending on the
      *                              current color mode.
      * @param {Number} max2     range for the green or saturation depending
@@ -33441,18 +34449,18 @@ var p5 = (function () {
      *                              depending on the current color mode.
      * @param {Number} [maxA]   range for the alpha.
      *
-     * @return {RGB|HSB|HSL|RGBHDR|HWB|LAB|LCH|OKLAB|OKLCH} The current color mode.
+     * @return {RGB|HSB|HSL|RGBP3|HWB|LAB|LCH|OKLAB|OKLCH} The current color mode.
      */
     /**
      * @method colorMode
-     * @return {RGB|HSB|HSL|RGBHDR|HWB|LAB|LCH|OKLAB|OKLCH} The current color mode.
+     * @return {RGB|HSB|HSL|RGBP3|HWB|LAB|LCH|OKLAB|OKLCH} The current color mode.
      */
     fn.colorMode = function(mode, max1, max2, max3, maxA) {
       // p5._validateParameters('colorMode', arguments);
       if (
         [
           RGB,
-          RGBHDR,
+          RGBP3,
           HSB,
           HSL,
           HWB,
@@ -33508,6 +34516,8 @@ var p5 = (function () {
      * The version of `fill()` with four parameters interprets them as `RGBA`, `HSBA`,
      * or `HSLA` colors, depending on the current <a href="#/p5/colorMode">colorMode()</a>. The last parameter
      * sets the alpha (transparency) value.
+     *
+     * Calling `fill()` without an argument returns the current fill as a <a href="#/p5.Color">p5.Color</a> object.
      *
      * @method fill
      * @param  {Number}        v1      red value if color mode is RGB or hue value if color mode is HSB.
@@ -33697,9 +34707,12 @@ var p5 = (function () {
      * @param  {p5.Color}      color   the fill color.
      * @chainable
      */
+    /**
+     * @method fill
+     * @return {p5.Color}      the current fill color.
+     */
     fn.fill = function(...args) {
-      this._renderer.fill(...args);
-      return this;
+      return this._renderer.fill(...args);
     };
 
     /**
@@ -33827,6 +34840,8 @@ var p5 = (function () {
      * The version of `stroke()` with four parameters interprets them as RGBA, HSBA,
      * or HSLA colors, depending on the current `colorMode()`. The last parameter
      * sets the alpha (transparency) value.
+     *
+     * Calling `stroke()` without an argument returns the current stroke as a <a href="#/p5.Color">p5.Color</a> object.
      *
      * @method stroke
      * @param  {Number}        v1      red value if color mode is RGB or hue value if color mode is HSB.
@@ -34014,9 +35029,12 @@ var p5 = (function () {
      * @param  {p5.Color}      color   the stroke color.
      * @chainable
      */
+    /**
+     * @method stroke
+     * @return {p5.Color}      the current stroke color.
+     */
     fn.stroke = function(...args) {
-      this._renderer.stroke(...args);
-      return this;
+      return this._renderer.stroke(...args);
     };
 
     /**
@@ -34180,6 +35198,8 @@ var p5 = (function () {
      *                either BLEND, DARKEST, LIGHTEST, DIFFERENCE, MULTIPLY,
      *                EXCLUSION, SCREEN, REPLACE, OVERLAY, HARD_LIGHT,
      *                SOFT_LIGHT, DODGE, BURN, ADD, REMOVE or SUBTRACT
+     *
+     * Calling `blendMode()` without an argument returns the current blendMode.
      *
      * @example
      * function setup() {
@@ -34549,6 +35569,10 @@ var p5 = (function () {
      *   describe('A yellow line and a turquoise line form an X on a gray background. The area where they overlap is green.');
      * }
      */
+    /**
+     * @method blendMode
+     * @return {(BLEND|DARKEST|LIGHTEST|DIFFERENCE|MULTIPLY|EXCLUSION|SCREEN|REPLACE|OVERLAY|HARD_LIGHT|SOFT_LIGHT|DODGE|BURN|ADD|REMOVE|SUBTRACT)}      the current blend mode.
+     */
     fn.blendMode = function (mode) {
       // p5._validateParameters('blendMode', arguments);
       if (mode === NORMAL) {
@@ -34558,7 +35582,7 @@ var p5 = (function () {
         );
         mode = BLEND;
       }
-      this._renderer.blendMode(mode);
+      return this._renderer.blendMode(mode);
     };
   }
 
@@ -35358,7 +36382,6 @@ var p5 = (function () {
    * @module Image
    * @submodule Image
    * @for p5
-   * @requires core
    */
 
 
@@ -36269,7 +37292,6 @@ var p5 = (function () {
    * @module IO
    * @submodule Input
    * @for p5
-   * @requires core
    */
 
 
@@ -37927,13 +38949,13 @@ var p5 = (function () {
             fn.saveJSON(args[0], args[1], args[2]);
             return;
           case 'txt':
-            fn.saveStrings(args[0], args[1], args[2]);
+            fn.saveStrings(args[0], args[1], 'txt', args[2]);
             return;
           // =================================================
           // OPTION 3: decide based on object...
           default:
             if (args[0] instanceof Array) {
-              fn.saveStrings(args[0], args[1], args[2]);
+              fn.saveStrings(args[0], args[1], undefined, args[2]);
             } else if (args[0] instanceof p5.Table) {
               fn.saveTable(args[0], args[1], args[2]);
             } else if (args[0] instanceof p5.Image) {
@@ -38390,11 +39412,44 @@ var p5 = (function () {
    * @module Image
    * @submodule Loading & Displaying
    * @for p5
-   * @requires core
    */
 
 
   function loadingDisplaying(p5, fn){
+    /**
+     * The largest possible number of pixels a gif frame can contain.
+     *
+     * This static property defines how large, in terms of dimension, a gif image
+     * is allowed to be loaded into a p5 sketch. The default value is
+     * 16,000,000. This means an image's width multiplied by its height must not
+     * exceed 100,000,000. For example, an image with width 10,000 and height
+     * 10,000 is just enough, as well as an image with width 5000 and height
+     * 20,000. An image with width 20,000 and height 20,000 is not allowed and
+     * will cause an error when it is loaded.
+     *
+     * To avoid this error, you should try to reduce the image dimension of the
+     * gif. If that is not possible or not desirable, you can set
+     * `MAX_GIF_PIXELS` to a higher value instead.
+     *
+     * @static
+     * @property {Boolean} MAX_GIF_PIXELS
+     *
+     * @example
+     * // META: norender
+     * // Increase the maximum pixel counts to 200,000,000
+     * p5.MAX_GIF_PIXELS = 200_000_000;
+     *
+     * let img;
+     * async function setup() {
+     *   createCanvas(100, 100);
+     *
+     *   background(200);
+     *
+     *   img = await loadImage('./a-large-animated.gif');
+     * }
+     */
+    p5.MAX_GIF_PIXELS = 4000 * 4000; // 4 Channel per pixels for total of 64MB
+
     /**
      * Loads an image to create a <a href="#/p5.Image">p5.Image</a> object.
      *
@@ -38509,8 +39564,23 @@ var p5 = (function () {
 
         } else {
           // Non-GIF Section
-          const blob = new Blob([data]);
-          const img = await createImageBitmap(blob);
+          const img = await new Promise((resolve, reject) => {
+            const img = new Image();
+            const blob = new Blob([data], { type: contentType });
+            const url = URL.createObjectURL(blob);
+
+            img.onerror = e => {
+              URL.revokeObjectURL(url);
+              reject(e);
+            };
+
+            img.onload = () => {
+              URL.revokeObjectURL(url);
+              resolve(img);
+            };
+
+            img.src = url;
+          });
 
           pImg.width = pImg.canvas.width = img.width;
           pImg.height = pImg.canvas.height = img.height;
@@ -38992,6 +40062,13 @@ var p5 = (function () {
       pImg.height = pImg.canvas.height = gifReader.height;
       const frames = [];
       const numFrames = gifReader.numFrames();
+
+      if (pImg.width * pImg.height > p5.MAX_GIF_PIXELS) {
+        // GIF is too big, refuse to proceed
+        p5.FES.log`The GIF is over the maximum allowed dimension. Try to shrink the image or set p5.MAX_GIF_PIXELS to a higher value.`();
+        throw new Error("The GIF is over the maximum allowed dimension.");
+      }
+
       let framePixels = new Uint8ClampedArray(pImg.width * pImg.height * 4);
 
       const loadGIFFrameIntoImage = (frameNum, gifReader) => {
@@ -39521,6 +40598,9 @@ var p5 = (function () {
      * sets the alpha value. For example, `tint(255, 0, 0, 100)` will give images
      * a red tint and make them transparent.
      *
+     * Calling `tint()` without an argument returns the current tint as a 
+     * <a href="#/p5.Color">p5.Color</a> object.
+     *
      * @method tint
      * @param  {Number}        v1      red or hue value.
      * @param  {Number}        v2      green or saturation value.
@@ -39625,10 +40705,18 @@ var p5 = (function () {
      * @method tint
      * @param  {p5.Color}      color   the tint color
      */
+    /**
+     * @method tint
+     * @return {p5.Color}      the current tint color
+     */
     fn.tint = function(...args) {
-      // p5._validateParameters('tint', args);
-      const c = this.color(...args);
-      this._renderer.states.setValue('tint', c._getRGBA([255, 255, 255, 255]));
+      if (args.length === 0) {
+        return this._renderer.states.tint; // getter
+      }
+      else {
+        this._renderer.states.setValue('tint', this.color(...args));
+        return this;
+      }
     };
 
     /**
@@ -39662,6 +40750,7 @@ var p5 = (function () {
      */
     fn.noTint = function() {
       this._renderer.states.setValue('tint', null);
+      return this;
     };
 
     /**
@@ -39692,6 +40781,8 @@ var p5 = (function () {
      * `imageMode(CENTER)` uses the first two parameters of
      * <a href="#/p5/image">image()</a> as the x- and y-coordinates of the image's
      * center. The next parameters are its width and height.
+     *
+     * Calling `imageMode()` without an argument returns the current image mode, either `CORNER`, `CORNERS`, or `CENTER`.
      *
      * @method imageMode
      * @param {(CORNER|CORNERS|CENTER)} mode either CORNER, CORNERS, or CENTER.
@@ -39756,8 +40847,15 @@ var p5 = (function () {
      *   describe('A square image of a brick wall is drawn on a gray square.');
      * }
      */
+    /**
+     * @method imageMode
+     * @return {(CORNER|CORNERS|CENTER)}      the current image mode
+     */
     fn.imageMode = function(m) {
       // p5._validateParameters('imageMode', arguments);
+      if (typeof m === 'undefined') { // getter
+        return this._renderer.states.imageMode;
+      }
       if (
         m === CORNER ||
         m === CORNERS ||
@@ -39776,7 +40874,6 @@ var p5 = (function () {
    * @module Image
    * @submodule Pixels
    * @for p5
-   * @requires core
    */
 
 
@@ -42945,7 +44042,6 @@ var p5 = (function () {
 
   /**
    * @module Math
-   * @requires constants
    * @todo see methods below needing further implementation.
    * future consideration: implement SIMD optimizations
    * when browser compatibility becomes available
@@ -43170,8 +44266,6 @@ var p5 = (function () {
    * @module Shape
    * @submodule 3D Primitives
    * @for p5
-   * @requires core
-   * @requires p5.Geometry
    */
 
 
@@ -43492,7 +44586,7 @@ var p5 = (function () {
      * let saveBtn;
      * function setup() {
      *   createCanvas(200, 200, WEBGL);
-     *   myModel = buildGeometry(function()) {
+     *   myModel = buildGeometry(function() {
      *     for (let i = 0; i < 5; i++) {
      *       push();
      *       translate(
@@ -44367,7 +45461,7 @@ var p5 = (function () {
       // initialize the vertexNormals array with empty vectors
       vertexNormals.length = 0;
       for (iv = 0; iv < vertices.length; ++iv) {
-        vertexNormals.push(new Vector());
+        vertexNormals.push(new Vector(0, 0, 0));
       }
 
       // loop through all the faces adding its normal to the normal
@@ -45701,11 +46795,15 @@ var p5 = (function () {
       }
 
       let startIdx = this.geometry.vertices.length;
-      this.geometry.vertices.push(...this.transformVertices(input.vertices));
-      this.geometry.vertexNormals.push(
-        ...this.transformNormals(input.vertexNormals)
-      );
-      this.geometry.uvs.push(...input.uvs);
+      for (const v of this.transformVertices(input.vertices)) {
+        this.geometry.vertices.push(v);
+      }
+      for (const vn of this.transformNormals(input.vertexNormals)) {
+        this.geometry.vertexNormals.push(vn);
+      }
+      for (const val of input.uvs) {
+        this.geometry.uvs.push(val);
+      }
 
       const inputUserVertexProps = input.userVertexProperties;
       const builtUserVertexProps = this.geometry.userVertexProperties;
@@ -45740,15 +46838,17 @@ var p5 = (function () {
         );
       }
       if (this.renderer.states.strokeColor) {
-        this.geometry.edges.push(
-          ...input.edges.map(edge => edge.map(idx => idx + startIdx))
-        );
+        for (const edge of input.edges.map(edge => edge.map(idx => idx + startIdx))) {
+          this.geometry.edges.push(edge);
+        }
       }
       const vertexColors = [...input.vertexColors];
       while (vertexColors.length < input.vertices.length * 4) {
         vertexColors.push(...this.renderer.states.curFillColor);
       }
-      this.geometry.vertexColors.push(...vertexColors);
+      for (const c of vertexColors) {
+        this.geometry.vertexColors.push(c);
+      }
     }
 
     /**
@@ -45850,14 +46950,14 @@ var p5 = (function () {
 
     /**
      * Multiplies a quaternion with other quaternion.
-     * @method mult
+     * @method multiply
      * @param  {p5.Quat} [quat] quaternion to multiply with the quaternion calling the method.
      * @chainable
      */
     multiply(quat) {
 
       return new Quat(
-        this.w * quat.w - this.vec.x * quat.vec.x - this.vec.y * quat.vec.y - this.vec.z - quat.vec.z,
+        this.w * quat.w - this.vec.x * quat.vec.x - this.vec.y * quat.vec.y - this.vec.z * quat.vec.z,
         this.w * quat.vec.x + this.vec.x * quat.w + this.vec.y * quat.vec.z - this.vec.z * quat.vec.y,
         this.w * quat.vec.y - this.vec.x * quat.vec.z + this.vec.y * quat.w + this.vec.z * quat.vec.x,
         this.w * quat.vec.z + this.vec.x * quat.vec.y - this.vec.y * quat.vec.x + this.vec.z * quat.w
@@ -45920,7 +47020,6 @@ var p5 = (function () {
   /**
    * @module 3D
    * @submodule Camera
-   * @requires core
    */
 
 
@@ -47516,10 +48615,10 @@ var p5 = (function () {
       const up1 = rotMat1.row(1);
 
       // prepare new vectors.
-      const newFront = new Vector();
-      const newUp = new Vector();
-      const newEye = new Vector();
-      const newCenter = new Vector();
+      const newFront = new Vector(0, 0, 0);
+      const newUp = new Vector(0, 0, 0);
+      const newEye = new Vector(0, 0, 0);
+      const newCenter = new Vector(0, 0, 0);
 
       // Create the inverse matrix of mat0 by transposing mat0,
       // and multiply it to mat1 from the right.
@@ -49916,6 +51015,10 @@ var p5 = (function () {
       this.bufferStrides = { ...INITIAL_BUFFER_STRIDES };
     }
 
+    friendlyErrorsDisabled() {
+      return false;
+    }
+
     constructFromContours(shape, contours) {
       if (this._useUserVertexProperties){
         this._resetUserVertexProperties();
@@ -50019,6 +51122,27 @@ var p5 = (function () {
       }
 
       if (this.shapeMode === PATH) {
+        const vertexCount = this.geometry.vertices.length;
+        const MAX_SAFE_TESSELLATION_VERTICES = 50000;
+
+        if (
+          vertexCount > MAX_SAFE_TESSELLATION_VERTICES &&
+          !this.friendlyErrorsDisabled() &&
+          !this.renderer._largeTessellationAcknowledged
+        ) {
+          const proceed = window.confirm(
+            '🌸 p5.js says:\n\n' +
+            `This shape has ${vertexCount} vertices. Tessellating shapes with this ` +
+            'many vertices can be very slow and may cause your browser to become ' +
+            'unresponsive.\n\n' +
+            'Do you want to continue tessellating this shape?'
+          );
+          if (!proceed) {
+            return;
+          }
+          this.renderer._largeTessellationAcknowledged = true;
+        }
+
         this.isProcessingVertices = true;
         this._tesselateShape();
         this.isProcessingVertices = false;
@@ -50036,6 +51160,15 @@ var p5 = (function () {
       }
 
       if (
+        !this.renderer.geometryBuilder &&
+        this.shapeMode === TRIANGLE_FAN &&
+        !this.renderer.supportsTriangleFan()
+      ) {
+        this._convertFanToTriangles();
+        this.shapeMode = TRIANGLES;
+      }
+
+      if (
         this.renderer.states.textureMode === IMAGE &&
         this.renderer.states._tex !== null &&
         this.renderer.states._tex.width > 0 &&
@@ -50049,6 +51182,46 @@ var p5 = (function () {
           }
         });
       }
+    }
+
+    _remapVertices(newIndices) {
+      this.geometry.vertices = newIndices.map(i => this.geometry.vertices[i]);
+      this.geometry.vertexNormals = newIndices.map(i => this.geometry.vertexNormals[i]);
+
+      const remapFlat = (arr, stride) => {
+        const result = [];
+        for (const i of newIndices) {
+          for (let j = 0; j < stride; j++) {
+            result.push(arr[i * stride + j]);
+          }
+        }
+        return result;
+      };
+
+      this.geometry.uvs = remapFlat(this.geometry.uvs, 2);
+      this.geometry.vertexColors = remapFlat(this.geometry.vertexColors, 4);
+      this.geometry.vertexStrokeColors = remapFlat(this.geometry.vertexStrokeColors, 4);
+
+      for (const propName in this.geometry.userVertexProperties) {
+        const prop = this.geometry.userVertexProperties[propName];
+        const size = prop.getDataSize();
+        const oldData = prop.getSrcArray();
+        prop.resetSrcArray();
+        for (const i of newIndices) {
+          prop.setCurrentData(oldData.slice(i * size, i * size + size));
+          prop.pushCurrentData();
+        }
+      }
+    }
+
+    _convertFanToTriangles() {
+      const n = this.geometry.vertices.length;
+      if (n < 3) return;
+      const newIndices = [];
+      for (let i = 2; i < n; i++) {
+        newIndices.push(0, i - 1, i);
+      }
+      this._remapVertices(newIndices);
     }
 
     _resetUserVertexProperties() {
@@ -50486,7 +51659,6 @@ var p5 = (function () {
 
   /**
    * @module Typography
-   * @requires core
    */
 
 
@@ -51942,22 +53114,37 @@ var p5 = (function () {
 
     Renderer.prototype.textAlign = function (h, v) {
 
-      // the setter
-      if (typeof h !== 'undefined') {
-        this.states.setValue('textAlign', h);
-        if (typeof v !== 'undefined') {
-          if (v === fn.CENTER) {
-            v = textCoreConstants._CTX_MIDDLE;
-          }
-          this.states.setValue('textBaseline', v);
-        }
-        return this._applyTextProperties();
+      if (arguments.length === 0) {  // the getter
+        return {
+          horizontal: this.states.textAlign,
+          vertical: this.states.textBaseline
+        };
       }
-      // the getter
-      return {
-        horizontal: this.states.textAlign,
-        vertical: this.states.textBaseline
-      };
+
+      // allow an object with horizontal and vertical properties
+      if (typeof h === 'object' && h !== null) {
+        if (h.hasOwnProperty('vertical')) {
+          v = h.vertical;
+        }
+        if (h.hasOwnProperty('horizontal')) {
+          h = h.horizontal;
+        }
+      }
+
+      // horizontal value as separate argument
+      if (typeof h === 'string' || h instanceof String) {
+        this.states.setValue('textAlign', h);
+      }
+
+      // vertical value as separate argument
+      if (typeof v === 'string' || v instanceof String) {
+        if (v === fn.CENTER) {
+          v = textCoreConstants._CTX_MIDDLE;
+        }
+        this.states.setValue('textBaseline', v);
+      }
+
+      return this._applyTextProperties();
     };
 
     Renderer.prototype._currentTextFont = function () {
@@ -52056,13 +53243,6 @@ var p5 = (function () {
       if (typeof weight === 'number') {
         this.states.setValue('fontWeight', weight);
         this._applyTextProperties();
-
-        // Safari works without weight set in the canvas style attribute, and actually
-        // has buggy behavior if it is present, using the wrong weight when drawing
-        // multiple times with different weights
-        if (!p5.prototype._isSafari()) {
-          this._setCanvasStyleProperty('font-variation-settings', `"wght" ${weight}`);
-        }
         return;
       }
       // the getter
@@ -53044,6 +54224,12 @@ var p5 = (function () {
     return { STROKE_CAP_ENUM, STROKE_JOIN_ENUM, lineDefs };
   }
 
+  /**
+   * @module 3D
+   * @for p5
+   */
+
+
   const { STROKE_CAP_ENUM, STROKE_JOIN_ENUM } = getStrokeDefs(()=>"");
 
   class Renderer3D extends Renderer {
@@ -53156,7 +54342,7 @@ var p5 = (function () {
       this.states._useShininess = 1;
       this.states._useMetalness = 0;
 
-      this.states.tint = [255, 255, 255, 255];
+      this.states.tint = null;
 
       this.states.constantAttenuation = 1;
       this.states.linearAttenuation = 0;
@@ -53179,6 +54365,7 @@ var p5 = (function () {
 
       // clipping
       this._clipDepths = [];
+      this._textContextSavedStack = [];
       this._isClipApplied = false;
       this._stencilTestOn = false;
 
@@ -53239,6 +54426,8 @@ var p5 = (function () {
 
       // Used by beginShape/endShape functions to construct a p5.Geometry
       this.shapeBuilder = new ShapeBuilder(this);
+
+      this._largeTessellationAcknowledged = false;
 
       this.geometryBufferCache = new GeometryBufferCache(this);
 
@@ -53496,10 +54685,6 @@ var p5 = (function () {
      * combining them with `buildGeometry()` once and then drawing that will run
      * faster than repeatedly drawing the individual pieces.
      *
-     * One can also draw shapes directly between
-     * <a href="#/p5/beginGeometry">beginGeometry()</a> and
-     * <a href="#/p5/endGeometry">endGeometry()</a> instead of using a callback
-     * function.
      * @param {Function} callback A function that draws shapes.
      * @returns {p5.Geometry} The model that was built from the callback function.
      */
@@ -53745,7 +54930,7 @@ var p5 = (function () {
       this.states.setValue("enableLighting", false);
 
       //reset tint value for new frame
-      this.states.setValue("tint", [255, 255, 255, 255]);
+      this.states.setValue("tint", new Color([1,1,1,1]));
 
       //Clear depth every frame
       this._resetBuffersBeforeDraw();
@@ -54346,12 +55531,24 @@ var p5 = (function () {
       return this;
     }
 
+    push() {
+      super.push();
+      const saved = !!(this.states.textFont?.font);
+      if (saved) {
+        this.textDrawingContext().save();
+      }
+      this._textContextSavedStack.push(saved);
+    }
+
     pop(...args) {
       if (
         this._clipDepths.length > 0 &&
         this._pushPopDepth === this._clipDepths[this._clipDepths.length - 1]
       ) {
         this._clearClip();
+      }
+      if (this._textContextSavedStack.pop()) {
+        this.textDrawingContext().restore();
       }
       super.pop(...args);
       this._applyStencilTestIfClipping();
@@ -54509,8 +55706,15 @@ var p5 = (function () {
       // the next time a shader is used. However, the texture() function
       // works differently and is global p5 state. If the p5 state has
       // been cleared, we also need to clear the value in uSampler to match.
-      fillShader.setUniform("uSampler", this.states._tex || empty);
-      fillShader.setUniform("uTint", this.states.tint);
+      this._settingFillUniforms = true;
+      if (this.states._tex || !fillShader._userSetSampler) {
+        fillShader.setUniform("uSampler", this.states._tex || empty);
+      }
+      this._settingFillUniforms = false;
+      fillShader.setUniform(
+        "uTint",
+        this.states.tint?._getRGBA([255, 255, 255, 255]) ?? [255, 255, 255, 255]
+      );
 
       fillShader.setUniform("uHasSetAmbient", this.states._hasSetAmbient);
       fillShader.setUniform("uAmbientMatColor", this.states.curAmbientColor);
@@ -54629,7 +55833,7 @@ var p5 = (function () {
     _getEmptyTexture() {
       if (!this._emptyTexture) {
         // a plain white texture RGBA, full alpha, single pixel.
-        const im = new Image(1, 1);
+        const im = new Image$1(1, 1);
         im.set(0, 0, 255);
         this._emptyTexture = new Texture(this, im);
       }
@@ -55009,20 +56213,608 @@ var p5 = (function () {
     }
   }
 
+  const webGPUAddonMessage = 'Add the WebGPU add-on to your project and pass WEBGPU as the last argument to createCanvas.';
+
   function renderer3D(p5, fn) {
     p5.Renderer3D = Renderer3D;
+
+    ShapeBuilder.prototype.friendlyErrorsDisabled = function() {
+      return Boolean(p5.disableFriendlyErrors);
+    };
+
+    /**
+     * Creates a <a href="#/p5/p5.StorageBuffer">`p5.StorageBuffer`</a>, which is
+     * a block of data that shaders can read from, and compute shaders
+     * can also write to. This is only available in WebGPU mode.
+     *
+     * To read or write the data inside a shader, use
+     * <a href="#/p5/uniformStorage">`uniformStorage()`</a>. To update its contents
+     * from JavaScript, call <a href="#/p5.StorageBuffer/update">`.update()`</a>
+     * on the result with new data.
+     *
+     * Pass an array of objects to store a list of items, each with named
+     * properties. The properties can be numbers, arrays of numbers, vectors
+     * created with <a href="#/p5/createVector">`createVector()`</a>, or colors
+     * created with <a href="#/p5/color">`color()`</a>. Inside the shader, each
+     * item is accessed by index, and its properties are available by name.
+     *
+     * ```js example
+     * let instanceData;
+     * let instancesShader;
+     * let instance;
+     * let count = 5;
+     *
+     * async function setup() {
+     *   await createCanvas(200, 200, WEBGPU);
+     *
+     *   let data = [];
+     *   for (let i = 0; i < count; i++) {
+     *     data.push({
+     *       position: createVector(
+     *         random(-1, 1) * width / 2,
+     *         random(-1, 1) * height / 2,
+     *         0,
+     *       ),
+     *       color: color(
+     *         random(255),
+     *         random(255),
+     *         random(255)
+     *       )
+     *     });
+     *   }
+     *   instanceData = createStorage(data);
+     *   instance = buildGeometry(drawInstance);
+     *   instancesShader = buildMaterialShader(drawInstances);
+     *   describe('Five spheres at random positions, each a different random color.');
+     * }
+     *
+     * function drawInstance() {
+     *   sphere(15);
+     * }
+     *
+     * function drawInstances() {
+     *   let data = uniformStorage(instanceData);
+     *   let itemColor = sharedVec4();
+     *
+     *   worldInputs.begin();
+     *   let item = data[instanceID()];
+     *   itemColor = item.color;
+     *   worldInputs.position += item.position;
+     *   worldInputs.end();
+     *
+     *   finalColor.begin();
+     *   finalColor.set(itemColor);
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   lights();
+     *   noStroke();
+     *   shader(instancesShader);
+     *   model(instance, count);
+     * }
+     * ```
+     *
+     * You can also store a plain list of numbers by passing an array of numbers.
+     * Inside the shader, each number is accessed by index directly. To create an
+     * empty list to be filled in by a compute shader, pass a count instead.
+     *
+     * ```js example
+     * let cells;
+     * let nextCells;
+     * let gameShader;
+     * let displayShader;
+     * const W = 100;
+     * const H = 100;
+     *
+     * async function setup() {
+     *   await createCanvas(100, 100, WEBGPU);
+     *
+     *   let initial = new Float32Array(W * H);
+     *   for (let i = 0; i < initial.length; i++) {
+     *     initial[i] = random() > 0.7 ? 1 : 0;
+     *   }
+     *   cells = createStorage(initial);
+     *   nextCells = createStorage(W * H);
+     *
+     *   gameShader = buildComputeShader(simulate);
+     *   displayShader = buildFilterShader(display);
+     *   describe('An animated Game of Life simulation displayed as black and white pixels.');
+     * }
+     *
+     * function simulate() {
+     *   let current = uniformStorage(() => cells);
+     *   let next = uniformStorage(() => nextCells);
+     *   let w = uniformInt(() => W);
+     *   let h = uniformInt(() => H);
+     *   let x = index.x;
+     *   let y = index.y;
+     *
+     *   let n = 0;
+     *   for (let dy = -1; dy <= 1; dy++) {
+     *     for (let dx = -1; dx <= 1; dx++) {
+     *       if (dx != 0 || dy != 0) {
+     *         let nx = (x + dx + w) % w;
+     *         let ny = (y + dy + h) % h;
+     *         n += current[ny * w + nx];
+     *       }
+     *     }
+     *   }
+     *
+     *   let alive = current[y * w + x];
+     *   let nextOutput = 0;
+     *   if (alive == 1) {
+     *     if (abs(n - 2) < 0.1 || abs(n - 3) < 0.1) {
+     *       nextOutput = 1;
+     *     }
+     *   } else {
+     *     if (abs(n - 3) < 0.1) {
+     *       nextOutput = 1;
+     *     }
+     *   }
+     *   next[y * w + x] = nextOutput;
+     * }
+     *
+     * function display() {
+     *   let data = uniformStorage(() => cells);
+     *   let w = uniformInt(() => W);
+     *   let h = uniformInt(() => H);
+     *
+     *   filterColor.begin();
+     *   let x = floor(filterColor.texCoord.x * w);
+     *   let y = floor(filterColor.texCoord.y * h);
+     *   let alive = data[y * w + x];
+     *   filterColor.set([alive, alive, alive, 1]);
+     *   filterColor.end();
+     * }
+     *
+     * function draw() {
+     *   compute(gameShader, W, H);
+     *   [nextCells, cells] = [cells, nextCells];
+     *   filter(displayShader);
+     * }
+     * ```
+     *
+     * @method createStorage
+     * @submodule p5.strands
+     * @beta
+     * @webgpu
+     * @webgpuOnly
+     * @param {Number|Array|Float32Array|Object[]} dataOrCount Either a number specifying the count of floats,
+     *   an array/Float32Array of floats, or an array of objects describing struct elements.
+     * @returns {p5.StorageBuffer} A storage buffer.
+     */
+    fn.createStorage = function (dataOrCount) {
+      if (!this._renderer.createStorage) {
+        p5._friendlyError(
+          `createStorage() is only available with the WebGPU renderer. ${webGPUAddonMessage}`,
+          'createStorage'
+        );
+        return;
+      }
+      return this._renderer.createStorage(dataOrCount);
+    };
+
+    /**
+     * Returns the default shader used for compute operations.
+     *
+     * Calling <a href="#/p5/buildComputeShader">`buildComputeShader(shaderFunction)`</a>
+     * is equivalent to calling `baseComputeShader().modify(shaderFunction)`.
+     *
+     * Read <a href="#/p5/buildComputeShader">the `buildComputeShader` reference</a> or
+     * call `baseComputeShader().inspectHooks()` for more information on what you can do with
+     * the base compute shader.
+     *
+     * @method baseComputeShader
+     * @submodule p5.strands
+     * @beta
+     * @webgpu
+     * @webgpuOnly
+     * @returns {p5.Shader} The base compute shader.
+     */
+    fn.baseComputeShader = function () {
+      if (!this._renderer.baseComputeShader) {
+        p5._friendlyError(
+          `baseComputeShader() is only available with the WebGPU renderer. ${webGPUAddonMessage}`,
+          'baseComputeShader'
+        );
+        return;
+      }
+      return this._renderer.baseComputeShader();
+    };
+
+    /**
+     * Create a new compute shader using p5.strands.
+     *
+     * A compute shader lets you run many calculations all at once on your GPU. They
+     * are similar to a <a href="#/p5/for>`for` loop,</a> but each iteration of the
+     * loop happens in parallel on the GPU rather than running one after the other.
+     * This makes them ideal for calculations or simulations involving many items.
+     *
+     * You create a compute shader by passing a function to `buildComputeShader`.
+     * The function represents one iteration of a loop.
+     *
+     * The compute shader can be run by calling <a href="#/p5/compute">`compute()`</a>
+     * and passing the shader in, along with the number of iterations in up to three
+     * dimensions. Use the <a href="#/p5/index">`index`</a> vector inside of your
+     * iteration function to refer to the current iteration of the loop. The `x`, `y`,
+     * and `z` properties will count up from zero to the count in each dimension passed
+     * into `compute`.
+     *
+     * A compute shader will read from and write to storage, which is often an array of
+     * numbers or objects. Use <a href="#/p5/createStorage">`createStorage`</a> to construct
+     * initial data. Connect your iteration function to the storage by passing the storage
+     * into <a href="#/p5/uniformStorage">`uniformStorage`</a>.
+     *
+     * Often, compute shaders are paired with <a href="#/p5/model">`model(myGeometry, count)`</a>
+     * to draw one instance per object in the storage, and a shader that uses
+     * <a href="#/p5/instanceID">`instanceID()`</a> to position each instance.
+     *
+     * ```js example
+     * let particles;
+     * let computeShader;
+     * let displayShader;
+     * let instance;
+     * const numParticles = 100;
+     *
+     * async function setup() {
+     *   await createCanvas(100, 100, WEBGPU);
+     *   particles = createStorage(makeParticles(width / 2, height / 2));
+     *   computeShader = buildComputeShader(simulate);
+     *   displayShader = buildMaterialShader(display);
+     *   instance = buildGeometry(drawParticle);
+     *   describe('100 orange particles shooting outward.');
+     * }
+     *
+     * function makeParticles(x, y) {
+     *   let data = [];
+     *   for (let i = 0; i < numParticles; i++) {
+     *     let angle = (i / numParticles) * TWO_PI;
+     *     let speed = random(0.5, 2);
+     *     data.push({
+     *       position: createVector(x, y),
+     *       velocity: createVector(cos(angle) * speed, sin(angle) * speed),
+     *     });
+     *   }
+     *   return data;
+     * }
+     *
+     * function drawParticle() {
+     *   sphere(2);
+     * }
+     *
+     * function simulate() {
+     *   let data = uniformStorage(particles);
+     *   let idx = index.x;
+     *   data[idx].position = data[idx].position + data[idx].velocity;
+     * }
+     *
+     * function display() {
+     *   let data = uniformStorage(particles);
+     *   worldInputs.begin();
+     *   let pos = data[instanceID()].position;
+     *   worldInputs.position.xy += pos - [width / 2, height / 2];
+     *   worldInputs.end();
+     * }
+     *
+     * function draw() {
+     *   background(30);
+     *   if (frameCount % 60 === 0) {
+     *     particles.update(makeParticles(random(width), random(height)));
+     *   }
+     *   compute(computeShader, numParticles);
+     *   noStroke();
+     *   fill(255, 200, 50);
+     *   shader(displayShader);
+     *   model(instance, numParticles);
+     * }
+     * ```
+     *
+     * ```js example
+     * let particles;
+     * let computeShader;
+     * let displayShader;
+     * let instance;
+     * const numParticles = 50;
+     *
+     * async function setup() {
+     *   await createCanvas(100, 100, WEBGPU);
+     *
+     *   let data = [];
+     *   for (let i = 0; i < numParticles; i++) {
+     *     data.push({
+     *       position: createVector(
+     *         random(-40, 40),
+     *         random(-40, 40)
+     *       ),
+     *       velocity: createVector(
+     *         random(-1, 1),
+     *         random(-1, 1)
+     *       ),
+     *     });
+     *   }
+     *   particles = createStorage(data);
+     *
+     *   computeShader = buildComputeShader(simulate);
+     *   displayShader = buildMaterialShader(display);
+     *   instance = buildGeometry(drawParticle);
+     *   describe('50 white spheres bouncing around the canvas.');
+     * }
+     *
+     * function drawParticle() {
+     *   sphere(3);
+     * }
+     *
+     * function simulate() {
+     *   let r = 3;
+     *   let data = uniformStorage(particles);
+     *   let idx = index.x;
+     *   let pos = data[idx].position;
+     *   let vel = data[idx].velocity;
+     *   pos = pos + vel;
+     *   if (pos.x > width/2 - r || pos.x < -height/2 + r) {
+     *     vel.x = -vel.x;
+     *     pos.x = clamp(pos.x, -width/2 + r, width/2 - r);
+     *   }
+     *   if (pos.y > height/2 - r || pos.y < -height/2 + r) {
+     *     vel.y = -vel.y;
+     *     pos.y = clamp(pos.y, -height/2 + r, height/2 - r);
+     *   }
+     *   data[idx].position = pos;
+     *   data[idx].velocity = vel;
+     * }
+     *
+     * function display() {
+     *   let data = uniformStorage(particles);
+     *   worldInputs.begin();
+     *   let pos = data[instanceID()].position;
+     *   worldInputs.position.xy += pos;
+     *   worldInputs.end();
+     * }
+     *
+     * function draw() {
+     *   background(30);
+     *   compute(computeShader, numParticles);
+     *   noStroke();
+     *   fill(255);
+     *   lights();
+     *   shader(displayShader);
+     *   model(instance, numParticles);
+     * }
+     * ```
+     *
+     * @method buildComputeShader
+     * @submodule p5.strands
+     * @beta
+     * @webgpu
+     * @webgpuOnly
+     * @param {Function} callback A function building a p5.strands compute shader.
+     * @returns {p5.Shader} The compute shader.
+     */
+    fn.buildComputeShader = function (cb, context) {
+      if (!this._renderer.baseComputeShader) {
+        p5._friendlyError(
+          `buildComputeShader() is only available with the WebGPU renderer. ${webGPUAddonMessage}`,
+          'buildComputeShader'
+        );
+        return;
+      }
+      return this.baseComputeShader().modify(cb, context, { hook: 'iteration' });
+    };
+
+    /**
+     * Dispatches a compute shader to run on the GPU.
+     *
+     * The first parameter, `shader`, is a compute shader created with
+     * <a href="#/p5/buildComputeShader">`buildComputeShader`</a>.
+     *
+     * Pass a number for `x` to run a simple loop. Inside the shader's iteration
+     * function, <a href="#/p5/index">`index.x`</a> will count up from 0 to
+     * that number.
+     *
+     * ```js example
+     * let particles;
+     * let computeShader;
+     * let displayShader;
+     * let instance;
+     * const numParticles = 50;
+     *
+     * async function setup() {
+     *   await createCanvas(100, 100, WEBGPU);
+     *
+     *   let data = [];
+     *   for (let i = 0; i < numParticles; i++) {
+     *     data.push({
+     *       position: createVector(
+     *         random(-40, 40),
+     *         random(-40, 40)
+     *       ),
+     *       velocity: createVector(
+     *         random(-1, 1),
+     *         random(-1, 1)
+     *       ),
+     *     });
+     *   }
+     *   particles = createStorage(data);
+     *
+     *   computeShader = buildComputeShader(simulate);
+     *   displayShader = buildMaterialShader(display);
+     *   instance = buildGeometry(drawParticle);
+     *   describe('50 white spheres bouncing around the canvas.');
+     * }
+     *
+     * function drawParticle() {
+     *   sphere(3);
+     * }
+     *
+     * function simulate() {
+     *   let r = 3;
+     *   let data = uniformStorage(particles);
+     *   let idx = index.x;
+     *   let pos = data[idx].position;
+     *   let vel = data[idx].velocity;
+     *   pos = pos + vel;
+     *   if (pos.x > width/2 - r || pos.x < -height/2 + r) {
+     *     vel.x = -vel.x;
+     *     pos.x = clamp(pos.x, -width/2 + r, width/2 - r);
+     *   }
+     *   if (pos.y > height/2 - r || pos.y < -height/2 + r) {
+     *     vel.y = -vel.y;
+     *     pos.y = clamp(pos.y, -height/2 + r, height/2 - r);
+     *   }
+     *   data[idx].position = pos;
+     *   data[idx].velocity = vel;
+     * }
+     *
+     * function display() {
+     *   let data = uniformStorage(particles);
+     *   worldInputs.begin();
+     *   let pos = data[instanceID()].position;
+     *   worldInputs.position.xy += pos;
+     *   worldInputs.end();
+     * }
+     *
+     * function draw() {
+     *   background(30);
+     *   compute(computeShader, numParticles);
+     *   noStroke();
+     *   fill(255);
+     *   lights();
+     *   shader(displayShader);
+     *   model(instance, numParticles);
+     * }
+     * ```
+     *
+     * You can also pass `y` and `z` to loop in up to three dimensions, using
+     * `index.y` and `index.z` to get the position in each. This is useful for
+     * working with 2D grids, like in the Game of Life example below.
+     *
+     * ```js example
+     * let cells;
+     * let nextCells;
+     * let gameShader;
+     * let displayShader;
+     * const W = 100;
+     * const H = 100;
+     *
+     * async function setup() {
+     *   await createCanvas(100, 100, WEBGPU);
+     *
+     *   let initial = new Float32Array(W * H);
+     *   for (let i = 0; i < initial.length; i++) {
+     *     initial[i] = random() > 0.7 ? 1 : 0;
+     *   }
+     *   cells = createStorage(initial);
+     *   nextCells = createStorage(W * H);
+     *
+     *   gameShader = buildComputeShader(simulate);
+     *   displayShader = buildFilterShader(display);
+     *   describe('An animated Game of Life simulation displayed as black and white pixels.');
+     * }
+     *
+     * function simulate() {
+     *   let current = uniformStorage(() => cells);
+     *   let next = uniformStorage(() => nextCells);
+     *   let w = uniformInt(() => W);
+     *   let h = uniformInt(() => H);
+     *   let x = index.x;
+     *   let y = index.y;
+     *
+     *   let n = 0;
+     *   for (let dy = -1; dy <= 1; dy++) {
+     *     for (let dx = -1; dx <= 1; dx++) {
+     *       if (dx != 0 || dy != 0) {
+     *         let nx = (x + dx + w) % w;
+     *         let ny = (y + dy + h) % h;
+     *         n += current[ny * w + nx];
+     *       }
+     *     }
+     *   }
+     *
+     *   let alive = current[y * w + x];
+     *   let nextOutput = 0;
+     *   if (alive == 1) {
+     *     if (abs(n - 2) < 0.1 || abs(n - 3) < 0.1) {
+     *       nextOutput = 1;
+     *     }
+     *   } else {
+     *     if (abs(n - 3) < 0.1) {
+     *       nextOutput = 1;
+     *     }
+     *   }
+     *   next[y * w + x] = nextOutput;
+     * }
+     *
+     * function display() {
+     *   let data = uniformStorage(() => cells);
+     *   let w = uniformInt(() => W);
+     *   let h = uniformInt(() => H);
+     *
+     *   filterColor.begin();
+     *   let x = floor(filterColor.texCoord.x * w);
+     *   let y = floor(filterColor.texCoord.y * h);
+     *   let alive = data[y * w + x];
+     *   filterColor.set([alive, alive, alive, 1]);
+     *   filterColor.end();
+     * }
+     *
+     * function draw() {
+     *   compute(gameShader, W, H);
+     *   [nextCells, cells] = [cells, nextCells];
+     *   filter(displayShader);
+     * }
+     * ```
+     *
+     * @method compute
+     * @submodule p5.strands
+     * @beta
+     * @webgpu
+     * @webgpuOnly
+     * @param {p5.Shader} shader The compute shader to run.
+     * @param {Number} x Number of invocations in the X dimension.
+     * @param {Number} [y=1] Number of invocations in the Y dimension.
+     * @param {Number} [z=1] Number of invocations in the Z dimension.
+     */
+    fn.compute = function (shader, x, y, z) {
+      if (!this._renderer.compute) {
+        p5._friendlyError(
+          `compute() is only available with the WebGPU renderer. ${webGPUAddonMessage}`,
+          'compute'
+        );
+        return;
+      }
+      this._renderer.compute(shader, x, y, z);
+    };
+
+    /**
+     * Information about the current iteration of a compute shader.
+     *
+     * Use it inside a
+     * <a href="#/p5/buildComputeShader">`buildComputeShader()`</a>
+     * function to write a loop that runs in parallel on the GPU.
+     *
+     * `index` is a three-component vector with the current index
+     *  across all dimensions passed to
+     *  <a href="#/p5/compute">`compute()`</a>. For example, use
+     *  `index.x` to get the index when looping in one dimension.
+     *
+     * @property index
+     * @submodule p5.strands
+     * @beta
+     * @webgpu
+     * @webgpuOnly
+     */
   }
 
   if (typeof p5 !== "undefined") {
-    renderer3D(p5);
+    renderer3D(p5, p5.prototype);
   }
 
   /**
    * @module Shape
    * @submodule 3D Primitives
    * @for p5
-   * @requires core
-   * @requires p5.Geometry
    */
 
 
@@ -56808,33 +58600,38 @@ var p5 = (function () {
         const prevMode = this.states.textureMode;
         this.states.setValue('textureMode', NORMAL);
         const prevOrder = this.bezierOrder();
-        this.bezierOrder(2);
+        this.bezierOrder(3);
         this.beginShape();
         const addUVs = (x, y) => [x, y, 0, (x - x1)/width, (y - y1)/height];
+        const rr = 0.5523; // kappa: 4*(sqrt(2)-1)/3, handle ratio for cubic bezier circle approximation
         if (tr !== 0) {
           this.vertex(...addUVs(x2 - tr, y1));
-          this.bezierVertex(...addUVs(x2, y1));
+          this.bezierVertex(...addUVs(x2 - tr + tr * rr, y1));
+          this.bezierVertex(...addUVs(x2, y1 + tr - tr * rr));
           this.bezierVertex(...addUVs(x2, y1 + tr));
         } else {
           this.vertex(...addUVs(x2, y1));
         }
         if (br !== 0) {
           this.vertex(...addUVs(x2, y2 - br));
-          this.bezierVertex(...addUVs(x2, y2));
+          this.bezierVertex(...addUVs(x2, y2 - br + br * rr));
+          this.bezierVertex(...addUVs(x2 - br + rr * br, y2));
           this.bezierVertex(...addUVs(x2 - br, y2));
         } else {
           this.vertex(...addUVs(x2, y2));
         }
         if (bl !== 0) {
           this.vertex(...addUVs(x1 + bl, y2));
-          this.bezierVertex(...addUVs(x1, y2));
+          this.bezierVertex(...addUVs(x1 + bl - bl * rr, y2));
+          this.bezierVertex(...addUVs(x1, y2 - bl + bl * rr));
           this.bezierVertex(...addUVs(x1, y2 - bl));
         } else {
           this.vertex(...addUVs(x1, y2));
         }
         if (tl !== 0) {
           this.vertex(...addUVs(x1, y1 + tl));
-          this.bezierVertex(...addUVs(x1, y1));
+          this.bezierVertex(...addUVs(x1, y1 + tl - tl * rr));
+          this.bezierVertex(...addUVs(x1 + tl - tl * rr, y1));
           this.bezierVertex(...addUVs(x1 + tl, y1));
         } else {
           this.vertex(...addUVs(x1, y1));
@@ -57616,7 +59413,6 @@ var p5 = (function () {
    * @module 3D
    * @submodule Lights
    * @for p5
-   * @requires core
    */
 
 
@@ -58108,6 +59904,11 @@ var p5 = (function () {
      *
      *   // Draw the sphere.
      *   sphere(30);
+     * }
+     *
+     * function doubleClicked() {
+     *   isLit = !isLit;
+     *   return false;
      * }
      *
      * @example
@@ -59380,18 +61181,38 @@ var p5 = (function () {
    * @module 3D
    * @submodule Material
    * @for p5
-   * @requires core
    */
 
   const TypedArray = Object.getPrototypeOf(Uint8Array);
   class Shader {
     constructor(renderer, vertSrc, fragSrc, options = {}) {
       this._renderer = renderer;
-      this._vertSrc = vertSrc;
-      this._fragSrc = fragSrc;
+
+      // Detect compute shader: first arg is STRING and second is undefined OR an options object
+      if (
+        typeof vertSrc === 'string' && (
+          fragSrc === undefined || (typeof fragSrc === 'object' && !Array.isArray(fragSrc))
+        )
+      ) {
+        // Compute shader
+        this.shaderType = 'compute';
+        this._computeSrc = vertSrc;
+        this._vertSrc = null;
+        this._fragSrc = null;
+        // If fragSrc is an options object, use it
+        if (typeof fragSrc === 'object') {
+          options = fragSrc;
+        }
+      } else {
+        // Render shader - shaderType will be set later during binding ('fill', 'stroke', etc.)
+        this._vertSrc = vertSrc;
+        this._fragSrc = fragSrc;
+        this._computeSrc = null;
+      }
+
       this._vertShader = -1;
       this._fragShader = -1;
-      this._glProgram = 0;
+      this._compiled = false;
       this._loadedAttributes = false;
       this.attributes = {};
       this._loadedUniforms = false;
@@ -59405,11 +61226,17 @@ var p5 = (function () {
         // Stores uniforms + default values.
         uniforms: options.uniforms || {},
 
+        // Compute shader storage uniforms + default values
+        storageUniforms: options.storageUniforms || {},
+
         // Stores custom uniform + helper declarations as a string.
         declarations: options.declarations,
 
         // Stores an array of variable names + types passed between the vertex and fragment shader
         varyingVariables: options.varyingVariables || [],
+
+        // Stores instanceID varying info for forwarding to the fragment shader
+        instanceIDVarying: options.instanceIDVarying || null,
 
         // Stores helper functions to prepend to shaders.
         helpers: options.helpers || {},
@@ -59417,6 +61244,7 @@ var p5 = (function () {
         // Stores the hook implementations
         vertex: options.vertex || {},
         fragment: options.fragment || {},
+        compute: options.compute || {},
 
         hookAliases: options.hookAliases || {},
 
@@ -59425,7 +61253,8 @@ var p5 = (function () {
         // yourShader.modify(...).
         modified: {
           vertex: (options.modified && options.modified.vertex) || {},
-          fragment: (options.modified && options.modified.fragment) || {}
+          fragment: (options.modified && options.modified.fragment) || {},
+          compute: (options.modified && options.modified.compute) || {},
         }
       };
     }
@@ -59448,7 +61277,7 @@ var p5 = (function () {
      * @returns {String} The GLSL version used by the shader.
      */
     version() {
-      const match = /#version (.+)$/.exec(this.vertSrc());
+      const match = /#version (.+)$/m.exec(this.vertSrc());
       if (match) {
         return match[1];
       } else {
@@ -59457,11 +61286,18 @@ var p5 = (function () {
     }
 
     vertSrc() {
+      if (this.shaderType === 'compute') return null;
       return this.shaderSrc(this._vertSrc, 'vertex');
     }
 
     fragSrc() {
+      if (this.shaderType === 'compute') return null;
       return this.shaderSrc(this._fragSrc, 'fragment');
+    }
+
+    computeSrc() {
+      if (this.shaderType !== 'compute') return null;
+      return this.shaderSrc(this._computeSrc, 'compute');
     }
 
     /**
@@ -59513,29 +61349,40 @@ var p5 = (function () {
      *                 color.a = components.opacity;
      *                 return color;
      *               }
-     * vec4 getFinalColor(vec4 color) { return color; }
+     * vec4 getFinalColor(vec4 color, vec2 texCoord) { return color; }
      * void afterFragment() {}
      * ```
      *
      * @beta
      */
     inspectHooks() {
-      console.log('==== Vertex shader hooks: ====');
-      for (const key in this.hooks.vertex) {
-        console.log(
-          (this.hooks.modified.vertex[key] ? '[MODIFIED] ' : '') +
-            key +
-            this.hooks.vertex[key]
-        );
-      }
-      console.log('');
-      console.log('==== Fragment shader hooks: ====');
-      for (const key in this.hooks.fragment) {
-        console.log(
-          (this.hooks.modified.fragment[key] ? '[MODIFIED] ' : '') +
-            key +
-            this.hooks.fragment[key]
-        );
+      if (this.shaderType === 'compute') {
+        console.log('==== Compute shader hooks: ====');
+        for (const key in this.hooks.compute) {
+          console.log(
+            (this.hooks.modified.compute[key] ? '[MODIFIED] ' : '') +
+              key +
+              this.hooks.compute[key]
+          );
+        }
+      } else {
+        console.log('==== Vertex shader hooks: ====');
+        for (const key in this.hooks.vertex) {
+          console.log(
+            (this.hooks.modified.vertex[key] ? '[MODIFIED] ' : '') +
+              key +
+              this.hooks.vertex[key]
+          );
+        }
+        console.log('');
+        console.log('==== Fragment shader hooks: ====');
+        for (const key in this.hooks.fragment) {
+          console.log(
+            (this.hooks.modified.fragment[key] ? '[MODIFIED] ' : '') +
+              key +
+              this.hooks.fragment[key]
+          );
+        }
       }
       console.log('');
       console.log('==== Helper functions: ====');
@@ -59586,15 +61433,15 @@ var p5 = (function () {
      * type of the data, such as `uniformFloat` for a number or `uniformVector2` for a two-component vector.
      * They take in a function that returns the data for the variable. You can then reference these
      * variables in your hooks, and their values will update every time you apply
-     * the shader with the result of your function.  
-     * 
+     * the shader with the result of your function.
+     *
      * Move the mouse over this sketch to increase the moveCounter which will be passed to the shader as a uniform.
      *
      * ```js example
      * let myShader;
      * //count of frames in which mouse has been moved
      * let moveCounter = 0;
-     * 
+     *
      * function setup() {
      *   createCanvas(200, 200, WEBGL);
      *   myShader = baseMaterialShader().modify(() => {
@@ -59747,28 +61594,37 @@ var p5 = (function () {
       const newHooks = {
         vertex: {},
         fragment: {},
+        compute: {},
         helpers: {}
       };
       for (const key in hooks) {
         if (key === 'declarations') continue;
         if (key === 'uniforms') continue;
+        if (key === 'storageUniforms') continue;
         if (key === 'varyingVariables') continue;
+        if (key === 'instanceIDVarying') continue;
         if (key === 'vertexDeclarations') {
           newHooks.vertex.declarations =
             (newHooks.vertex.declarations || '') + '\n' + hooks[key];
         } else if (key === 'fragmentDeclarations') {
           newHooks.fragment.declarations =
             (newHooks.fragment.declarations || '') + '\n' + hooks[key];
+        } else if (key === 'computeDeclarations') {
+          newHooks.compute.declarations =
+            (newHooks.compute.declarations || '') + '\n' + hooks[key];
         } else if (this.hooks.vertex[key]) {
           newHooks.vertex[key] = hooks[key];
         } else if (this.hooks.fragment[key]) {
           newHooks.fragment[key] = hooks[key];
+        } else if (this.hooks.compute[key]) {
+          newHooks.compute[key] = hooks[key];
         } else {
           newHooks.helpers[key] = hooks[key];
         }
       }
       const modifiedVertex = Object.assign({}, this.hooks.modified.vertex);
       const modifiedFragment = Object.assign({}, this.hooks.modified.fragment);
+      const modifiedCompute = Object.assign({}, this.hooks.modified.compute);
       for (const key in newHooks.vertex || {}) {
         if (key === 'declarations') continue;
         modifiedVertex[key] = true;
@@ -59777,21 +61633,37 @@ var p5 = (function () {
         if (key === 'declarations') continue;
         modifiedFragment[key] = true;
       }
+      for (const key in newHooks.compute || {}) {
+        if (key === 'declarations') continue;
+        modifiedCompute[key] = true;
+      }
 
-      return new Shader(this._renderer, this._vertSrc, this._fragSrc, {
+      const args = [this._renderer];
+      if (this.shaderType === 'compute') {
+        args.push(this._computeSrc);
+      } else {
+        args.push(this._vertSrc, this._fragSrc);
+      }
+      args.push({
         declarations:
           (this.hooks.declarations || '') + '\n' + (hooks.declarations || ''),
         uniforms: Object.assign({}, this.hooks.uniforms, hooks.uniforms || {}),
+        storageUniforms: Object.assign({}, this.hooks.storageUniforms, hooks.storageUniforms || {}),
         varyingVariables: (hooks.varyingVariables || []).concat(this.hooks.varyingVariables || []),
+        instanceIDVarying: hooks.instanceIDVarying || this.hooks.instanceIDVarying || null,
         fragment: Object.assign({}, this.hooks.fragment, newHooks.fragment || {}),
         vertex: Object.assign({}, this.hooks.vertex, newHooks.vertex || {}),
+        compute: Object.assign({}, this.hooks.compute, newHooks.compute || {}),
         helpers: Object.assign({}, this.hooks.helpers, newHooks.helpers || {}),
         hookAliases: Object.assign({}, this.hooks.hookAliases, newHooks.hookAliases || {}),
         modified: {
           vertex: modifiedVertex,
-          fragment: modifiedFragment
+          fragment: modifiedFragment,
+          compute: modifiedCompute,
         }
       });
+
+      return new Shader(...args);
     }
 
     /**
@@ -59813,7 +61685,9 @@ var p5 = (function () {
           );
         }
 
-        this._loadAttributes();
+        if (this.shaderType !== 'compute') {
+          this._loadAttributes();
+        }
         this._loadUniforms();
         this._renderer._finalizeShader(this);
 
@@ -59837,6 +61711,13 @@ var p5 = (function () {
           value = initializer;
         }
 
+        if (value !== undefined && value !== null) {
+          this.setUniform(name, value);
+        }
+      }
+      for (const name in this.hooks.storageUniforms) {
+        const initializer = this.hooks.storageUniforms[name];
+        const value = initializer instanceof Function ? initializer() : initializer;
         if (value !== undefined && value !== null) {
           this.setUniform(name, value);
         }
@@ -60016,11 +61897,14 @@ var p5 = (function () {
      * }
      */
     copyToContext(context) {
-      const shader = new Shader(
-        context._renderer,
-        this._vertSrc,
-        this._fragSrc
-      );
+      const args = [context._renderer];
+      if (this.shaderType === 'compute') {
+        args.push(this._computeSrc);
+      } else {
+        args.push(this._vertSrc, this._fragSrc);
+      }
+      args.push(this.hooks);
+      const shader = new Shader(...args);
       shader.ensureCompiledOnContext(context._renderer);
       return shader;
     }
@@ -60029,11 +61913,11 @@ var p5 = (function () {
      * @private
      */
     ensureCompiledOnContext(context) {
-      if (this._glProgram !== 0 && this._renderer !== context) {
+      if (this._compiled && this._renderer !== context) {
         throw new Error(
           'The shader being run is attached to a different context. Do you need to copy it to this context first with .copyToContext()?'
         );
-      } else if (this._glProgram === 0) {
+      } else if (!this._compiled) {
         this._renderer = context?._renderer?.filterRenderer?._renderer || context;
         this.init();
       }
@@ -60186,7 +62070,7 @@ var p5 = (function () {
      * @chainable
      * @param {String} uniformName name of the uniform. Must match the name
      *                             used in the vertex and fragment shaders.
-     * @param {Boolean|Number|Number[]|p5.Image|p5.Graphics|p5.MediaElement|p5.Texture}
+     * @param {Boolean|p5.Vector|p5.Color|Number|Number[]|p5.Image|p5.Graphics|p5.MediaElement|p5.Texture|p5.StorageBuffer}
      * data value to assign to the uniform. Must match the uniform’s data type.
      *
      * @example
@@ -60397,6 +62281,20 @@ var p5 = (function () {
         return;
       }
 
+      if (uniformName === 'uSampler' && !this._renderer._settingFillUniforms) {
+        this._userSetSampler = true;
+      }
+
+      // In p5.strands-related code, where some of the code may be in
+      // p5.webgpu.js instead of the main p5.js build, we generally use
+      // duck typing instead of instanceof to avoid accidentally importing
+      // and comparing against a separate copy of p5 classes
+      if (data?.isVector) {
+        data = data.values.length !== data.dimensions ? data.values.slice(0, data.dimensions) : data.values;
+      } else if (data?.isColor) {
+        data = data._getRGBA([1, 1, 1, 1]);
+      }
+
       if (uniform.isArray) {
         if (
           uniform._cachedData &&
@@ -60590,7 +62488,6 @@ var p5 = (function () {
    * @module 3D
    * @submodule Material
    * @for p5
-   * @requires core
    */
 
 
@@ -61083,6 +62980,7 @@ var p5 = (function () {
      * `loadFilterShader('myShader.js', onLoaded)`.
      *
      * @method loadFilterShader
+     * @beta
      * @submodule p5.strands
      * @param {String} filename path to a p5.strands JavaScript file or a GLSL fragment shader file
      * @param {Function} [successCallback] callback to be called once the shader is
@@ -62698,7 +64596,7 @@ var p5 = (function () {
      *   // Replace alpha in the color with dithering by
      *   // randomly setting pixel colors to 0 based on opacity
      *   let a = 1;
-     *   if (noise(pixelInputs.position.xy) > pixelInputs.color.a) {
+     *   if (random() > pixelInputs.color.a) {
      *     a = 0;
      *   }
      *   pixelInputs.color.a = a;
@@ -63235,6 +65133,8 @@ var p5 = (function () {
      *
      * Note: `textureMode()` can only be used in WebGL mode.
      *
+     * Calling `textureMode()` with no arguments returns the current texture mode.
+     *
      * @method  textureMode
      * @param {(IMAGE|NORMAL)} mode either IMAGE or NORMAL.
      *
@@ -63297,7 +65197,14 @@ var p5 = (function () {
      *   endShape();
      * }
      */
+    /**
+     * @method textureMode
+     * @return {(IMAGE|NORMAL)} The current texture mode, either IMAGE or NORMAL.
+     */
     fn.textureMode = function (mode) {
+      if (typeof mode === 'undefined') { // getter
+        return this._renderer.states.textureMode;
+      }
       if (mode !== IMAGE && mode !== NORMAL) {
         console.warn(
           `You tried to set ${mode} textureMode only supports IMAGE & NORMAL `,
@@ -63404,6 +65311,9 @@ var p5 = (function () {
      * the same value as `wrapX`.
      *
      * Note: `textureWrap()` can only be used in WebGL mode.
+     *
+     * Calling `textureWrap()` with no arguments returns an object with the current
+     * mode for x and y directions, as in `{ wrapX: CLAMP, wrapY: REPEAT }`.
      *
      * @method textureWrap
      * @param {(CLAMP|REPEAT|MIRROR)} wrapX either CLAMP, REPEAT, or MIRROR
@@ -63560,13 +65470,31 @@ var p5 = (function () {
      *   endShape();
      * }
      */
+    /**
+     * @method textureWrap
+     * @return {{x: (CLAMP|REPEAT|MIRROR), y: (CLAMP|REPEAT|MIRROR)}} The current texture wrapping for x and y.
+     */
     fn.textureWrap = function (wrapX, wrapY = wrapX) {
-      this._renderer.states.setValue("textureWrapX", wrapX);
-      this._renderer.states.setValue("textureWrapY", wrapY);
-
-      for (const texture of this._renderer.textures.values()) {
-        texture.setWrapMode(wrapX, wrapY);
+      if (typeof wrapX === 'undefined') { // getter
+        return {
+          x: this._renderer.states.textureWrapX,
+          y: this._renderer.states.textureWrapY
+        };
       }
+      // accept what is returned from the getter
+      if (wrapX.hasOwnProperty('x') && wrapX.hasOwnProperty('y')) {
+        wrapX = wrapX.x;
+        wrapY = wrapX.y;
+      }
+      this._renderer.states.setValue('textureWrapX', wrapX);
+      this._renderer.states.setValue('textureWrapY', wrapY);
+
+      if (this._renderer.textures) {
+        for (const texture of this._renderer.textures.values()) {
+          texture.setWrapMode(wrapX, wrapY);
+        }
+      }
+      return this;
     };
 
     /**
@@ -64400,8 +66328,6 @@ var p5 = (function () {
    * @module Math
    * @submodule Trigonometry
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
 
@@ -64500,11 +66426,7 @@ var p5 = (function () {
      * <a href="#/p5/angleMode">angleMode()</a> is `DEGREES`, then values are
      * returned in the range 0 to 180.
      *
-     * @method acos
-     * @param  {Number} value value whose arc cosine is to be returned.
-     * @return {Number}       arc cosine of the given value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64522,8 +66444,9 @@ var p5 = (function () {
      *
      *   describe('The numbers 3.142, -1, and 3.142 written on separate rows.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64541,6 +66464,52 @@ var p5 = (function () {
      *
      *   describe('The numbers 3.927, -0.707, and 2.356 written on separate rows.');
      * }
+     * ```
+     *
+     * `acos()` can also be used in shaders with p5.strands. The following example
+     * uses `acos()` to create a pulsing color transition on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that pulses between orange and teal.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // acos(cos(t)) creates a triangle wave that goes from 0 to PI and back.
+     *   // Dividing by PI normalizes the result to the 0 to 1 range.
+     *   let value = acos(cos(t)) / PI;
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let orange = [1, 0.5, 0, 1];
+     *   let teal = [0, 0.8, 0.8, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between orange (when value = 0) and teal (when value = 1).
+     *   // acos() creates a pulsing effect by turning smooth oscillation into a triangle wave.
+     *   finalColor.set(mix(orange, teal, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method acos
+     * @param  {Number} value value whose arc cosine is to be returned.
+     * @return {Number}       arc cosine of the given value.
      */
     fn.acos = function(ratio) {
       return this._fromRadians(Math.acos(ratio));
@@ -64555,11 +66524,7 @@ var p5 = (function () {
      * the <a href="#/p5/angleMode">angleMode()</a> is `DEGREES` then values are
      * returned in the range -90 to 90.
      *
-     * @method asin
-     * @param  {Number} value value whose arc sine is to be returned.
-     * @return {Number}       arc sine of the given value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64577,8 +66542,9 @@ var p5 = (function () {
      *
      *   describe('The numbers 1.047, 0.866, and 1.047 written on separate rows.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64596,6 +66562,52 @@ var p5 = (function () {
      *
      *   describe('The numbers 4.189, -0.866, and -1.047 written on separate rows.');
      * }
+     * ```
+     *
+     * `asin()` can also be used in shaders with p5.strands. The following example
+     * uses `asin()` to create a smooth color transition on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that smoothly shifts between green and purple.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // asin(sin(t)) returns a value between -PI/2 and PI/2.
+     *   // Dividing by PI/2 normalizes to -1 to 1, then adding 1 and multiplying by 0.5
+     *   // remaps to the 0 to 1 range.
+     *   let value = (asin(sin(t)) / (PI / 2) + 1) * 0.5;
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let green = [0, 1, 0.5, 1];
+     *   let purple = [0.5, 0, 1, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between green (when value = 0) and purple (when value = 1).
+     *   finalColor.set(mix(green, purple, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method asin
+     * @param  {Number} value value whose arc sine is to be returned.
+     * @return {Number}       arc sine of the given value.
      */
     fn.asin = function(ratio) {
       return this._fromRadians(Math.asin(ratio));
@@ -64610,11 +66622,7 @@ var p5 = (function () {
      * (about 1.57). If the <a href="#/p5/angleMode">angleMode()</a> is `DEGREES`
      * then values are returned in the range -90 to 90.
      *
-     * @method atan
-     * @param  {Number} value value whose arc tangent is to be returned.
-     * @return {Number}       arc tangent of the given value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64632,8 +66640,9 @@ var p5 = (function () {
      *
      *   describe('The numbers 1.047, 1.732, and 1.047 written on separate rows.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64651,6 +66660,55 @@ var p5 = (function () {
      *
      *   describe('The numbers 4.189, 1.732, and 1.047 written on separate rows.');
      * }
+     * ```
+     *
+     * `atan()` can also be used in shaders with p5.strands. The following example
+     * uses `atan()` to create a soft color transition on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that softly shifts between pink and lime.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   // sin() oscillates the input between -5 and 5, so atan() gets both positive and negative values.
+     *   let t = sin(millis() * 0.001) * 5;
+     *
+     *   // atan(t) returns values between -PI/2 and PI/2.
+     *   // Dividing by PI/2 normalizes to -1 to 1, then adding 1 and multiplying by 0.5
+     *   // remaps to the 0 to 1 range.
+     *   // atan() compresses the wide range of t into a smooth S-curve (soft clipping).
+     *   let value = (atan(t) / (PI / 2) + 1) * 0.5;
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let pink = [1, 0, 0.5, 1];
+     *   let lime = [0.5, 1, 0, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between pink (when value = 0) and lime (when value = 1).
+     *   // atan() creates a soft, eased transition instead of a linear blend.
+     *   finalColor.set(mix(pink, lime, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method atan
+     * @param  {Number} value value whose arc tangent is to be returned.
+     * @return {Number}       arc tangent of the given value.
      */
     fn.atan = function(ratio) {
       return this._fromRadians(Math.atan(ratio));
@@ -64734,11 +66792,7 @@ var p5 = (function () {
      * calculates the cosine of an angle, using radians by default, or according
      * to if <a href="#/p5/angleMode">angleMode()</a> setting (RADIANS or DEGREES).
      *
-     * @method cos
-     * @param  {Number} angle the angle, in radians by default, or according to if <a href="/reference/p5/angleMode/">angleMode()</a> setting (RADIANS or DEGREES).
-     * @return {Number}       cosine of the angle.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64756,8 +66810,9 @@ var p5 = (function () {
      *   line(50, y, x, y);
      *   circle(x, y, 20);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64774,8 +66829,9 @@ var p5 = (function () {
      *   // Draw the point.
      *   point(x, y);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64792,6 +66848,51 @@ var p5 = (function () {
      *   // Draw the point.
      *   point(x, y);
      * }
+     * ```
+     *
+     * `cos()` can also be used in shaders with p5.strands. The following example
+     * uses `cos()` to smoothly oscillate the color of a shape over time.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that fades between yellow and blue.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // cos(t) oscillates between -1 and 1.
+     *   // 0.5 + 0.5 * cos(t) remaps this to the 0 to 1 range.
+     *   let value = 0.5 + 0.5 * cos(t);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let yellow = [1, 1, 0, 1];
+     *   let blue = [0, 0, 1, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between yellow (when value = 0) and blue (when value = 1).
+     *   finalColor.set(mix(yellow, blue, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method cos
+     * @param  {Number} angle the angle, in radians by default, or according to if <a href="/reference/p5/angleMode/">angleMode()</a> setting (RADIANS or DEGREES).
+     * @return {Number}       cosine of the angle.
      */
     fn.cos = function(angle) {
       return Math.cos(this._toRadians(angle));
@@ -64805,11 +66906,7 @@ var p5 = (function () {
      * calculates the sine of an angle, using radians by default, or according to
      * if <a href="#/p5/angleMode">angleMode()</a> setting (RADIANS or DEGREES).
      *
-     * @method sin
-     * @param  {Number} angle the angle, in radians by default, or according to if <a href="/reference/p5/angleMode/">angleMode()</a> setting (RADIANS or DEGREES).
-     * @return {Number}       sine of the angle.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64827,8 +66924,9 @@ var p5 = (function () {
      *   line(50, y, x, y);
      *   circle(x, y, 20);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64845,8 +66943,9 @@ var p5 = (function () {
      *   // Draw the point.
      *   point(x, y);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64863,6 +66962,51 @@ var p5 = (function () {
      *   // Draw the point.
      *   point(x, y);
      * }
+     * ```
+     *
+     * `sin()` can also be used in shaders with p5.strands. The following example
+     * uses `sin()` to oscillate the color of a shape over time.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that pulses between cyan and magenta.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // sin(t) oscillates between -1 and 1.
+     *   // 0.5 + 0.5 * sin(t) remaps this to the 0 to 1 range.
+     *   let value = 0.5 + 0.5 * sin(t);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let cyan = [0, 1, 1, 1];
+     *   let magenta = [1, 0, 1, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between cyan (when value = 0) and magenta (when value = 1).
+     *   finalColor.set(mix(cyan, magenta, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method sin
+     * @param  {Number} angle the angle, in radians by default, or according to if <a href="/reference/p5/angleMode/">angleMode()</a> setting (RADIANS or DEGREES).
+     * @return {Number}       sine of the angle.
      */
     fn.sin = function(angle) {
       return Math.sin(this._toRadians(angle));
@@ -64877,11 +67021,7 @@ var p5 = (function () {
      * by default, or according to
      * if <a href="#/p5/angleMode">angleMode()</a> setting (RADIANS or DEGREES).
      *
-     * @method tan
-     * @param  {Number} angle the angle, in radians by default, or according to if <a href="/reference/p5/angleMode/">angleMode()</a> setting (RADIANS or DEGREES).
-     * @return {Number}       tangent of the angle.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64898,6 +67038,53 @@ var p5 = (function () {
      *   // Draw the point.
      *   point(x, y);
      * }
+     * ```
+     *
+     * `tan()` can also be used in shaders with p5.strands. The following example
+     * uses `tan()` to create rapid color transitions on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere with rapidly shifting colors.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.0005 to slow it down.
+     *   let t = millis() * 0.0005;
+     *
+     *   // tan(t) can grow to very large values (even infinity) at certain angles.
+     *   // 0.5 + 0.5 * tan(t) shifts the range but can still go way past 0 or 1.
+     *   // min(max(..., 0), 1) clamps the result to the 0 to 1 range.
+     *   let value = min(max(0.5 + 0.5 * tan(t), 0), 1);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let orange = [1, 0.5, 0, 1];
+     *   let blue = [0, 0.5, 1, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between orange (when value = 0) and blue (when value = 1).
+     *   // tan() creates rapid, dramatic color shifts as it spikes and resets.
+     *   finalColor.set(mix(orange, blue, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method tan
+     * @param  {Number} angle the angle, in radians by default, or according to if <a href="/reference/p5/angleMode/">angleMode()</a> setting (RADIANS or DEGREES).
+     * @return {Number}       tangent of the angle.
      */
     fn.tan = function(angle) {
       return Math.tan(this._toRadians(angle));
@@ -64913,11 +67100,7 @@ var p5 = (function () {
      * quarter of a full rotation. The same angle is 2 &times; &pi; &divide; 4
      * (about 1.57) radians.
      *
-     * @method degrees
-     * @param  {Number} radians radians value to convert to degrees.
-     * @return {Number}         converted angle.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64932,6 +67115,54 @@ var p5 = (function () {
      *
      *   describe('The text "0.79 rad = 45˚".');
      * }
+     * ```
+     *
+     * `degrees()` can also be used in shaders with p5.strands. The following example
+     * uses `degrees()` to convert a radian value to degrees inside a shader.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that cycles through warm colors.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // degrees() converts the radian value t to degrees.
+     *   // (deg % 360) wraps the degrees into a 0-360 range.
+     *   // Dividing by 360 normalizes to the 0 to 1 range.
+     *   let deg = degrees(t);
+     *   let value = (deg % 360) / 360;
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let red = [1, 0, 0, 1];
+     *   let yellow = [1, 1, 0, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between red (when value = 0) and yellow (when value = 1).
+     *   // degrees() creates a cycling sawtooth pattern as time increases.
+     *   finalColor.set(mix(red, yellow, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method degrees
+     * @param  {Number} radians radians value to convert to degrees.
+     * @return {Number}         converted angle.
      */
     fn.degrees = angle => angle * RAD_TO_DEG;
 
@@ -64945,11 +67176,7 @@ var p5 = (function () {
      * quarter of a full rotation. The same angle is 2 &times; &pi; &divide; 4
      * (about 1.57) radians.
      *
-     * @method radians
-     * @param  {Number} degrees degree value to convert to radians.
-     * @return {Number}         converted angle.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -64964,6 +67191,56 @@ var p5 = (function () {
      *
      *   describe('The text "45˚ = 0.785 rad".');
      * }
+     * ```
+     *
+     * `radians()` can also be used in shaders with p5.strands. The following example
+     * uses `radians()` to convert degrees to radians inside a shader.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that fades between red and white.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start.
+     *   // Multiply by 0.05 and mod 360 to cycle through 0-360 degrees over time.
+     *   let deg = (millis() * 0.05) % 360;
+     *
+     *   // radians() converts degrees to radians so sin() can use them.
+     *   let rad = radians(deg);
+     *
+     *   // sin(rad) oscillates between -1 and 1.
+     *   // 0.5 + 0.5 * sin(rad) remaps this to the 0 to 1 range.
+     *   let value = 0.5 + 0.5 * sin(rad);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let red = [1, 0, 0, 1];
+     *   let white = [1, 1, 1, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between red (when value = 0) and white (when value = 1).
+     *   // radians() converts the degree input so sin() can produce smooth oscillation.
+     *   finalColor.set(mix(red, white, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method radians
+     * @param  {Number} degrees degree value to convert to radians.
+     * @return {Number}         converted angle.
      */
     fn.radians = angle => angle * DEG_TO_RAD;
 
@@ -65171,7 +67448,8 @@ var p5 = (function () {
      * @returns {Number}
      */
     fn._toRadians = function(angle) {
-      if (this._angleMode === DEGREES) {
+      // returns undefined if no argument
+      if (typeof angle !== 'undefined' && this._angleMode === DEGREES) {
         return angle * DEG_TO_RAD;
       }
       return angle;
@@ -65804,7 +68082,7 @@ var p5 = (function () {
      * @extends p5.Element
      * @param {Number} w            width width of the graphics buffer in pixels.
      * @param {Number} h            height height of the graphics buffer in pixels.
-     * @param {(P2D|WEBGL|P2DHDR)} renderer   the renderer to use, either P2D or WEBGL.
+     * @param {(P2D|WEBGL|P2DP3)} renderer   the renderer to use, either P2D or WEBGL.
      * @param {p5} [pInst]          sketch instance.
      * @param {HTMLCanvasElement} [canvas]     existing `<canvas>` element to use.
      *
@@ -65889,7 +68167,6 @@ var p5 = (function () {
    * @module 3D
    * @submodule Material
    * @for p5
-   * @requires core
    */
 
 
@@ -65949,7 +68226,7 @@ var p5 = (function () {
     _detectSourceType() {
       const obj = this.src;
       this.isFramebufferTexture = obj instanceof FramebufferTexture;
-      this.isSrcP5Image = obj instanceof Image;
+      this.isSrcP5Image = obj instanceof Image$1;
       this.isSrcP5Graphics = obj instanceof Graphics;
       this.isSrcP5Renderer = obj instanceof Renderer;
       this.isImageData = typeof ImageData !== 'undefined' && obj instanceof ImageData;
@@ -66297,8 +68574,8 @@ var p5 = (function () {
    * @param {Uint8Array|Float32Array|undefined} pixels An existing pixels array to reuse if the size is the same
    * @param {WebGLRenderingContext} gl The WebGL context
    * @param {WebGLFramebuffer|null} framebuffer The Framebuffer to read
-   * @param {Number} x The x coordiante to read, premultiplied by pixel density
-   * @param {Number} y The y coordiante to read, premultiplied by pixel density
+   * @param {Number} x The x coordinate to read, premultiplied by pixel density
+   * @param {Number} y The y coordinate to read, premultiplied by pixel density
    * @param {Number} width The width in pixels to be read (factoring in pixel density)
    * @param {Number} height The height in pixels to be read (factoring in pixel density)
    * @param {GLEnum} format Either RGB or RGBA depending on how many channels to read
@@ -66512,6 +68789,9 @@ var p5 = (function () {
           gl.uniform1f(location, data);
         }
         break;
+      case gl.FLOAT_MAT2:
+        gl.uniformMatrix2fv(location, false, data);
+        break;
       case gl.FLOAT_MAT3:
         gl.uniformMatrix3fv(location, false, data);
         break;
@@ -66650,6 +68930,7 @@ var p5 = (function () {
 
       uniform.isArray =
         uniformInfo.size > 1 ||
+        uniform.type === gl.FLOAT_MAT2 ||
         uniform.type === gl.FLOAT_MAT3 ||
         uniform.type === gl.FLOAT_MAT4 ||
         uniform.type === gl.FLOAT_VEC2 ||
@@ -66720,6 +69001,20 @@ var p5 = (function () {
         }
       }
     }
+
+    // Handle instanceID varying for fragment access
+    if (shader.hooks.instanceIDVarying) {
+      const { declaration, source, interpolation } = shader.hooks.instanceIDVarying;
+      const qualifier = interpolation ? `${interpolation} ` : '';
+      if (shaderType === "vertex") {
+        // Emit flat out declaration and inject assignment into main() body
+        hooks += `${qualifier}OUT ${declaration};\n`;
+        postMain = postMain.replace(/\{/, `{\n  ${declaration.split(' ').pop()} = ${source};`);
+      } else if (shaderType === "fragment") {
+        hooks += `${qualifier}IN ${declaration};\n`;
+      }
+    }
+
     for (const hookDef in shader.hooks.helpers) {
       hooks += `${hookDef}${shader.hooks.helpers[hookDef]}\n`;
     }
@@ -66776,7 +69071,6 @@ var p5 = (function () {
 
   /**
    * @module Rendering
-   * @requires constants
    */
 
 
@@ -66865,7 +69159,7 @@ var p5 = (function () {
       this.density = settings.density || this.renderer._pixelDensity;
       if (settings.width && settings.height) {
         const dimensions =
-          this.renderer._adjustDimensions(settings.width, settings.height);
+          this.renderer._adjustDimensions(settings.width, settings.height, this.density);
         this.width = dimensions.adjustedWidth;
         this.height = dimensions.adjustedHeight;
         this._autoSized = false;
@@ -66947,7 +69241,7 @@ var p5 = (function () {
     resize(width, height) {
       this._autoSized = false;
       const dimensions =
-        this.renderer._adjustDimensions(width, height);
+        this.renderer._adjustDimensions(width, height, this.density);
       width = dimensions.adjustedWidth;
       height = dimensions.adjustedHeight;
       this.width = width;
@@ -68223,10 +70517,12 @@ var p5 = (function () {
      * system variable to check what version is being used, or call
      * `setAttributes({ version: 1 })` to create a WebGL1 context.
      *
+     * Note: In WebGPU mode, you must `await` this function.
+     *
      * @method createCanvas
      * @param  {Number} [width] width of the canvas. Defaults to 100.
      * @param  {Number} [height] height of the canvas. Defaults to 100.
-     * @param  {(P2D|WEBGL|P2DHDR|WEBGPU)} [renderer] either P2D, WEBGL, or WEBGPU. Defaults to `P2D`.
+     * @param  {(P2D|WEBGL|P2DP3)} [renderer] either P2D or WEBGL. Defaults to `P2D`.
      * @param  {HTMLCanvasElement} [canvas] existing canvas element that should be used for the sketch.
      * @return {p5.Renderer} new `p5.Renderer` that holds the canvas.
      *
@@ -68286,6 +70582,14 @@ var p5 = (function () {
      */
     /**
      * @method createCanvas
+     * @param  {Number} width
+     * @param  {Number} height
+     * @param  {WEBGPU} renderer
+     * @param  {HTMLCanvasElement} [canvas]
+     * @return {Promise<p5.Renderer>}
+     */
+    /**
+     * @method createCanvas
      * @param  {Number} [width]
      * @param  {Number} [height]
      * @param  {HTMLCanvasElement} [canvas]
@@ -68301,6 +70605,14 @@ var p5 = (function () {
         selectedRenderer = renderer;
       }else {
         args.unshift(renderer);
+      }
+
+      if (!renderers[selectedRenderer]) {
+        if (selectedRenderer === WEBGPU) {
+          p5._friendlyError(`To create a WEBGPU canvas, remember to add the WebGPU add-on to your project.`);
+        } else {
+          p5._friendlyError(`We weren't able to find a renderer called ${selectedRenderer}.`);
+        }
       }
 
       // Init our graphics renderer
@@ -68845,187 +71157,11 @@ var p5 = (function () {
 
   var webgl2CompatibilityShader = "#ifdef WEBGL2\n\n#define IN in\n#define OUT out\n\n#ifdef FRAGMENT_SHADER\nout vec4 outColor;\n#define OUT_COLOR outColor\n#endif\n#define TEXTURE texture\n\n#else\n\n#ifdef FRAGMENT_SHADER\n#define IN varying\n#else\n#define IN attribute\n#endif\n#define OUT varying\n#define TEXTURE texture2D\n\n#ifdef FRAGMENT_SHADER\n#define OUT_COLOR gl_FragColor\n#endif\n\n#endif\n\nvec4 getTexture(in sampler2D content, vec2 coord) {\n  vec4 color = TEXTURE(content, coord);\n  if (color.a > 0.) color.rgb /= color.a;\n  return color;\n}\n";
 
-  /////////////////////
-  // Enums for nodes //
-  /////////////////////
-  const NodeType = {
-    OPERATION: 'operation',
-    LITERAL: 'literal',
-    VARIABLE: 'variable',
-    CONSTANT: 'constant',
-    STRUCT: 'struct',
-    PHI: 'phi',
-    STATEMENT: 'statement',
-    ASSIGNMENT: 'assignment',
-  };
-  const NodeTypeToName = Object.fromEntries(
-    Object.entries(NodeType).map(([key, val]) => [val, key])
-  );
-  const NodeTypeRequiredFields = {
-    [NodeType.OPERATION]: ["opCode", "dependsOn", "dimension", "baseType"],
-    [NodeType.LITERAL]: ["value", "dimension", "baseType"],
-    [NodeType.VARIABLE]: ["identifier", "dimension", "baseType"],
-    [NodeType.CONSTANT]: ["value", "dimension", "baseType"],
-    [NodeType.STRUCT]: [""],
-    [NodeType.PHI]: ["dependsOn", "phiBlocks", "dimension", "baseType"],
-    [NodeType.STATEMENT]: ["statementType"],
-    [NodeType.ASSIGNMENT]: ["dependsOn"]
-  };
-  const StatementType = {
-    DISCARD: 'discard',
-    BREAK: 'break',
-    EARLY_RETURN: 'early_return',
-    EXPRESSION: 'expression', // Used when we want to output a single expression as a statement, e.g. a for loop condition
-    EMPTY: 'empty', // Used for empty statements like ; in for loops
-  };
-  const BaseType = {
-    FLOAT: "float",
-    INT: "int",
-    BOOL: "bool",
-    MAT: "mat",
-    DEFER: "defer",
-    ASSIGN_ON_USE: "assign_on_use",
-    SAMPLER2D: "sampler2D",
-    SAMPLER: "sampler",
-  };
-  const BasePriority = {
-    [BaseType.FLOAT]: 3,
-    [BaseType.INT]: 2,
-    [BaseType.BOOL]: 1,
-    [BaseType.MAT]: 0,
-    [BaseType.DEFER]: -1,
-    [BaseType.ASSIGN_ON_USE]: -2,
-    [BaseType.SAMPLER2D]: -10,
-    [BaseType.SAMPLER]: -11,
-  };
-  const DataType = {
-    float1: { fnName: "float", baseType: BaseType.FLOAT, dimension:1, priority: 3,  },
-    float2: { fnName: "vec2", baseType: BaseType.FLOAT, dimension:2, priority: 3,  },
-    float3: { fnName: "vec3", baseType: BaseType.FLOAT, dimension:3, priority: 3,  },
-    float4: { fnName: "vec4", baseType: BaseType.FLOAT, dimension:4, priority: 3,  },
-    int1: { fnName: "int", baseType: BaseType.INT, dimension:1, priority: 2,  },
-    int2: { fnName: "ivec2", baseType: BaseType.INT, dimension:2, priority: 2,  },
-    int3: { fnName: "ivec3", baseType: BaseType.INT, dimension:3, priority: 2,  },
-    int4: { fnName: "ivec4", baseType: BaseType.INT, dimension:4, priority: 2,  },
-    bool1: { fnName: "bool", baseType: BaseType.BOOL, dimension:1, priority: 1,  },
-    bool2: { fnName: "bvec2", baseType: BaseType.BOOL, dimension:2, priority: 1,  },
-    bool3: { fnName: "bvec3", baseType: BaseType.BOOL, dimension:3, priority: 1,  },
-    bool4: { fnName: "bvec4", baseType: BaseType.BOOL, dimension:4, priority: 1,  },
-    mat2: { fnName: "mat2x2", baseType: BaseType.MAT, dimension:2, priority: 0,  },
-    mat3: { fnName: "mat3x3", baseType: BaseType.MAT, dimension:3, priority: 0,  },
-    mat4: { fnName: "mat4x4", baseType: BaseType.MAT, dimension:4, priority: 0,  },
-    defer: { fnName:  null, baseType: BaseType.DEFER, dimension: null, priority: -1 },
-    assign_on_use: { fnName: null, baseType: BaseType.ASSIGN_ON_USE, dimension: null, priority: -2 },
-    sampler2D: { fnName: "sampler2D", baseType: BaseType.SAMPLER2D, dimension: 1, priority: -10 },
-    sampler: { fnName: "sampler", baseType: BaseType.SAMPLER, dimension: 1, priority: -11 },
-  };
-  const structType = function (hookType) {
-    let T = hookType.type === undefined ? hookType : hookType.type;
-    const structType = {
-      name: hookType.name,
-      properties: [],
-      typeName: T.typeName,
-    };
-    // TODO: handle struct properties that are themselves structs
-    for (const prop of T.properties) {
-      const propType = prop.type.dataType;
-      structType.properties.push(
-        {name: prop.name, dataType: propType }
-      );
-    }
-    return structType;
-  };
-  function isStructType(typeInfo) {
-    return !!(typeInfo && typeInfo.properties);
-  }
-  const GenType = {
-    FLOAT: { baseType: BaseType.FLOAT, dimension: null, priority: 3 },
-    INT: { baseType: BaseType.INT, dimension: null, priority: 2 },
-    BOOL: { baseType: BaseType.BOOL, dimension: null, priority: 1 },
-  };
-  function typeEquals(nodeA, nodeB) {
-    return (nodeA.dimension === nodeB.dimension) && (nodeA.baseType === nodeB.baseType);
-  }
-  const TypeInfoFromGLSLName = Object.fromEntries(
-    Object.values(DataType)
-      .filter(info => info.fnName !== null)
-      .map(info => [info.fnName, info])
-  );
-  const OpCode = {
-    Binary: {
-      ADD: 0,
-      SUBTRACT: 1,
-      MULTIPLY: 2,
-      DIVIDE: 3,
-      MODULO: 4,
-      EQUAL: 5,
-      NOT_EQUAL: 6,
-      GREATER_THAN: 7,
-      GREATER_EQUAL: 8,
-      LESS_THAN: 9,
-      LESS_EQUAL: 10,
-      LOGICAL_AND: 11,
-      LOGICAL_OR: 12,
-      MEMBER_ACCESS: 13,
-    },
-    Unary: {
-      LOGICAL_NOT: 100,
-      NEGATE: 101,
-      PLUS: 102,
-      SWIZZLE: 103,
-    },
-    Nary: {
-      FUNCTION_CALL: 200,
-      CONSTRUCTOR: 201,
-    }};
-  const OperatorTable = [
-    { arity: "unary", boolean: true, name: "not", symbol: "!", opCode: OpCode.Unary.LOGICAL_NOT },
-    { arity: "unary", name: "neg", symbol: "-", opCode: OpCode.Unary.NEGATE },
-    { arity: "unary", name: "plus", symbol: "+", opCode: OpCode.Unary.PLUS },
-    { arity: "binary", name: "add", symbol: "+", opCode: OpCode.Binary.ADD },
-    { arity: "binary", name: "sub", symbol: "-", opCode: OpCode.Binary.SUBTRACT },
-    { arity: "binary", name: "mult", symbol: "*", opCode: OpCode.Binary.MULTIPLY },
-    { arity: "binary", name: "div", symbol: "/", opCode: OpCode.Binary.DIVIDE },
-    { arity: "binary", name: "mod", symbol: "%", opCode: OpCode.Binary.MODULO },
-    { arity: "binary", boolean: true, name: "equalTo", symbol: "==", opCode: OpCode.Binary.EQUAL },
-    { arity: "binary", boolean: true, name: "notEqual", symbol: "!=", opCode: OpCode.Binary.NOT_EQUAL },
-    { arity: "binary", boolean: true, name: "greaterThan", symbol: ">", opCode: OpCode.Binary.GREATER_THAN },
-    { arity: "binary", boolean: true, name: "greaterEqual", symbol: ">=", opCode: OpCode.Binary.GREATER_EQUAL },
-    { arity: "binary", boolean: true, name: "lessThan", symbol: "<", opCode: OpCode.Binary.LESS_THAN },
-    { arity: "binary", boolean: true, name: "lessEqual", symbol: "<=", opCode: OpCode.Binary.LESS_EQUAL },
-    { arity: "binary", boolean: true, name: "and", symbol: "&&", opCode: OpCode.Binary.LOGICAL_AND },
-    { arity: "binary", boolean: true, name: "or", symbol: "||", opCode: OpCode.Binary.LOGICAL_OR },
-  ];
-  // export const SymbolToOpCode = {};
-  const OpCodeToSymbol = {};
-  const UnarySymbolToName = {};
-  const booleanOpCode = {};
-  for (const { symbol, opCode, name, arity, boolean } of OperatorTable) {
-    // SymbolToOpCode[symbol] = opCode;
-    OpCodeToSymbol[opCode] = symbol;
-    if (arity === 'unary') {
-      UnarySymbolToName[symbol] = name;
-    }
-    if (boolean) {
-      booleanOpCode[opCode] = true;
-    }
-  }
-  const BlockType = {
-    GLOBAL: 'global',
-    FUNCTION: 'function',
-    BRANCH: 'branch',
-    IF_COND: 'if_cond',
-    IF_BODY: 'if_body',
-    ELSE_COND: 'else_cond',
-    SCOPE_START: 'scope_start',
-    SCOPE_END: 'scope_end',
-    FOR: 'for',
-    MERGE: 'merge',
-    DEFAULT: 'default',
-  };
-  Object.fromEntries(
-    Object.entries(BlockType).map(([key, val]) => [val, key])
-  );
+  var noiseGLSL = "// Based on https://github.com/stegu/webgl-noise/blob/22434e04d7753f7e949e8d724ab3da2864c17a0f/src/noise3D.glsl\n// MIT licensed, adapted for p5.strands\n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n  return mod289(((x*34.0)+10.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat baseNoise(vec3 v)\n{\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n  // First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n  // Other corners\n  vec3 g = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g;\n  vec3 i1 = min( g.xyz, l.zxy );\n  vec3 i2 = max( g.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n  // Permutations\n  i = mod289(i);\n  vec4 p = permute( permute( permute(\n          i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n        + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))\n      + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n  // Gradients: 7x7 points over a square, mapped onto an octahedron.\n  // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n  //Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n  // Mix final noise value\n  vec4 m = max(0.5 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 105.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),\n        dot(p2,x2), dot(p3,x3) ) );\n}\n\nfloat noise(vec3 st, int octaves, float ampFalloff) {\n  float result = 0.0;\n  float amplitude = 1.0;\n  float frequency = 1.0;\n\n  for (int i = 0; i < 8; i++) {\n    if (i >= octaves) break;\n    result += amplitude * baseNoise(st * frequency);\n    frequency *= 2.0;\n    amplitude *= ampFalloff;\n  }\n  return (result + 1.0) * 0.5;\n}\n";
+
+  var randomGLSL = "// _p5_hash: \"Hash without Sine\" by Dave Hoskins (https://www.shadertoy.com/view/4djSRW)\n// Mixing constants: R₂ sequence by Martin Roberts (https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/)\n//   α₁ = 1/φ₂ = 0.7548776662 (plastic constant reciprocal)\n//   α₂ = 1/φ₂² = 0.5698402910\n//   1/φ = 0.6180339887 (golden ratio conjugate)\n\nint _p5_randomCallIndex = 0;\n\nfloat _p5_hash(vec3 p) {\n  p = fract(p * vec3(0.1031, 0.1030, 0.0973));\n  p += dot(p, p.yxz + 33.33);\n  return fract((p.x + p.y) * p.z);\n}\n\nfloat random(float seed) {\n  vec2 pixelCoord = gl_FragCoord.xy;\n  float callIndex = float(_p5_randomCallIndex);\n  _p5_randomCallIndex += 1;\n  // fract(seed * α₁) normalizes large seeds (e.g. performance.now()) into [0,1)\n  // and spreads them optimally via the R₂ sequence's plastic constant\n  float s = fract(seed * 0.7548776662);\n  return _p5_hash(vec3(\n    pixelCoord.x + s,\n    pixelCoord.y + callIndex * 0.5698402910,\n    s + callIndex * 0.6180339887\n  ));\n}\n";
+
+  var randomVertGLSL = "// _p5_hash: \"Hash without Sine\" by Dave Hoskins (https://www.shadertoy.com/view/4djSRW)\n// Mixing constants: R₂ sequence by Martin Roberts (https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/)\n//   α₁ = 1/φ₂ = 0.7548776662 (plastic constant reciprocal)\n//   α₂ = 1/φ₂² = 0.5698402910\n//   1/φ = 0.6180339887 (golden ratio conjugate)\n\nint _p5_randomCallIndex = 0;\n\nfloat _p5_hash(vec3 p) {\n  p = fract(p * vec3(0.1031, 0.1030, 0.0973));\n  p += dot(p, p.yxz + 33.33);\n  return fract((p.x + p.y) * p.z);\n}\n\nfloat random(float seed) {\n  float vid = float(gl_VertexID);\n  float callIndex = float(_p5_randomCallIndex);\n  _p5_randomCallIndex += 1;\n  float s = fract(seed * 0.7548776662);\n  return _p5_hash(vec3(\n    vid + s,\n    vid * 0.5698402910 + callIndex * 0.6180339887,\n    s + callIndex * 0.7548776662\n  ));\n}\n";
 
   function internalError(errorMessage) {
       const prefixedMessage = `[p5.strands internal error]: ${errorMessage}`; 
@@ -69035,6 +71171,13 @@ var p5 = (function () {
   function userError(errorType, errorMessage) {
       const prefixedMessage = `[p5.strands ${errorType}]: ${errorMessage}`;
       throw new Error(prefixedMessage);
+  }
+
+  function dimensionMismatchError(declaredDim,actualDim,varName){
+      userError(
+          'dimension mismatch',
+      `Cannot assign a value of dimension ${actualDim} to \`${varName}\`, which expects dimension ${declaredDim}.`
+      );
   }
 
   /////////////////////////////////
@@ -69277,6 +71420,9 @@ var p5 = (function () {
       this.strandsContext = strandsContext;
       this.dimension = dimension;
       this.structProperties = null;
+      // Schema for struct storage buffers (set by uniformStorage when buffer has a struct layout).
+      // When set, buf.get(idx) returns a field proxy instead of a scalar StrandsNode.
+      this._schema = null;
       this.isStrandsNode = true;
 
       // Store original identifier for varying variables
@@ -69322,6 +71468,16 @@ var p5 = (function () {
 
       // For varying variables, we need both assignment generation AND a way to reference by identifier
       if (this._originalIdentifier) {
+        const valueDim = value?.isStrandsNode
+          ? value.dimension
+          : (Array.isArray(value) ? value.length : 1);
+        if (valueDim !== this._originalDimension && valueDim !== 1){
+          dimensionMismatchError(
+            this._originalDimension,
+            valueDim,
+            this._originalIdentifier
+          );
+        }
         // Create a variable node for the target (the varying variable)
         const { id: targetVarID } = variableNode(
           this.strandsContext,
@@ -69374,6 +71530,16 @@ var p5 = (function () {
 
       // For varying variables, create swizzle assignment
       if (this._originalIdentifier) {
+        const valueDim = value?.isStrandsNode
+          ? value.dimension
+          : (Array.isArray(value) ? value.length : 1);
+        if (valueDim !== swizzlePattern.length && valueDim !== 1){
+          dimensionMismatchError(
+            swizzlePattern.length,
+            valueDim,
+            `${this._originalIdentifier}.${swizzlePattern}`
+          );
+        }
         // Create a variable node for the target with swizzle
         const { id: targetVarID } = variableNode(
           this.strandsContext,
@@ -69428,6 +71594,53 @@ var p5 = (function () {
         return createStrandsNode(id, dimension, this.strandsContext);
       }
 
+      return this;
+    }
+
+    get(index) {
+      const nodeData = getNodeDataFromID(this.strandsContext.dag, this.id);
+
+      // Validate baseType is 'storage'
+      // For struct storage buffers, return a proxy with per-field getters/setters
+      if (nodeData.baseType === 'storage' && this._schema) {
+        return createStructArrayElementProxy(this.strandsContext, this, index, this._schema);
+      }
+
+      // Create array access node for storage and non-storage (vector) access
+      const { id, dimension } = arrayAccessNode(
+        this.strandsContext,
+        this,
+        index);
+      return createStrandsNode(id, dimension, this.strandsContext);
+    }
+
+    set(index, value) {
+      // Validate baseType is 'storage' and has _originalIdentifier
+      const nodeData = getNodeDataFromID(this.strandsContext.dag, this.id);
+      if (nodeData.baseType !== 'storage') {
+        throw new Error('set() can only be used on storage buffers');
+      }
+      if (!this._originalIdentifier) {
+        throw new Error('set() can only be used on storage buffers with an identifier');
+      }
+
+      // If value is a plain object (struct literal), expand to per-field assignments
+      // e.g. buf[idx] = { position: pos, velocity: vel }
+      // becomes buf[idx].position = pos; buf[idx].velocity = vel;
+      if (value !== null && typeof value === 'object' && !value.isStrandsNode && this._schema) {
+        const proxy = createStructArrayElementProxy(this.strandsContext, this, index, this._schema);
+        for (const [fieldName, fieldValue] of Object.entries(value)) {
+          proxy[fieldName] = fieldValue;
+        }
+        return this;
+      }
+
+      // Create array assignment node: buffer.set(index, value) -> buffer[index] = value
+      // This creates an ASSIGNMENT node and records it in the CFG basic block
+      // CFG preserves sequential order, preventing reordering of assignments
+      arrayAssignmentNode(this.strandsContext, this, index, value);
+
+      // Return this for chaining
       return this;
     }
   }
@@ -69875,38 +72088,24 @@ var p5 = (function () {
     return createStrandsNode(id, dimension, strandsContext);
   }
 
-  function structConstructorNode(strandsContext, structTypeInfo, rawUserArgs) {
+  function structConstructorNode(strandsContext, structTypeInfo, dependsOn) {
     const { cfg, dag } = strandsContext;
     const { properties } = structTypeInfo;
 
-    if (!(rawUserArgs.length === properties.length)) {
+    if (dependsOn.length !== properties.length) {
       userError('type error',
-        `You've tried to construct a ${structTypeInfo.typeName} struct with ${rawUserArgs.length} properties, but it expects ${properties.length} properties.\n` +
+        `You've tried to construct a ${structTypeInfo.typeName} struct with ${dependsOn.length} properties, but it expects ${properties.length} properties.\n` +
         `The properties it expects are:\n` +
-        `${properties.map(prop => prop.name + ' ' + prop.DataType.baseType + prop.DataType.dimension)}`
+        `${properties.map(prop => `${prop.name}: ${prop.dataType.baseType}${prop.dataType.dimension}`).join(', ')}`
       );
-    }
-
-    const dependsOn = [];
-    for (let i = 0; i < properties.length; i++) {
-      const expectedProperty = properties[i];
-      const { originalNodeID, mappedDependencies } = mapPrimitiveDepsToIDs(strandsContext, expectedProperty.dataType, rawUserArgs[i]);
-      if (originalNodeID) {
-        dependsOn.push(originalNodeID);
-      }
-      else {
-        dependsOn.push(
-          constructTypeFromIDs(strandsContext, expectedProperty.dataType, mappedDependencies)
-        );
-      }
     }
 
     const nodeData = createNodeData({
       nodeType: NodeType.OPERATION,
       opCode: OpCode.Nary.CONSTRUCTOR,
       dimension: properties.length,
-      baseType: structTypeInfo.typeName ,
-      dependsOn
+      baseType: structTypeInfo.typeName,
+      dependsOn,
     });
     const id = getOrCreateNode(dag, nodeData);
     recordInBasicBlock(cfg, cfg.currentBlock, id);
@@ -70103,7 +72302,11 @@ var p5 = (function () {
               scalars.push(createStrandsNode(id, dimension, strandsContext));
             }
           } else {
-            userError('type error', `Swizzle assignment: RHS vector does not match LHS vector (need ${chars.length}, got ${value.dimension}).`);
+            dimensionMismatchError(
+              chars.length,
+              value.dimension,
+              `${target._originalIdentifier || 'value'}.${property}`
+            );
           }
         } else if (Array.isArray(value)) {
           const flat = value.flat(Infinity);
@@ -70151,6 +72354,186 @@ var p5 = (function () {
     }
     };
     return trap;
+  }
+
+  function arrayAccessNode(strandsContext, bufferNode, indexNode, accessMode) {
+    const { dag, cfg } = strandsContext;
+
+    // Ensure index is a StrandsNode
+    let index;
+    if (indexNode instanceof StrandsNode) {
+      index = indexNode;
+    } else {
+      const { id, dimension } = primitiveConstructorNode(
+        strandsContext,
+        { baseType: BaseType.INT, dimension: 1 },
+        indexNode
+      );
+      index = createStrandsNode(id, dimension, strandsContext);
+    }
+
+    // Array access returns a single float
+    const nodeData = createNodeData({
+      nodeType: NodeType.OPERATION,
+      opCode: OpCode.Binary.ARRAY_ACCESS,
+      dependsOn: [bufferNode.id, index.id],
+      dimension: 1,
+      baseType: BaseType.FLOAT});
+
+    const id = getOrCreateNode(dag, nodeData);
+    recordInBasicBlock(cfg, cfg.currentBlock, id);
+
+    return { id, dimension: 1 };
+  }
+
+  function createStructArrayElementProxy(strandsContext, bufferNode, indexNode, schema) {
+    const { dag, cfg } = strandsContext;
+
+    // Ensure index is a StrandsNode
+    let index;
+    if (indexNode instanceof StrandsNode) {
+      index = indexNode;
+    } else {
+      const { id, dimension } = primitiveConstructorNode(
+        strandsContext,
+        { baseType: BaseType.INT, dimension: 1 },
+        indexNode
+      );
+      index = createStrandsNode(id, dimension, strandsContext);
+    }
+
+    // Create a plain object with getters/setters for each struct field.
+    // When read, a field creates an ARRAY_ACCESS IR node with the field name encoded
+    // in the identifier slot. When written, an ASSIGNMENT IR node is recorded in the CFG.
+    const proxy = {};
+
+    for (const field of schema.fields) {
+      Object.defineProperty(proxy, field.name, {
+        get() {
+          // Encode field name in identifier so WGSL backend can emit buf[idx].field
+          const nodeData = createNodeData({
+            nodeType: NodeType.OPERATION,
+            opCode: OpCode.Binary.ARRAY_ACCESS,
+            dependsOn: [bufferNode.id, index.id],
+            dimension: field.dim,
+            baseType: BaseType.FLOAT,
+            identifier: field.name,
+          });
+          const id = getOrCreateNode(dag, nodeData);
+          recordInBasicBlock(cfg, cfg.currentBlock, id);
+          // When a swizzle assignment fires (e.g. buf[i].vel.y *= -1), onRebind
+          // receives the new vector ID and writes it back to the buffer field,
+          // equivalent to buf[i].vel = newVec.
+          const onRebind = (newFieldID) => {
+            const accessData = createNodeData({
+              nodeType: NodeType.OPERATION,
+              opCode: OpCode.Binary.ARRAY_ACCESS,
+              dependsOn: [bufferNode.id, index.id],
+              dimension: field.dim,
+              baseType: BaseType.FLOAT,
+              identifier: field.name,
+            });
+            const accessID = getOrCreateNode(dag, accessData);
+            const assignData = createNodeData({
+              nodeType: NodeType.ASSIGNMENT,
+              dependsOn: [accessID, newFieldID],
+              phiBlocks: [],
+            });
+            const assignID = getOrCreateNode(dag, assignData);
+            recordInBasicBlock(cfg, cfg.currentBlock, assignID);
+          };
+          return createStrandsNode(id, field.dim, strandsContext, onRebind);
+        },
+        set(val) {
+          // Create access node as assignment target (field name in identifier)
+          const accessData = createNodeData({
+            nodeType: NodeType.OPERATION,
+            opCode: OpCode.Binary.ARRAY_ACCESS,
+            dependsOn: [bufferNode.id, index.id],
+            dimension: field.dim,
+            baseType: BaseType.FLOAT,
+            identifier: field.name,
+          });
+          const accessID = getOrCreateNode(dag, accessData);
+
+          let valueID;
+          if (val?.isStrandsNode) {
+            valueID = val.id;
+          } else {
+            const { id } = primitiveConstructorNode(
+              strandsContext,
+              { baseType: BaseType.FLOAT, dimension: field.dim },
+              val
+            );
+            valueID = id;
+          }
+
+          const assignData = createNodeData({
+            nodeType: NodeType.ASSIGNMENT,
+            dependsOn: [accessID, valueID],
+            phiBlocks: [],
+          });
+          const assignID = getOrCreateNode(dag, assignData);
+          recordInBasicBlock(cfg, cfg.currentBlock, assignID);
+        },
+        configurable: true,
+      });
+    }
+
+    return proxy;
+  }
+
+  function arrayAssignmentNode(strandsContext, bufferNode, indexNode, valueNode) {
+    const { dag, cfg } = strandsContext;
+
+    // Ensure index is a StrandsNode
+    let index;
+    if (indexNode instanceof StrandsNode) {
+      index = indexNode;
+    } else {
+      const { id, dimension } = primitiveConstructorNode(
+        strandsContext,
+        { baseType: BaseType.INT, dimension: 1 },
+        indexNode
+      );
+      index = createStrandsNode(id, dimension, strandsContext);
+    }
+
+    // Ensure value is a StrandsNode
+    let value;
+    if (valueNode instanceof StrandsNode) {
+      value = valueNode;
+    } else {
+      const { id, dimension } = primitiveConstructorNode(
+        strandsContext,
+        { baseType: BaseType.FLOAT, dimension: 1 },
+        valueNode
+      );
+      value = createStrandsNode(id, dimension, strandsContext);
+    }
+
+    // Create array access node as the assignment target
+    const arrayAccessData = createNodeData({
+      nodeType: NodeType.OPERATION,
+      opCode: OpCode.Binary.ARRAY_ACCESS,
+      dependsOn: [bufferNode.id, index.id],
+      dimension: 1,
+      baseType: BaseType.FLOAT
+    });
+    const arrayAccessID = getOrCreateNode(dag, arrayAccessData);
+
+    // Create assignment node: buffer[index] = value
+    const assignmentData = createNodeData({
+      nodeType: NodeType.ASSIGNMENT,
+      dependsOn: [arrayAccessID, value.id],
+      phiBlocks: []
+    });
+    const assignmentID = getOrCreateNode(dag, assignmentData);
+
+    // CRITICAL: Record in CFG to preserve sequential ordering
+    recordInBasicBlock(cfg, cfg.currentBlock, assignmentID);
+
+    return { id: assignmentID };
   }
 
   function shouldCreateTemp(dag, nodeID) {
@@ -70316,9 +72699,18 @@ var p5 = (function () {
   const glslBackend = {
     hookEntry(hookType) {
       const firstLine = `(${hookType.parameters.flatMap((param) => {
-      return `${param.qualifiers?.length ? param.qualifiers.join(' ') : ''}${param.type.typeName} ${param.name}`;
+      return `${param.qualifiers?.length ? param.qualifiers.join(' ') : ''}${param.type.typeName} ${HOOK_PARAM_PREFIX}${param.name}`;
     }).join(', ')}) {`;
       return firstLine;
+    },
+    getNoiseShaderSnippet() {
+      return noiseGLSL;
+    },
+    getRandomFragmentShaderSnippet() {
+      return randomGLSL;
+    },
+    getRandomVertexShaderSnippet() {
+      return randomVertGLSL;
     },
     getTypeName(baseType, dimension) {
       const primitiveTypeName = TypeNames[baseType + dimension];
@@ -70382,9 +72774,13 @@ var p5 = (function () {
       return `${typeName} ${tmp} = ${expr};`;
     },
     generateReturnStatement(strandsContext, generationContext, rootNodeID, returnType) {
+      if (!returnType) {
+        generationContext.write('return;');
+        return;
+      }
       const dag = strandsContext.dag;
       const rootNode = getNodeDataFromID(dag, rootNodeID);
-      if (isStructType(returnType)) {
+      if (isStructType(returnType) && rootNode.identifier) {
         const structTypeInfo = returnType;
         for (let i = 0; i < structTypeInfo.properties.length; i++) {
           const prop = structTypeInfo.properties[i];
@@ -70421,6 +72817,13 @@ var p5 = (function () {
             sharedVar.usedInFragment = true;
           }
         }
+
+        // Detect instanceID usage in fragment context and rewrite to varying name
+        if (node.identifier === this.instanceIdReference() && generationContext.shaderContext === 'fragment') {
+          generationContext.strandsContext._instanceIDUsedInFragment = true;
+          return INSTANCE_ID_VARYING_NAME;
+        }
+
         return node.identifier;
         case NodeType.OPERATION:
         const useParantheses = node.usedBy.length > 0;
@@ -70440,6 +72843,13 @@ var p5 = (function () {
           const functionArgs = node.dependsOn.map(arg =>this.generateExpression(generationContext, dag, arg));
           return `${node.identifier}(${functionArgs.join(', ')})`;
         }
+        if (node.opCode === OpCode.Nary.TERNARY) {
+          const [condID, trueID, falseID] = node.dependsOn;
+          const cond = this.generateExpression(generationContext, dag, condID);
+          const trueExpr = this.generateExpression(generationContext, dag, trueID);
+          const falseExpr = this.generateExpression(generationContext, dag, falseID);
+          return `(${cond} ? ${trueExpr} : ${falseExpr})`;
+        }
         if (node.opCode === OpCode.Binary.MEMBER_ACCESS) {
           const [lID, rID] = node.dependsOn;
           const lName = this.generateExpression(generationContext, dag, lID);
@@ -70450,6 +72860,12 @@ var p5 = (function () {
           const parentID = node.dependsOn[0];
           const parentExpr = this.generateExpression(generationContext, dag, parentID);
           return `${parentExpr}.${node.swizzle}`;
+        }
+        if (node.opCode === OpCode.Binary.ARRAY_ACCESS) {
+          const [bufferID, indexID] = node.dependsOn;
+          const bufferExpr = this.generateExpression(generationContext, dag, bufferID);
+          const indexExpr = this.generateExpression(generationContext, dag, indexID);
+          return `${bufferExpr}[${indexExpr}]`;
         }
         if (node.dependsOn.length === 2) {
           const [lID, rID] = node.dependsOn;
@@ -70531,6 +72947,10 @@ var p5 = (function () {
     instanceIdReference() {
       return 'gl_InstanceID';
     },
+
+    generateInstanceIDVarying() {
+      return { name: INSTANCE_ID_VARYING_NAME, declaration: `int ${INSTANCE_ID_VARYING_NAME}`, source: 'gl_InstanceID', interpolation: 'flat' };
+    },
   };
 
   /*
@@ -70610,8 +73030,6 @@ var p5 = (function () {
     };
   }
 
-  var noiseGLSL = "// Based on https://github.com/stegu/webgl-noise/blob/22434e04d7753f7e949e8d724ab3da2864c17a0f/src/noise3D.glsl\n// MIT licensed, adapted for p5.strands\n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n  return mod289(((x*34.0)+10.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat baseNoise(vec3 v)\n{\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n  // First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n  // Other corners\n  vec3 g = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g;\n  vec3 i1 = min( g.xyz, l.zxy );\n  vec3 i2 = max( g.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n  // Permutations\n  i = mod289(i);\n  vec4 p = permute( permute( permute(\n          i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n        + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))\n      + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n  // Gradients: 7x7 points over a square, mapped onto an octahedron.\n  // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n  //Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n  // Mix final noise value\n  vec4 m = max(0.5 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 105.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),\n        dot(p2,x2), dot(p3,x3) ) );\n}\n\nfloat noise(vec3 st, int octaves, float ampFalloff) {\n  float result = 0.0;\n  float amplitude = 1.0;\n  float frequency = 1.0;\n\n  for (int i = 0; i < 8; i++) {\n    if (i >= octaves) break;\n    result += amplitude * baseNoise(st * frequency);\n    frequency *= 2.0;\n    amplitude *= ampFalloff;\n  }\n  return (result + 1.0) * 0.5;\n}\n";
-
   class FilterRenderer2D {
     /**
      * Creates a new FilterRenderer2D instance.
@@ -70635,6 +73053,7 @@ var p5 = (function () {
         console.error('WebGL not supported, cannot apply filter.');
         return;
       }
+      this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
       this.textures = new Map();
 
@@ -70652,7 +73071,7 @@ var p5 = (function () {
         _arraysEqual: (a, b) => JSON.stringify(a) === JSON.stringify(b),
         _getEmptyTexture: () => {
           if (!this._emptyTexture) {
-            const im = new Image(1, 1);
+            const im = new Image$1(1, 1);
             im.set(0, 0, 255);
             this._emptyTexture = new Texture(this._renderer, im);
           }
@@ -70891,15 +73310,23 @@ var p5 = (function () {
               'vec4 getColor': `(FilterInputs inputs, in sampler2D canvasContent) {
               return getTexture(canvasContent, inputs.texCoord);
             }`
-            }
+            },
+            hookAliases: {
+              'getColor': ['filterColor'],
+            },
           }
         );
       }
       return this._baseFilterShader;
     }
 
-    getNoiseShaderSnippet() {
-      return noiseGLSL;
+
+    getRandomFragmentShaderSnippet() {
+      return randomGLSL;
+    }
+
+    getRandomVertexShaderSnippet() {
+      return randomVertGLSL;
     }
 
     /**
@@ -70964,7 +73391,7 @@ var p5 = (function () {
 
     get canvasTexture() {
       if (!this._canvasTexture) {
-        this._canvasTexture = new Texture(this._renderer, this.parentRenderer.wrappedElt);
+        this._canvasTexture = new Texture(this._renderer, this.parentRenderer);
       }
       return this._canvasTexture;
     }
@@ -71076,9 +73503,6 @@ var p5 = (function () {
     }
   }
 
-  const styleEmpty = 'rgba(0,0,0,0)';
-  // const alphaThreshold = 0.00125; // minimum visible
-
   class Renderer2D extends Renderer {
     constructor(pInst, w, h, isMainCanvas, elt, attributes = {}) {
       super(pInst, w, h, isMainCanvas);
@@ -71094,7 +73518,9 @@ var p5 = (function () {
         this.canvas.style.display = 'none';
       }
 
-      this.elt.id = 'defaultCanvas0';
+      if(!this.elt.id){
+        this.elt.id = `defaultCanvas${p5$2.sketchCount++}`;
+      }
       this.elt.classList.add('p5Canvas');
 
       // Extend renderer with methods of p5.Element with getters
@@ -71131,7 +73557,7 @@ var p5 = (function () {
       // Get and store drawing context
       this.drawingContext = this.canvas.getContext('2d', attributes);
       if(attributes.colorSpace === 'display-p3'){
-        this.states.colorMode = RGBHDR;
+        this.states.colorMode = RGBP3;
       }
       this.scale(this._pixelDensity, this._pixelDensity);
 
@@ -71230,18 +73656,18 @@ var p5 = (function () {
     //////////////////////////////////////////////
 
     background(...args) {
+      if (args.length === 0) {
+        return this;// setter with no args does nothing
+      }
       this.push();
       this.resetMatrix();
-
-      if (args[0] instanceof Image) {
+      if (args[0] instanceof Image$1) {
+        const img = args[0];
         if (args[1] >= 0) {
           // set transparency of background
-          const img = args[0];
           this.drawingContext.globalAlpha = args[1] / 255;
-          this._pInst.image(img, 0, 0, this.width, this.height);
-        } else {
-          this._pInst.image(args[0], 0, 0, this.width, this.height);
         }
+        this._pInst.image(img, 0, 0, this.width, this.height);
       } else {
         // create background rect
         const color = this._pInst.color(...args);
@@ -71266,6 +73692,8 @@ var p5 = (function () {
         }
       }
       this.pop();
+
+      return this;
     }
 
     clear() {
@@ -71278,6 +73706,9 @@ var p5 = (function () {
     fill(...args) {
       super.fill(...args);
       const color = this.states.fillColor;
+      if (args.length === 0) {
+        return color; // getter
+      }
       this._setFill(color.toString());
 
       // Add accessible outputs if the method exists; on success,
@@ -71290,6 +73721,9 @@ var p5 = (function () {
     stroke(...args) {
       super.stroke(...args);
       const color = this.states.strokeColor;
+      if (args.length === 0) {
+        return color; // getter
+      }
       this._setStroke(color.toString());
 
       // Add accessible outputs if the method exists; on success,
@@ -71332,7 +73766,9 @@ var p5 = (function () {
 
     drawShape(shape) {
       const visitor = new PrimitiveToPath2DConverter({
-        strokeWeight: this.states.strokeWeight
+        strokeWeight: this.states.strokeWeight,
+        hasFill: !this._clipping && !!this.states.fillColor,
+        hasStroke: !this._clipping && !!this.states.strokeColor
       });
       shape.accept(visitor);
       if (this._clipping) {
@@ -71343,10 +73779,10 @@ var p5 = (function () {
         this.clipPath.closePath();
       } else {
         if (this.states.fillColor) {
-          this.drawingContext.fill(visitor.path);
+          this.drawingContext.fill(visitor.fillPath || visitor.path);
         }
         if (this.states.strokeColor) {
-          this.drawingContext.stroke(visitor.path);
+          this.drawingContext.stroke(visitor.strokePath || visitor.path);
         }
       }
     }
@@ -71500,10 +73936,12 @@ var p5 = (function () {
       ctx.save();
       ctx.clearRect(0, 0, img.canvas.width, img.canvas.height);
 
+      const tint = this.states.tint._getRGBA([255, 255, 255, 255]);
+
       if (
-        this.states.tint[0] < 255 ||
-        this.states.tint[1] < 255 ||
-        this.states.tint[2] < 255
+        tint[0] < 255 ||
+        tint[1] < 255 ||
+        tint[2] < 255
       ) {
         // Color tint: we need to use the multiply blend mode to change the colors.
         // However, the canvas implementation of this destroys the alpha channel of
@@ -71526,16 +73964,16 @@ var p5 = (function () {
 
         // Apply color tint
         ctx.globalCompositeOperation = 'multiply';
-        ctx.fillStyle = `rgb(${this.states.tint.slice(0, 3).join(', ')})`;
+        ctx.fillStyle = `rgb(${tint.slice(0, 3).join(', ')})`;
         ctx.fillRect(0, 0, img.canvas.width, img.canvas.height);
 
         // Replace the alpha channel with the original alpha * the alpha tint
         ctx.globalCompositeOperation = 'destination-in';
-        ctx.globalAlpha = this.states.tint[3] / 255;
+        ctx.globalAlpha = tint[3] / 255;
         ctx.drawImage(img.canvas, 0, 0);
       } else {
         // If we only need to change the alpha, we can skip all the extra work!
-        ctx.globalAlpha = this.states.tint[3] / 255;
+        ctx.globalAlpha = tint[3] / 255;
         ctx.drawImage(img.canvas, 0, 0);
       }
 
@@ -71548,6 +73986,9 @@ var p5 = (function () {
     //////////////////////////////////////////////
 
     blendMode(mode) {
+      if (typeof mode === 'undefined') { // getter
+        return this._cachedBlendMode;
+      }
       if (mode === SUBTRACT) {
         console.warn('blendMode(SUBTRACT) only works in WEBGL mode.');
       } else if (
@@ -71618,7 +74059,7 @@ var p5 = (function () {
       // round down to get integer numbers
       x = Math.floor(x);
       y = Math.floor(y);
-      if (imgOrCol instanceof Graphics || imgOrCol instanceof Image) {
+      if (imgOrCol instanceof Graphics || imgOrCol instanceof Image$1) {
         this.drawingContext.save();
         this.drawingContext.setTransform(1, 0, 0, 1, 0, 0);
         this.drawingContext.scale(
@@ -71725,195 +74166,65 @@ var p5 = (function () {
      *   start <= stop < start + TWO_PI
      */
     arc(x, y, w, h, start, stop, mode) {
-      const ctx = this.drawingContext;
-
-      const centerX = x + w / 2,
-        centerY = y + h / 2,
-        radiusX = w / 2,
-        radiusY = h / 2;
-      if (this._clipping) {
-        const tempPath = new Path2D();
-        tempPath.ellipse(centerX, centerY, radiusX, radiusY, 0, start, stop);
-        const currentTransform = this.drawingContext.getTransform();
-        const clipBaseTransform = this._clipBaseTransform.inverse();
-        const relativeTransform = clipBaseTransform.multiply(currentTransform);
-        this.clipPath.addPath(tempPath, relativeTransform);
-        return this;
-      }
-      // Determines whether to add a line to the center, which should be done
-      // when the mode is PIE or default; as well as when the start and end
-      // angles do not form a full circle.
-      const createPieSlice = ! (
-        mode === CHORD ||
-        mode === OPEN ||
-        (stop - start) % TWO_PI === 0
+      const shape = new p5$2.Shape({ position: new p5$2.Vector(0, 0) });
+      shape.beginShape();
+      shape.arcPrimitive(
+        x,
+        y,
+        w,
+        h,
+        start,
+        stop,
+        mode
       );
-
-      // Fill curves
-      if (this.states.fillColor) {
-        ctx.beginPath();
-        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, start, stop);
-        if (createPieSlice) ctx.lineTo(centerX, centerY);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      // Stroke curves
-      if (this.states.strokeColor) {
-        ctx.beginPath();
-        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, start, stop);
-
-        if (mode === PIE && createPieSlice) {
-          // In PIE mode, stroke is added to the center and back to path,
-          // unless the pie forms a complete ellipse (see: createPieSlice)
-          ctx.lineTo(centerX, centerY);
-        }
-
-        if (mode === PIE || mode === CHORD) {
-          // Stroke connects back to path begin for both PIE and CHORD
-          ctx.closePath();
-        }
-        ctx.stroke();
-      }
+      shape.endShape();
+      this.drawShape(shape);
 
       return this;
 
     }
 
     ellipse(args) {
-      const ctx = this.drawingContext;
-      const doFill = !!this.states.fillColor,
-        doStroke = this.states.strokeColor;
       const x = parseFloat(args[0]),
         y = parseFloat(args[1]),
         w = parseFloat(args[2]),
         h = parseFloat(args[3]);
-      if (doFill && !doStroke) {
-        if (this._getFill() === styleEmpty) {
-          return this;
-        }
-      } else if (!doFill && doStroke) {
-        if (this._getStroke() === styleEmpty) {
-          return this;
-        }
-      }
-      const centerX = x + w / 2,
-        centerY = y + h / 2,
-        radiusX = w / 2,
-        radiusY = h / 2;
-      if (this._clipping) {
-        const tempPath = new Path2D();
-        tempPath.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
-        const currentTransform = this.drawingContext.getTransform();
-        const clipBaseTransform = this._clipBaseTransform.inverse();
-        const relativeTransform = clipBaseTransform.multiply(currentTransform);
-        this.clipPath.addPath(tempPath, relativeTransform);
-        return this;
-      }
-      ctx.beginPath();
-      ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
-      ctx.closePath();
-      if (doFill) {
-        ctx.fill();
-      }
-      if (doStroke) {
-        ctx.stroke();
-      }
 
+      const shape = new p5$2.Shape({ position: new p5$2.Vector(0, 0) });
+      shape.beginShape();
+      shape.ellipsePrimitive(x,y,w,h);
+      shape.endShape();
+      this.drawShape(shape);
       return this;
     }
 
     line(x1, y1, x2, y2) {
-      const ctx = this.drawingContext;
-      if (!this.states.strokeColor) {
-        return this;
-      } else if (this._getStroke() === styleEmpty) {
-        return this;
-      }
-      if (this._clipping) {
-        const tempPath = new Path2D();
-        tempPath.moveTo(x1, y1);
-        tempPath.lineTo(x2, y2);
-        const currentTransform = this.drawingContext.getTransform();
-        const clipBaseTransform = this._clipBaseTransform.inverse();
-        const relativeTransform = clipBaseTransform.multiply(currentTransform);
-        this.clipPath.addPath(tempPath, relativeTransform);
-        return this;
-      }
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
+      const shape = new p5$2.Shape({ position: new p5$2.Vector(0, 0) });
+      shape.beginShape();
+      shape.line(x1, y1, x2, y2);
+      shape.endShape();
+      this.drawShape(shape);
 
       return this;
     }
 
     point(x, y) {
-      const ctx = this.drawingContext;
-      if (!this.states.strokeColor) {
-        return this;
-      } else if (this._getStroke() === styleEmpty) {
-        return this;
-      }
-      const s = this._getStroke();
-      const f = this._getFill();
-      if (this._clipping) {
-        const tempPath = new Path2D();
-        const drawingContextWidth = this.drawingContext.lineWidth;
-        tempPath.arc(x, y, drawingContextWidth / 2, 0, TWO_PI);
-        const currentTransform = this.drawingContext.getTransform();
-        const clipBaseTransform = this._clipBaseTransform.inverse();
-        const relativeTransform = clipBaseTransform.multiply(currentTransform);
-        this.clipPath.addPath(tempPath, relativeTransform);
-        return this;
-      }
-      this._setFill(s);
-      ctx.beginPath();
-      ctx.arc(x, y, ctx.lineWidth / 2, 0, TWO_PI, false);
-      ctx.fill();
-      this._setFill(f);
+      const shape = new p5$2.Shape({ position: new p5$2.Vector(0, 0) });
+      shape.beginShape();
+      shape.point(x, y);
+      shape.endShape();
+      this.drawShape(shape);
 
       return this;
     }
 
     quad(x1, y1, x2, y2, x3, y3, x4, y4) {
-      const ctx = this.drawingContext;
-      const doFill = !!this.states.fillColor,
-        doStroke = this.states.strokeColor;
-      if (doFill && !doStroke) {
-        if (this._getFill() === styleEmpty) {
-          return this;
-        }
-      } else if (!doFill && doStroke) {
-        if (this._getStroke() === styleEmpty) {
-          return this;
-        }
-      }
-      if (this._clipping) {
-        const tempPath = new Path2D();
-        tempPath.moveTo(x1, y1);
-        tempPath.lineTo(x2, y2);
-        tempPath.lineTo(x3, y3);
-        tempPath.lineTo(x4, y4);
-        tempPath.closePath();
-        const currentTransform = this.drawingContext.getTransform();
-        const clipBaseTransform = this._clipBaseTransform.inverse();
-        const relativeTransform = clipBaseTransform.multiply(currentTransform);
-        this.clipPath.addPath(tempPath, relativeTransform);
-        return this;
-      }
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.lineTo(x3, y3);
-      ctx.lineTo(x4, y4);
-      ctx.closePath();
-      if (doFill) {
-        ctx.fill();
-      }
-      if (doStroke) {
-        ctx.stroke();
-      }
+      const shape = new p5$2.Shape({ position: new p5$2.Vector(0, 0) });
+      shape.beginShape();
+      shape.quad(x1, y1, x2, y2, x3, y3, x4, y4);
+      shape.endShape();
+      this.drawShape(shape);
+
       return this;
     }
 
@@ -71926,134 +74237,29 @@ var p5 = (function () {
       let tr = args[5];
       let br = args[6];
       let bl = args[7];
-      const ctx = this.drawingContext;
-      const doFill = !!this.states.fillColor,
-        doStroke = this.states.strokeColor;
-      if (doFill && !doStroke) {
-        if (this._getFill() === styleEmpty) {
-          return this;
-        }
-      } else if (!doFill && doStroke) {
-        if (this._getStroke() === styleEmpty) {
-          return this;
-        }
-      }
-      if (this._clipping) {
-        const tempPath = new Path2D();
-        if (typeof tl === 'undefined') {
-          tempPath.rect(x, y, w, h);
-        } else {
-          tempPath.roundRect(x, y, w, h, [tl, tr, br, bl]);
-        }
-        const currentTransform = this.drawingContext.getTransform();
-        const clipBaseTransform = this._clipBaseTransform.inverse();
-        const relativeTransform = clipBaseTransform.multiply(currentTransform);
-        this.clipPath.addPath(tempPath, relativeTransform);
-        return this;
-      }
-      ctx.beginPath();
-      if (typeof tl === 'undefined') {
-        // No rounded corners
-        ctx.rect(x, y, w, h);
-      } else {
-        // At least one rounded corner
-        // Set defaults when not specified
-        if (typeof tr === 'undefined') {
-          tr = tl;
-        }
-        if (typeof br === 'undefined') {
-          br = tr;
-        }
-        if (typeof bl === 'undefined') {
-          bl = br;
-        }
 
-        // corner rounding must always be positive
-        const absW = Math.abs(w);
-        const absH = Math.abs(h);
-        const hw = absW / 2;
-        const hh = absH / 2;
+      const shape = new p5$2.Shape({ position: new p5$2.Vector(0, 0) });
+      shape.beginShape();
+      shape.rectPrimitive(x, y, w, h, tl, tr, br, bl);
+      shape.endShape();
+      this.drawShape(shape);
 
-        // Clip radii
-        if (absW < 2 * tl) {
-          tl = hw;
-        }
-        if (absH < 2 * tl) {
-          tl = hh;
-        }
-        if (absW < 2 * tr) {
-          tr = hw;
-        }
-        if (absH < 2 * tr) {
-          tr = hh;
-        }
-        if (absW < 2 * br) {
-          br = hw;
-        }
-        if (absH < 2 * br) {
-          br = hh;
-        }
-        if (absW < 2 * bl) {
-          bl = hw;
-        }
-        if (absH < 2 * bl) {
-          bl = hh;
-        }
-
-        ctx.roundRect(x, y, w, h, [tl, tr, br, bl]);
-      }
-      if (doFill) {
-        ctx.fill();
-      }
-      if (doStroke) {
-        ctx.stroke();
-      }
       return this;
     }
 
-
     triangle(args) {
-      const ctx = this.drawingContext;
-      const doFill = !!this.states.fillColor,
-        doStroke = this.states.strokeColor;
       const x1 = args[0],
         y1 = args[1];
       const x2 = args[2],
         y2 = args[3];
       const x3 = args[4],
         y3 = args[5];
-      if (doFill && !doStroke) {
-        if (this._getFill() === styleEmpty) {
-          return this;
-        }
-      } else if (!doFill && doStroke) {
-        if (this._getStroke() === styleEmpty) {
-          return this;
-        }
-      }
-      if (this._clipping) {
-        const tempPath = new Path2D();
-        tempPath.moveTo(x1, y1);
-        tempPath.lineTo(x2, y2);
-        tempPath.lineTo(x3, y3);
-        tempPath.closePath();
-        const currentTransform = this.drawingContext.getTransform();
-        const clipBaseTransform = this._clipBaseTransform.inverse();
-        const relativeTransform = clipBaseTransform.multiply(currentTransform);
-        this.clipPath.addPath(tempPath, relativeTransform);
-        return this;
-      }
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.lineTo(x3, y3);
-      ctx.closePath();
-      if (doFill) {
-        ctx.fill();
-      }
-      if (doStroke) {
-        ctx.stroke();
-      }
+
+      const shape = new p5$2.Shape({ position: new p5$2.Vector(0, 0) });
+      shape.beginShape();
+      shape.triangle(x1, y1, x2, y2, x3, y3);
+      shape.endShape();
+      this.drawShape(shape);
 
       return this;
     }
@@ -72063,6 +74269,9 @@ var p5 = (function () {
     //////////////////////////////////////////////
 
     strokeCap(cap) {
+      if (typeof cap === 'undefined') { // getter
+        return this.drawingContext.lineCap;
+      }
       if (
         cap === ROUND ||
         cap === SQUARE ||
@@ -72074,6 +74283,9 @@ var p5 = (function () {
     }
 
     strokeJoin(join) {
+      if (typeof join === 'undefined') { // getter
+        return this.drawingContext.lineJoin;
+      }
       if (
         join === ROUND ||
         join === BEVEL ||
@@ -72086,7 +74298,10 @@ var p5 = (function () {
 
     strokeWeight(w) {
       super.strokeWeight(w);
-      if (typeof w === 'undefined' || w === 0) {
+      if (typeof w === 'undefined') {
+        return this.states.strokeWeight;
+      }
+      if (w === 0) {
         // hack because lineWidth 0 doesn't work
         this.drawingContext.lineWidth = 0.0001;
       } else {
@@ -72149,16 +74364,22 @@ var p5 = (function () {
 
     rotate(rad) {
       this.drawingContext.rotate(rad);
+      return this;
     }
 
     scale(x, y) {
+      // support passing objects with x,y properties (including p5.Vector)
+      if (typeof x === 'object' && 'x' in x && 'y' in x) {
+        y = x.y;
+        x = x.x;
+      }
       this.drawingContext.scale(x, y);
       return this;
     }
 
     translate(x, y) {
-      // support passing a vector as the 1st parameter
-      if (x instanceof p5$2.Vector) {
+      // support passing objects with x,y properties (including p5.Vector)
+      if (typeof x === 'object' && 'x' in x && 'y' in x) {
         y = x.y;
         x = x.x;
       }
@@ -72309,7 +74530,7 @@ var p5 = (function () {
      */
     p5.Renderer2D = Renderer2D;
     p5.renderers[P2D] = Renderer2D;
-    p5.renderers['p2d-hdr'] = new Proxy(Renderer2D, {
+    p5.renderers['p2d-p3'] = new Proxy(Renderer2D, {
       construct(target, [pInst, w, h, isMainCanvas, elt]){
         return new target(pInst, w, h, isMainCanvas, elt, { colorSpace: 'display-p3' });
       }
@@ -72317,10 +74538,86 @@ var p5 = (function () {
   }
 
   /**
+   * @module Loading
+   * @for p5
+   * @private
+   *
+   * Handles the logic for creating a loading indicator.
+   * Currently, the loading indicator is basic and can be extended in the future.
+   */
+
+  /**
+   * Creates a loading indicator when the sketch's setup() function is running.
+   * It is called and removed automatically using the presetup and postsetup lifecycles hooks.
+   *
+   * @param {*} p5 The p5 constructor
+   * @param {*} fn The p5 prototype object
+   * @param {*} lifecycles Lifecycle hooks for the sketch
+   */
+  function loading$2(p5, fn, lifecycles) {
+    lifecycles.presetup = function() {
+      if (typeof window === 'undefined' || this._loadingIndicator) {
+        return;
+      }
+
+      const canvasParent = this.canvas?.parentElement;
+      let container = this._userNode || canvasParent || document.body;
+
+      if (typeof container === 'string') {
+        container = document.getElementById(container) || document.body;
+      }
+
+      this._loadingIndicator = createLoadingIndicator(container);
+    };
+
+    lifecycles.postsetup = function() {
+      if (this._loadingIndicator) {
+        this._loadingIndicator.remove();
+        this._loadingIndicator = null;
+      }
+    };
+  }
+
+  /**
+   * Creates and stylizes the loading indicator.
+   * As a helper function, it can be extensible and modified in future versions.
+   *
+   * @private
+   * @param {HTMLElement} container The HTML element to append the indicator to
+   * @returns {HTMLElement} The loading indicator div element
+   */
+  function createLoadingIndicator(container) {
+    if (!document.getElementById('p5-loading-style')) {
+      const loadingStyle = document.createElement('style');
+      loadingStyle.id = 'p5-loading-style';
+      loadingStyle.textContent = '@keyframes p5-loading-spin { to { transform: rotate(360deg); } }';
+      document.head.appendChild(loadingStyle);
+    }
+
+    const indicator = document.createElement('div');
+    indicator.className = 'loading-indicator';
+    indicator.style.cssText = `
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: rgba(0, 0, 0, 0.8);
+    animation: p5-loading-spin 1s linear infinite;
+    z-index: 9999;
+  `;
+
+    container.appendChild(indicator);
+    return indicator;
+  }
+
+  /**
    * @module Structure
    * @submodule Structure
    * @for p5
-   * @requires constants
    */
 
 
@@ -72352,6 +74649,7 @@ var p5 = (function () {
     // This is a pointer to our global mode p5 instance, if we're in
     // global mode.
     static instance = null;
+    static sketchCount = 0;
     static lifecycleHooks = {
       presetup: [],
       postsetup: [],
@@ -72367,7 +74665,7 @@ var p5 = (function () {
     constructor(sketch, node) {
       // Apply addon defined decorations
       if(p5.decorations.size > 0){
-        decorateClass(p5, p5.decorations);
+        decorateClass(p5, p5.decorations, 'p5');
         p5.decorations.clear();
       }
 
@@ -72442,19 +74740,24 @@ var p5 = (function () {
       const blurHandler = () => {
         this.focused = false;
       };
-      window.addEventListener('focus', focusHandler);
-      window.addEventListener('blur', blurHandler);
-      p5.lifecycleHooks.remove.push(function() {
-        window.removeEventListener('focus', focusHandler);
-        window.removeEventListener('blur', blurHandler);
-      });
 
-      // Initialization complete, start runtime
-      if (document.readyState === 'complete') {
+      if(typeof window !== 'undefined'){
+        window.addEventListener('focus', focusHandler);
+        window.addEventListener('blur', blurHandler);
+        p5.lifecycleHooks.remove.push(function() {
+          window.removeEventListener('focus', focusHandler);
+          window.removeEventListener('blur', blurHandler);
+        });
+
+        // Initialization complete, start runtime
+        if (document.readyState === 'complete') {
+          this.#_start();
+        } else {
+          this._startListener = this.#_start.bind(this);
+          window.addEventListener('load', this._startListener, false);
+        }
+      }else {
         this.#_start();
-      } else {
-        this._startListener = this.#_start.bind(this);
-        window.addEventListener('load', this._startListener, false);
       }
     }
 
@@ -72541,15 +74844,17 @@ var p5 = (function () {
       // Always create a default canvas.
       // Later on if the user calls createCanvas, this default one
       // will be replaced
-      this.createCanvas(
-        100,
-        100,
-        P2D
-      );
+      if(typeof window !== 'undefined'){
+        this.createCanvas(
+          100,
+          100,
+          P2D
+        );
+      }
 
       // Record the time when setup starts. millis() will start at 0 within
       // setup, but this isn't documented, locked-in behavior yet.
-      this._millisStart = window.performance.now();
+      this._millisStart = globalThis.performance.now();
 
       const context = this._isGlobal ? window : this;
       if (typeof context.setup === 'function') {
@@ -72557,21 +74862,23 @@ var p5 = (function () {
       }
       if (this.hitCriticalError) return;
 
-      const canvases = document.getElementsByTagName('canvas');
-      for (const k of canvases) {
-        // Apply touchAction = 'none' to canvases to prevent scrolling
-        // when dragging on canvas elements
-        k.style.touchAction = 'none';
+      if(typeof document !== 'undefined'){
+        const canvases = document.getElementsByTagName('canvas');
+        for (const k of canvases) {
+          // Apply touchAction = 'none' to canvases to prevent scrolling
+          // when dragging on canvas elements
+          k.style.touchAction = 'none';
 
-        // unhide any hidden canvases that were created
-        if (k.dataset.hidden === 'true') {
-          k.style.visibility = '';
-          delete k.dataset.hidden;
+          // unhide any hidden canvases that were created
+          if (k.dataset.hidden === 'true') {
+            k.style.visibility = '';
+            delete k.dataset.hidden;
+          }
         }
       }
 
-      this._lastTargetFrameTime = window.performance.now();
-      this._lastRealFrameTime = window.performance.now();
+      this._lastTargetFrameTime = globalThis.performance.now();
+      this._lastRealFrameTime = globalThis.performance.now();
       this._setupDone = true;
       if (this._accessibleOutputs.grid || this._accessibleOutputs.text) {
         this._updateAccsOutput();
@@ -72582,7 +74889,7 @@ var p5 = (function () {
 
       // Record the time when the draw loop starts so that millis() starts at 0
       // when the draw loop begins.
-      this._millisStart = window.performance.now();
+      this._millisStart = globalThis.performance.now();
     }
 
     // While '#_draw' here is async, it is not awaited as 'requestAnimationFrame'
@@ -72592,7 +74899,7 @@ var p5 = (function () {
     // and 'postdraw'.
     async _draw(requestAnimationFrameTimestamp) {
       if (this.hitCriticalError) return;
-      const now = requestAnimationFrameTimestamp || window.performance.now();
+      const now = requestAnimationFrameTimestamp || globalThis.performance.now();
       const timeSinceLastFrame = now - this._lastTargetFrameTime;
       const targetTimeBetweenFrames = 1000 / this._targetFrameRate;
 
@@ -72634,9 +74941,10 @@ var p5 = (function () {
       // get notified the next time the browser gives us
       // an opportunity to draw.
       if (this._loop) {
-        this._requestAnimId = window.requestAnimationFrame(
-          this._draw.bind(this)
-        );
+        const boundDraw = this._draw.bind(this);
+        this._requestAnimId = typeof window !== 'undefined' ?
+          window.requestAnimationFrame(boundDraw) :
+          setImmediate(boundDraw);
       }
     }
 
@@ -72838,7 +75146,6 @@ var p5 = (function () {
 
   // Generic function to decorate classes
   function decorateClass(Target, decorations, path){
-    path ??= Target.name;
     // Static properties
     for(const key in Target){
       if(!key.startsWith('_')){
@@ -72946,6 +75253,7 @@ var p5 = (function () {
   p5$2.registerAddon(renderer);
   p5$2.registerAddon(renderer2D);
   p5$2.registerAddon(graphics);
+  p5$2.registerAddon(loading$2);
 
   //////////////////////////////////////////////
   // PUBLIC p5 PROPERTIES AND METHODS
@@ -72980,6 +75288,7 @@ var p5 = (function () {
    *
    * @method setup
    * @for p5
+   * @return {void|Promise<void>}
    *
    * @example
    * function setup() {
@@ -73198,7 +75507,6 @@ var p5 = (function () {
    * @module Environment
    * @submodule Environment
    * @for p5
-   * @requires core
    */
 
   function describe(p5, fn){
@@ -73690,7 +75998,6 @@ var p5 = (function () {
    * @module Environment
    * @submodule Environment
    * @for p5
-   * @requires core
    */
 
   function gridOutput(p5, fn){
@@ -73856,7 +76163,6 @@ var p5 = (function () {
    * @module Environment
    * @submodule Environment
    * @for p5
-   * @requires core
    */
 
   function textOutput(p5, fn){
@@ -73988,7 +76294,6 @@ var p5 = (function () {
    * @module Environment
    * @submodule Environment
    * @for p5
-   * @requires core
    */
 
   function outputs(p5, fn){
@@ -74665,7 +76970,6 @@ var p5 = (function () {
    * @module Color
    * @submodule Color Conversion
    * @for p5
-   * @requires core
    */
 
   p5$2.ColorConversion = {
@@ -74927,7 +77231,6 @@ var p5 = (function () {
    * @module Environment
    * @submodule Environment
    * @for p5
-   * @requires core
    */
 
 
@@ -78837,7 +81140,6 @@ var p5 = (function () {
 
   /**
    * @for p5
-   * @requires core
    *
    * This is the main file for the Friendly Error System (FES), containing
    * the core as well as miscellaneous functionality of the FES. Here is a
@@ -78860,7 +81162,7 @@ var p5 = (function () {
    * https://github.com/processing/p5.js/blob/main/contributor_docs/fes_reference_dev_notes.md
    */
 
-  function fesCore(p5, fn){
+  function fesCore(p5, fn, lifecycles){
     // p5.js blue, p5.js orange, auto dark green; fallback p5.js darkened magenta
     // See testColors below for all the color codes and names
     const typeColors = ['#2D7BB6', '#EE9900', '#4DB200', '#C83C00'];
@@ -79134,7 +81436,7 @@ var p5 = (function () {
         const fnNames = entryPoints;
 
         if (context.preload && !p5.isPreloadSupported()) {
-          p5._error(context, translator('fes.preloadDisabled'));
+          p5._error(p5.instance, translator('fes.preloadDisabled'));
         }
 
         const fxns = {};
@@ -79773,9 +82075,11 @@ var p5 = (function () {
       p5._fesLogger = null;
       p5._fesLogCache = {};
 
-      window.addEventListener('load', checkForUserDefinedFunctions, false);
-      window.addEventListener('error', p5._fesErrorMonitor, false);
-      window.addEventListener('unhandledrejection', p5._fesErrorMonitor, false);
+      lifecycles.presetup = function () {
+        checkForUserDefinedFunctions(window);
+        window.addEventListener('error', p5._fesErrorMonitor, false);
+        window.addEventListener('unhandledrejection', p5._fesErrorMonitor, false);
+      };
 
       /**
        * Prints out all the colors in the color pallete with white text.
@@ -79935,7 +82239,7 @@ var p5 = (function () {
     // Exposing this primarily for unit testing.
     fn._helpForMisusedAtTopLevelCode = helpForMisusedAtTopLevelCode;
 
-    if (document.readyState !== 'complete') {
+    if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       window.addEventListener('error', helpForMisusedAtTopLevelCode, false);
 
       // Our job is only to catch ReferenceErrors that are thrown when
@@ -79949,12 +82253,11 @@ var p5 = (function () {
   }
 
   if (typeof p5 !== 'undefined') {
-    fesCore(p5, p5.prototype);
+    p5.registerAddon(fesCore);
   }
 
   /**
    * @for p5
-   * @requires core
    */
   // Borrow from stacktracejs https://github.com/stacktracejs/stacktrace.js with
   // minor modifications. The license for the same and the code is included below
@@ -84783,13 +87086,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	abs: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
   	mult: {
   		overloads: [
   			[
@@ -84837,17 +87133,19 @@ var p5 = (function () {
   			]
   		]
   	},
-  	ceil: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
   	ellipseMode: {
   		overloads: [
   			[
   				"CENTER|RADIUS|CORNER|CORNERS"
+  			],
+  			[
+  			]
+  		]
+  	},
+  	abs: {
+  		overloads: [
+  			[
+  				"Number"
   			]
   		]
   	},
@@ -84924,21 +87222,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	createCanvas: {
-  		overloads: [
-  			[
-  				"Number?",
-  				"Number?",
-  				"P2D|WEBGL|P2DHDR|WEBGPU?",
-  				"HTMLCanvasElement?"
-  			],
-  			[
-  				"Number?",
-  				"Number?",
-  				"HTMLCanvasElement?"
-  			]
-  		]
-  	},
   	textOutput: {
   		overloads: [
   			[
@@ -84973,6 +87256,27 @@ var p5 = (function () {
   			]
   		]
   	},
+  	createCanvas: {
+  		overloads: [
+  			[
+  				"Number?",
+  				"Number?",
+  				"P2D|WEBGL|P2DP3?",
+  				"HTMLCanvasElement?"
+  			],
+  			[
+  				"Number",
+  				"Number",
+  				"WEBGPU",
+  				"HTMLCanvasElement?"
+  			],
+  			[
+  				"Number?",
+  				"Number?",
+  				"HTMLCanvasElement?"
+  			]
+  		]
+  	},
   	loadShader: {
   		overloads: [
   			[
@@ -84983,33 +87287,11 @@ var p5 = (function () {
   			]
   		]
   	},
-  	constrain: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number",
-  				"Number"
-  			]
-  		]
-  	},
   	createImage: {
   		overloads: [
   			[
   				"Integer",
   				"Integer"
-  			]
-  		]
-  	},
-  	acos: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	noSmooth: {
-  		overloads: [
-  			[
   			]
   		]
   	},
@@ -85023,6 +87305,12 @@ var p5 = (function () {
   			]
   		]
   	},
+  	noSmooth: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
   	beginClip: {
   		overloads: [
   			[
@@ -85030,62 +87318,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	smoothstep: {
+  	ceil: {
   		overloads: [
   			[
-  				"Number",
-  				"Number",
   				"Number"
-  			]
-  		]
-  	},
-  	getTexture: {
-  		overloads: [
-  			[
-  				null,
-  				null
-  			]
-  		]
-  	},
-  	getWorldInputs: {
-  		overloads: [
-  			[
-  				"Function"
-  			]
-  		]
-  	},
-  	getPixelInputs: {
-  		overloads: [
-  			[
-  				"Function"
-  			]
-  		]
-  	},
-  	getFinalColor: {
-  		overloads: [
-  			[
-  				"Function"
-  			]
-  		]
-  	},
-  	getColor: {
-  		overloads: [
-  			[
-  				"Function"
-  			]
-  		]
-  	},
-  	getObjectInputs: {
-  		overloads: [
-  			[
-  				"Function"
-  			]
-  		]
-  	},
-  	getCameraInputs: {
-  		overloads: [
-  			[
-  				"Function"
   			]
   		]
   	},
@@ -85148,6 +87384,19 @@ var p5 = (function () {
   			]
   		]
   	},
+  	acos: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
+  	endClip: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
   	int: {
   		overloads: [
   			[
@@ -85155,12 +87404,6 @@ var p5 = (function () {
   			],
   			[
   				"Array"
-  			]
-  		]
-  	},
-  	endClip: {
-  		overloads: [
-  			[
   			]
   		]
   	},
@@ -85195,46 +87438,88 @@ var p5 = (function () {
   			]
   		]
   	},
-  	dist: {
+  	instanceID: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	smoothstep: {
   		overloads: [
   			[
   				"Number",
   				"Number",
-  				"Number",
   				"Number"
+  			]
+  		]
+  	},
+  	uniformStorage: {
+  		overloads: [
+  			[
+  				"String",
+  				"p5.StorageBuffer|Function|Object?"
   			],
   			[
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number"
+  				"p5.StorageBuffer|Function|Object?"
   			]
   		]
   	},
-  	asin: {
+  	getTexture: {
   		overloads: [
   			[
-  				"Number"
+  				null,
+  				null
   			]
   		]
   	},
-  	millis: {
+  	getWorldInputs: {
   		overloads: [
   			[
+  				"Function"
   			]
   		]
   	},
-  	nfc: {
+  	getPixelInputs: {
   		overloads: [
   			[
-  				"Number|String",
-  				"Integer|String?"
-  			],
+  				"Function"
+  			]
+  		]
+  	},
+  	getFinalColor: {
+  		overloads: [
   			[
-  				"Number[]",
-  				"Integer|String?"
+  				"Function"
+  			]
+  		]
+  	},
+  	getColor: {
+  		overloads: [
+  			[
+  				"Function"
+  			]
+  		]
+  	},
+  	getObjectInputs: {
+  		overloads: [
+  			[
+  				"Function"
+  			]
+  		]
+  	},
+  	getCameraInputs: {
+  		overloads: [
+  			[
+  				"Function"
+  			]
+  		]
+  	},
+  	mix: {
+  		overloads: [
+  			[
+  				"Number|p5.Vector",
+  				"Number|p5.Vector",
+  				"Number|Boolean"
   			]
   		]
   	},
@@ -85271,27 +87556,30 @@ var p5 = (function () {
   			]
   		]
   	},
-  	resizeCanvas: {
+  	nfc: {
+  		overloads: [
+  			[
+  				"Number|String",
+  				"Integer|String?"
+  			],
+  			[
+  				"Number[]",
+  				"Integer|String?"
+  			]
+  		]
+  	},
+  	constrain: {
   		overloads: [
   			[
   				"Number",
   				"Number",
-  				"Boolean?"
+  				"Number"
   			]
   		]
   	},
   	push: {
   		overloads: [
   			[
-  			]
-  		]
-  	},
-  	noise: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number?",
-  				"Number?"
   			]
   		]
   	},
@@ -85304,12 +87592,84 @@ var p5 = (function () {
   			]
   		]
   	},
+  	millis: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	isLooping: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	gridOutput: {
+  		overloads: [
+  			[
+  				"FALLBACK|LABEL?"
+  			]
+  		]
+  	},
+  	resizeCanvas: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number",
+  				"Boolean?"
+  			]
+  		]
+  	},
   	saveGif: {
   		overloads: [
   			[
   				"String",
   				"Number",
   				"Object?"
+  			]
+  		]
+  	},
+  	saveCanvas: {
+  		overloads: [
+  			[
+  				"p5.Framebuffer|p5.Element|HTMLCanvasElement",
+  				"String?",
+  				"String?"
+  			],
+  			[
+  				"String?",
+  				"String?"
+  			]
+  		]
+  	},
+  	resetMatrix: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	getItem: {
+  		overloads: [
+  			[
+  				"String"
+  			]
+  		]
+  	},
+  	noise: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number?",
+  				"Number?"
+  			]
+  		]
+  	},
+  	rectMode: {
+  		overloads: [
+  			[
+  				"CENTER|RADIUS|CORNER|CORNERS"
+  			],
+  			[
   			]
   		]
   	},
@@ -85327,78 +87687,6 @@ var p5 = (function () {
   			],
   			[
   				"Array"
-  			]
-  		]
-  	},
-  	isLooping: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	gridOutput: {
-  		overloads: [
-  			[
-  				"FALLBACK|LABEL?"
-  			]
-  		]
-  	},
-  	saveCanvas: {
-  		overloads: [
-  			[
-  				"p5.Framebuffer|p5.Element|HTMLCanvasElement",
-  				"String?",
-  				"String?"
-  			],
-  			[
-  				"String?",
-  				"String?"
-  			]
-  		]
-  	},
-  	rectMode: {
-  		overloads: [
-  			[
-  				"CENTER|RADIUS|CORNER|CORNERS"
-  			]
-  		]
-  	},
-  	atan: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	noCanvas: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	resetMatrix: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	getItem: {
-  		overloads: [
-  			[
-  				"String"
-  			]
-  		]
-  	},
-  	exp: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	second: {
-  		overloads: [
-  			[
   			]
   		]
   	},
@@ -85425,12 +87713,9 @@ var p5 = (function () {
   			]
   		]
   	},
-  	cursor: {
+  	noCanvas: {
   		overloads: [
   			[
-  				"ARROW|CROSS|HAND|MOVE|TEXT|WAIT|String",
-  				"Number?",
-  				"Number?"
   			]
   		]
   	},
@@ -85442,16 +87727,39 @@ var p5 = (function () {
   			]
   		]
   	},
-  	year: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	floor: {
+  	asin: {
   		overloads: [
   			[
   				"Number"
+  			]
+  		]
+  	},
+  	dist: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number"
+  			],
+  			[
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number"
+  			]
+  		]
+  	},
+  	cursor: {
+  		overloads: [
+  			[
+  				"ARROW|CROSS|HAND|MOVE|TEXT|WAIT|String",
+  				"Number?",
+  				"Number?"
+  			],
+  			[
   			]
   		]
   	},
@@ -85459,6 +87767,19 @@ var p5 = (function () {
   		overloads: [
   			[
   				"String|Boolean|Number"
+  			]
+  		]
+  	},
+  	second: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	buildGeometry: {
+  		overloads: [
+  			[
+  				"Function"
   			]
   		]
   	},
@@ -85483,10 +87804,12 @@ var p5 = (function () {
   			]
   		]
   	},
-  	buildGeometry: {
+  	set: {
   		overloads: [
   			[
-  				"Function"
+  				"Number",
+  				"Number",
+  				"Number|Number[]|Object"
   			]
   		]
   	},
@@ -85511,14 +87834,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	randomGaussian: {
-  		overloads: [
-  			[
-  				"Number?",
-  				"Number?"
-  			]
-  		]
-  	},
   	redraw: {
   		overloads: [
   			[
@@ -85526,21 +87841,7 @@ var p5 = (function () {
   			]
   		]
   	},
-  	atan2: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number"
-  			]
-  		]
-  	},
-  	smooth: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	clearStorage: {
+  	year: {
   		overloads: [
   			[
   			]
@@ -85557,6 +87858,18 @@ var p5 = (function () {
   				"Number[]",
   				"Integer?",
   				"Integer?"
+  			]
+  		]
+  	},
+  	smooth: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	clearStorage: {
+  		overloads: [
+  			[
   			]
   		]
   	},
@@ -85580,9 +87893,25 @@ var p5 = (function () {
   			]
   		]
   	},
+  	randomGaussian: {
+  		overloads: [
+  			[
+  				"Number?",
+  				"Number?"
+  			]
+  		]
+  	},
   	addElement: {
   		overloads: [
   			[
+  			]
+  		]
+  	},
+  	clip: {
+  		overloads: [
+  			[
+  				"Function",
+  				"Object?"
   			]
   		]
   	},
@@ -85609,19 +87938,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	clip: {
+  	atan: {
   		overloads: [
   			[
-  				"Function",
-  				"Object?"
-  			]
-  		]
-  	},
-  	noiseDetail: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number?"
+  				"Number"
   			]
   		]
   	},
@@ -85640,19 +87960,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	strokeCap: {
+  	freeGeometry: {
   		overloads: [
   			[
-  				"ROUND|SQUARE|PROJECT"
-  			]
-  		]
-  	},
-  	lerp: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number",
-  				"Number"
+  				"p5.Geometry"
   			]
   		]
   	},
@@ -85665,10 +87976,25 @@ var p5 = (function () {
   			]
   		]
   	},
-  	cos: {
+  	strokeCap: {
+  		overloads: [
+  			[
+  				"ROUND|SQUARE|PROJECT"
+  			]
+  		]
+  	},
+  	exp: {
   		overloads: [
   			[
   				"Number"
+  			]
+  		]
+  	},
+  	noiseDetail: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number?"
   			]
   		]
   	},
@@ -85719,13 +88045,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	removeItem: {
-  		overloads: [
-  			[
-  				"String"
-  			]
-  		]
-  	},
   	rotate: {
   		overloads: [
   			[
@@ -85734,17 +88053,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	freeGeometry: {
+  	removeItem: {
   		overloads: [
   			[
-  				"p5.Geometry"
-  			]
-  		]
-  	},
-  	setMoveThreshold: {
-  		overloads: [
-  			[
-  				"Number"
+  				"String"
   			]
   		]
   	},
@@ -85759,7 +88071,7 @@ var p5 = (function () {
   			]
   		]
   	},
-  	noiseSeed: {
+  	setMoveThreshold: {
   		overloads: [
   			[
   				"Number"
@@ -85783,13 +88095,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	log: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
   	createP: {
   		overloads: [
   			[
@@ -85806,9 +88111,11 @@ var p5 = (function () {
   			]
   		]
   	},
-  	getTargetFrameRate: {
+  	atan2: {
   		overloads: [
   			[
+  				"Number",
+  				"Number"
   			]
   		]
   	},
@@ -85826,7 +88133,20 @@ var p5 = (function () {
   			]
   		]
   	},
+  	getTargetFrameRate: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
   	setShakeThreshold: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
+  	noiseSeed: {
   		overloads: [
   			[
   				"Number"
@@ -85841,26 +88161,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	sin: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	strokeJoin: {
-  		overloads: [
-  			[
-  				"MITER|BEVEL|ROUND"
-  			]
-  		]
-  	},
-  	noCursor: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
   	circle: {
   		overloads: [
   			[
@@ -85870,11 +88170,16 @@ var p5 = (function () {
   			]
   		]
   	},
-  	mag: {
+  	floor: {
   		overloads: [
   			[
-  				"Number",
   				"Number"
+  			]
+  		]
+  	},
+  	noCursor: {
+  		overloads: [
+  			[
   			]
   		]
   	},
@@ -85889,10 +88194,22 @@ var p5 = (function () {
   			]
   		]
   	},
-  	red: {
+  	plane: {
   		overloads: [
   			[
-  				"p5.Color|Number[]|String"
+  				"Number?",
+  				"Number?",
+  				"Integer?",
+  				"Integer?"
+  			]
+  		]
+  	},
+  	strokeJoin: {
+  		overloads: [
+  			[
+  				"MITER|BEVEL|ROUND"
+  			],
+  			[
   			]
   		]
   	},
@@ -85908,10 +88225,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	tan: {
+  	red: {
   		overloads: [
   			[
-  				"Number"
+  				"p5.Color|Number[]|String"
   			]
   		]
   	},
@@ -85931,37 +88248,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	plane: {
-  		overloads: [
-  			[
-  				"Number?",
-  				"Number?",
-  				"Integer?",
-  				"Integer?"
-  			]
-  		]
-  	},
-  	createFramebuffer: {
-  		overloads: [
-  			[
-  				"Object?"
-  			]
-  		]
-  	},
-  	strokeWeight: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	degrees: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
   	rotateX: {
   		overloads: [
   			[
@@ -85969,34 +88255,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	setup: {
+  	createFramebuffer: {
   		overloads: [
   			[
-  			]
-  		]
-  	},
-  	draw: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	registerAddon: {
-  		overloads: [
-  			[
-  				"Function"
-  			]
-  		]
-  	},
-  	map: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Boolean?"
+  				"Object?"
   			]
   		]
   	},
@@ -86014,7 +88276,16 @@ var p5 = (function () {
   			]
   		]
   	},
-  	radians: {
+  	strokeWeight: {
+  		overloads: [
+  			[
+  				"Number"
+  			],
+  			[
+  			]
+  		]
+  	},
+  	cos: {
   		overloads: [
   			[
   				"Number"
@@ -86036,34 +88307,6 @@ var p5 = (function () {
   	deviceShaken: {
   		overloads: [
   			[
-  			]
-  		]
-  	},
-  	directionalLight: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number"
-  			],
-  			[
-  				"Number",
-  				"Number",
-  				"Number",
-  				"p5.Vector"
-  			],
-  			[
-  				"p5.Color|Number[]|String",
-  				"Number",
-  				"Number",
-  				"Number"
-  			],
-  			[
-  				"p5.Color|Number[]|String",
-  				"p5.Vector"
   			]
   		]
   	},
@@ -86095,10 +88338,31 @@ var p5 = (function () {
   			]
   		]
   	},
-  	clearDepth: {
+  	directionalLight: {
   		overloads: [
   			[
-  				"Number?"
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number"
+  			],
+  			[
+  				"Number",
+  				"Number",
+  				"Number",
+  				"p5.Vector"
+  			],
+  			[
+  				"p5.Color|Number[]|String",
+  				"Number",
+  				"Number",
+  				"Number"
+  			],
+  			[
+  				"p5.Color|Number[]|String",
+  				"p5.Vector"
   			]
   		]
   	},
@@ -86110,6 +88374,15 @@ var p5 = (function () {
   			]
   		]
   	},
+  	lerp: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number",
+  				"Number"
+  			]
+  		]
+  	},
   	keyPressed: {
   		overloads: [
   			[
@@ -86117,21 +88390,28 @@ var p5 = (function () {
   			]
   		]
   	},
+  	box: {
+  		overloads: [
+  			[
+  				"Number?",
+  				"Number?",
+  				"Number?",
+  				"Integer?",
+  				"Integer?"
+  			]
+  		]
+  	},
+  	clearDepth: {
+  		overloads: [
+  			[
+  				"Number?"
+  			]
+  		]
+  	},
   	green: {
   		overloads: [
   			[
   				"p5.Color|Number[]|String"
-  			]
-  		]
-  	},
-  	max: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number"
-  			],
-  			[
-  				"Number[]"
   			]
   		]
   	},
@@ -86202,14 +88482,22 @@ var p5 = (function () {
   			]
   		]
   	},
-  	box: {
+  	setup: {
   		overloads: [
   			[
-  				"Number?",
-  				"Number?",
-  				"Number?",
-  				"Integer?",
-  				"Integer?"
+  			]
+  		]
+  	},
+  	draw: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	registerAddon: {
+  		overloads: [
+  			[
+  				"Function"
   			]
   		]
   	},
@@ -86300,6 +88588,13 @@ var p5 = (function () {
   			]
   		]
   	},
+  	sin: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
   	loadXML: {
   		overloads: [
   			[
@@ -86325,21 +88620,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	min: {
+  	log: {
   		overloads: [
   			[
-  				"Number",
   				"Number"
-  			],
-  			[
-  				"Number[]"
-  			]
-  		]
-  	},
-  	windowResized: {
-  		overloads: [
-  			[
-  				"Event?"
   			]
   		]
   	},
@@ -86351,25 +88635,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	loadBytes: {
+  	windowResized: {
   		overloads: [
   			[
-  				"String|Request",
-  				"Function?",
-  				"Function?"
-  			]
-  		]
-  	},
-  	noDebugMode: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	blue: {
-  		overloads: [
-  			[
-  				"p5.Color|Number[]|String"
+  				"Event?"
   			]
   		]
   	},
@@ -86383,18 +88652,33 @@ var p5 = (function () {
   			]
   		]
   	},
-  	angleMode: {
+  	noDebugMode: {
   		overloads: [
   			[
-  				"RADIANS|DEGREES"
-  			],
+  			]
+  		]
+  	},
+  	sphere: {
+  		overloads: [
   			[
+  				"Number?",
+  				"Integer?",
+  				"Integer?"
   			]
   		]
   	},
   	loadPixels: {
   		overloads: [
   			[
+  			]
+  		]
+  	},
+  	loadBytes: {
+  		overloads: [
+  			[
+  				"String|Request",
+  				"Function?",
+  				"Function?"
   			]
   		]
   	},
@@ -86410,6 +88694,13 @@ var p5 = (function () {
   			]
   		]
   	},
+  	blue: {
+  		overloads: [
+  			[
+  				"p5.Color|Number[]|String"
+  			]
+  		]
+  	},
   	createSlider: {
   		overloads: [
   			[
@@ -86420,21 +88711,18 @@ var p5 = (function () {
   			]
   		]
   	},
-  	norm: {
+  	mag: {
   		overloads: [
   			[
-  				"Number",
   				"Number",
   				"Number"
   			]
   		]
   	},
-  	sphere: {
+  	tan: {
   		overloads: [
   			[
-  				"Number?",
-  				"Integer?",
-  				"Integer?"
+  				"Number"
   			]
   		]
   	},
@@ -86461,18 +88749,22 @@ var p5 = (function () {
   			]
   		]
   	},
-  	pow: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number"
-  			]
-  		]
-  	},
   	fullscreen: {
   		overloads: [
   			[
   				"Boolean?"
+  			]
+  		]
+  	},
+  	point: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number",
+  				"Number?"
+  			],
+  			[
+  				"p5.Vector"
   			]
   		]
   	},
@@ -86504,25 +88796,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	point: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number",
-  				"Number?"
-  			],
-  			[
-  				"p5.Vector"
-  			]
-  		]
-  	},
-  	alpha: {
-  		overloads: [
-  			[
-  				"p5.Color|Number[]|String"
-  			]
-  		]
-  	},
   	createButton: {
   		overloads: [
   			[
@@ -86538,6 +88811,13 @@ var p5 = (function () {
   			]
   		]
   	},
+  	alpha: {
+  		overloads: [
+  			[
+  				"p5.Color|Number[]|String"
+  			]
+  		]
+  	},
   	endShape: {
   		overloads: [
   			[
@@ -86546,20 +88826,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	set: {
+  	degrees: {
   		overloads: [
   			[
-  				"Number",
-  				"Number",
-  				"Number|Number[]|Object"
-  			]
-  		]
-  	},
-  	round: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number?"
+  				"Number"
   			]
   		]
   	},
@@ -86586,6 +88856,27 @@ var p5 = (function () {
   			]
   		]
   	},
+  	map: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Boolean?"
+  			]
+  		]
+  	},
+  	pixelDensity: {
+  		overloads: [
+  			[
+  				"Number?"
+  			],
+  			[
+  			]
+  		]
+  	},
   	httpGet: {
   		overloads: [
   			[
@@ -86598,15 +88889,6 @@ var p5 = (function () {
   				"String|Request",
   				"Function",
   				"Function?"
-  			]
-  		]
-  	},
-  	pixelDensity: {
-  		overloads: [
-  			[
-  				"Number?"
-  			],
-  			[
   			]
   		]
   	},
@@ -86629,16 +88911,16 @@ var p5 = (function () {
   			]
   		]
   	},
-  	sq: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
   	displayDensity: {
   		overloads: [
   			[
+  			]
+  		]
+  	},
+  	radians: {
+  		overloads: [
+  			[
+  				"Number"
   			]
   		]
   	},
@@ -86664,10 +88946,15 @@ var p5 = (function () {
   			]
   		]
   	},
-  	hue: {
+  	cylinder: {
   		overloads: [
   			[
-  				"p5.Color|Number[]|String"
+  				"Number?",
+  				"Number?",
+  				"Integer?",
+  				"Integer?",
+  				"Boolean?",
+  				"Boolean?"
   			]
   		]
   	},
@@ -86683,25 +88970,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	httpPost: {
+  	hue: {
   		overloads: [
   			[
-  				"String|Request",
-  				"Object|Boolean?",
-  				"String?",
-  				"Function?",
-  				"Function?"
-  			],
-  			[
-  				"String|Request",
-  				"Object|Boolean",
-  				"Function?",
-  				"Function?"
-  			],
-  			[
-  				"String|Request",
-  				"Function?",
-  				"Function?"
+  				"p5.Color|Number[]|String"
   			]
   		]
   	},
@@ -86747,22 +89019,25 @@ var p5 = (function () {
   			]
   		]
   	},
-  	sqrt: {
+  	httpPost: {
   		overloads: [
   			[
-  				"Number"
-  			]
-  		]
-  	},
-  	cylinder: {
-  		overloads: [
+  				"String|Request",
+  				"Object|Boolean?",
+  				"String?",
+  				"Function?",
+  				"Function?"
+  			],
   			[
-  				"Number?",
-  				"Number?",
-  				"Integer?",
-  				"Integer?",
-  				"Boolean?",
-  				"Boolean?"
+  				"String|Request",
+  				"Object|Boolean",
+  				"Function?",
+  				"Function?"
+  			],
+  			[
+  				"String|Request",
+  				"Function?",
+  				"Function?"
   			]
   		]
   	},
@@ -86772,16 +89047,21 @@ var p5 = (function () {
   			]
   		]
   	},
-  	lights: {
+  	max: {
   		overloads: [
   			[
+  				"Number",
+  				"Number",
+  				"...Number[]"
+  			],
+  			[
+  				"Number[]"
   			]
   		]
   	},
-  	fract: {
+  	lights: {
   		overloads: [
   			[
-  				"Number"
   			]
   		]
   	},
@@ -86814,6 +89094,36 @@ var p5 = (function () {
   			]
   		]
   	},
+  	shearX: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
+  	colorMode: {
+  		overloads: [
+  			[
+  				"RGB|HSB|HSL|RGBP3|HWB|LAB|LCH|OKLAB|OKLCH",
+  				"Number?"
+  			],
+  			[
+  				"RGB|HSB|HSL|RGBP3|HWB|LAB|LCH|OKLAB|OKLCH",
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number?"
+  			],
+  			[
+  			]
+  		]
+  	},
+  	getURLParams: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
   	image: {
   		overloads: [
   			[
@@ -86839,42 +89149,19 @@ var p5 = (function () {
   			]
   		]
   	},
-  	getURLParams: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	colorMode: {
-  		overloads: [
-  			[
-  				"RGB|HSB|HSL|RGBHDR|HWB|LAB|LCH|OKLAB|OKLCH",
-  				"Number?"
-  			],
-  			[
-  				"RGB|HSB|HSL|RGBHDR|HWB|LAB|LCH|OKLAB|OKLCH",
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number?"
-  			],
-  			[
-  			]
-  		]
-  	},
-  	shearX: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
   	lightFalloff: {
   		overloads: [
   			[
   				"Number",
   				"Number",
   				"Number"
+  			]
+  		]
+  	},
+  	shader: {
+  		overloads: [
+  			[
+  				"p5.Shader"
   			]
   		]
   	},
@@ -86899,21 +89186,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	shader: {
-  		overloads: [
-  			[
-  				"p5.Shader"
-  			]
-  		]
-  	},
-  	model: {
-  		overloads: [
-  			[
-  				"p5.Geometry",
-  				"Number?"
-  			]
-  		]
-  	},
   	setContent: {
   		overloads: [
   			[
@@ -86921,20 +89193,12 @@ var p5 = (function () {
   			]
   		]
   	},
-  	httpDo: {
+  	angleMode: {
   		overloads: [
   			[
-  				"String|Request",
-  				"String?",
-  				"String?",
-  				"Object?",
-  				"Function?",
-  				"Function?"
+  				"RADIANS|DEGREES"
   			],
   			[
-  				"String|Request",
-  				"Function?",
-  				"Function?"
   			]
   		]
   	},
@@ -86967,10 +89231,47 @@ var p5 = (function () {
   			]
   		]
   	},
+  	min: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number",
+  				"...Number[]"
+  			],
+  			[
+  				"Number[]"
+  			]
+  		]
+  	},
+  	httpDo: {
+  		overloads: [
+  			[
+  				"String|Request",
+  				"String?",
+  				"String?",
+  				"Object?",
+  				"Function?",
+  				"Function?"
+  			],
+  			[
+  				"String|Request",
+  				"Function?",
+  				"Function?"
+  			]
+  		]
+  	},
   	saturation: {
   		overloads: [
   			[
   				"p5.Color|Number[]|String"
+  			]
+  		]
+  	},
+  	model: {
+  		overloads: [
+  			[
+  				"p5.Geometry",
+  				"Number?"
   			]
   		]
   	},
@@ -86981,15 +89282,6 @@ var p5 = (function () {
   			],
   			[
   				"Object"
-  			]
-  		]
-  	},
-  	worldToScreen: {
-  		overloads: [
-  			[
-  				"Number|p5.Vector",
-  				"Number",
-  				"Number?"
   			]
   		]
   	},
@@ -87004,25 +89296,21 @@ var p5 = (function () {
   			]
   		]
   	},
-  	createModel: {
+  	norm: {
   		overloads: [
   			[
-  				"String",
-  				"String?",
-  				"Boolean?",
-  				"function(p5.Geometry)?",
-  				"function(Event)?"
-  			],
+  				"Number",
+  				"Number",
+  				"Number"
+  			]
+  		]
+  	},
+  	worldToScreen: {
+  		overloads: [
   			[
-  				"String",
-  				"String?",
-  				"function(p5.Geometry)?",
-  				"function(Event)?"
-  			],
-  			[
-  				"String",
-  				"String?",
-  				"Object?"
+  				"Number|p5.Vector",
+  				"Number",
+  				"Number?"
   			]
   		]
   	},
@@ -87056,10 +89344,25 @@ var p5 = (function () {
   			]
   		]
   	},
-  	mousePressed: {
+  	createModel: {
   		overloads: [
   			[
-  				"MouseEvent?"
+  				"String",
+  				"String?",
+  				"Boolean?",
+  				"function(p5.Geometry)?",
+  				"function(Event)?"
+  			],
+  			[
+  				"String",
+  				"String?",
+  				"function(p5.Geometry)?",
+  				"function(Event)?"
+  			],
+  			[
+  				"String",
+  				"String?",
+  				"Object?"
   			]
   		]
   	},
@@ -87067,6 +89370,40 @@ var p5 = (function () {
   		overloads: [
   			[
   				"p5.Shader"
+  			]
+  		]
+  	},
+  	mousePressed: {
+  		overloads: [
+  			[
+  				"MouseEvent?"
+  			]
+  		]
+  	},
+  	pow: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number"
+  			]
+  		]
+  	},
+  	brightness: {
+  		overloads: [
+  			[
+  				"p5.Color|Number[]|String"
+  			]
+  		]
+  	},
+  	translate: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number",
+  				"Number?"
+  			],
+  			[
+  				"p5.Vector"
   			]
   		]
   	},
@@ -87090,13 +89427,8 @@ var p5 = (function () {
   			],
   			[
   				"p5.Color"
-  			]
-  		]
-  	},
-  	brightness: {
-  		overloads: [
+  			],
   			[
-  				"p5.Color|Number[]|String"
   			]
   		]
   	},
@@ -87192,24 +89524,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	translate: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number",
-  				"Number?"
-  			],
-  			[
-  				"p5.Vector"
-  			]
-  		]
-  	},
-  	noTint: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
   	fill: {
   		overloads: [
   			[
@@ -87230,6 +89544,8 @@ var p5 = (function () {
   			],
   			[
   				"p5.Color"
+  			],
+  			[
   			]
   		]
   	},
@@ -87406,6 +89722,12 @@ var p5 = (function () {
   			]
   		]
   	},
+  	noTint: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
   	ellipsoid: {
   		overloads: [
   			[
@@ -87414,6 +89736,14 @@ var p5 = (function () {
   				"Number?",
   				"Integer?",
   				"Integer?"
+  			]
+  		]
+  	},
+  	round: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number?"
   			]
   		]
   	},
@@ -87429,10 +89759,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	write: {
+  	imageShader: {
   		overloads: [
   			[
-  				"String|Number|Array"
+  				"p5.Shader"
   			]
   		]
   	},
@@ -87443,13 +89773,6 @@ var p5 = (function () {
   			]
   		]
   	},
-  	imageMode: {
-  		overloads: [
-  			[
-  				"CORNER|CORNERS|CENTER"
-  			]
-  		]
-  	},
   	mouseReleased: {
   		overloads: [
   			[
@@ -87457,10 +89780,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	imageShader: {
+  	write: {
   		overloads: [
   			[
-  				"p5.Shader"
+  				"String|Number|Array"
   			]
   		]
   	},
@@ -87482,11 +89805,27 @@ var p5 = (function () {
   			]
   		]
   	},
+  	sq: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
   	createVideo: {
   		overloads: [
   			[
   				"String|String[]?",
   				"Function?"
+  			]
+  		]
+  	},
+  	imageMode: {
+  		overloads: [
+  			[
+  				"CORNER|CORNERS|CENTER"
+  			],
+  			[
   			]
   		]
   	},
@@ -87523,6 +89862,16 @@ var p5 = (function () {
   			]
   		]
   	},
+  	torus: {
+  		overloads: [
+  			[
+  				"Number?",
+  				"Number?",
+  				"Integer?",
+  				"Integer?"
+  			]
+  		]
+  	},
   	paletteLerp: {
   		overloads: [
   			[
@@ -87531,13 +89880,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	torus: {
+  	sqrt: {
   		overloads: [
   			[
-  				"Number?",
-  				"Number?",
-  				"Integer?",
-  				"Integer?"
+  				"Number"
   			]
   		]
   	},
@@ -87563,6 +89909,13 @@ var p5 = (function () {
   			[
   				"Object",
   				"Object?"
+  			]
+  		]
+  	},
+  	fract: {
+  		overloads: [
+  			[
+  				"Number"
   			]
   		]
   	},
@@ -87595,6 +89948,8 @@ var p5 = (function () {
   			],
   			[
   				"p5.Color"
+  			],
+  			[
   			]
   		]
   	},
@@ -87602,15 +89957,6 @@ var p5 = (function () {
   		overloads: [
   			[
   				"String|p5.Color?"
-  			]
-  		]
-  	},
-  	save: {
-  		overloads: [
-  			[
-  				"Object|String?",
-  				"String?",
-  				"Boolean|String?"
   			]
   		]
   	},
@@ -87623,11 +89969,17 @@ var p5 = (function () {
   			]
   		]
   	},
-  	bezierOrder: {
+  	save: {
   		overloads: [
   			[
-  				"Number"
-  			],
+  				"Object|String?",
+  				"String?",
+  				"Boolean|String?"
+  			]
+  		]
+  	},
+  	baseMaterialShader: {
+  		overloads: [
   			[
   			]
   		]
@@ -87639,7 +89991,7 @@ var p5 = (function () {
   			]
   		]
   	},
-  	baseMaterialShader: {
+  	baseFilterShader: {
   		overloads: [
   			[
   			]
@@ -87650,18 +90002,6 @@ var p5 = (function () {
   			[
   				"Number?",
   				"Number?"
-  			]
-  		]
-  	},
-  	baseFilterShader: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	noErase: {
-  		overloads: [
-  			[
   			]
   		]
   	},
@@ -87676,12 +90016,9 @@ var p5 = (function () {
   			]
   		]
   	},
-  	saveJSON: {
+  	noErase: {
   		overloads: [
   			[
-  				"Array|Object",
-  				"String",
-  				"Boolean?"
   			]
   		]
   	},
@@ -87697,10 +90034,12 @@ var p5 = (function () {
   			]
   		]
   	},
-  	mouseWheel: {
+  	saveJSON: {
   		overloads: [
   			[
-  				"WheelEvent?"
+  				"Array|Object",
+  				"String",
+  				"Boolean?"
   			]
   		]
   	},
@@ -87710,17 +90049,18 @@ var p5 = (function () {
   			]
   		]
   	},
+  	mouseWheel: {
+  		overloads: [
+  			[
+  				"WheelEvent?"
+  			]
+  		]
+  	},
   	createFileInput: {
   		overloads: [
   			[
   				"Function",
   				"Boolean?"
-  			]
-  		]
-  	},
-  	requestPointerLock: {
-  		overloads: [
-  			[
   			]
   		]
   	},
@@ -87733,13 +90073,13 @@ var p5 = (function () {
   			]
   		]
   	},
-  	baseNormalShader: {
+  	requestPointerLock: {
   		overloads: [
   			[
   			]
   		]
   	},
-  	exitPointerLock: {
+  	baseNormalShader: {
   		overloads: [
   			[
   			]
@@ -87755,6 +90095,12 @@ var p5 = (function () {
   			]
   		]
   	},
+  	exitPointerLock: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
   	buildColorShader: {
   		overloads: [
   			[
@@ -87764,32 +90110,6 @@ var p5 = (function () {
   			[
   				"Object",
   				"Object?"
-  			]
-  		]
-  	},
-  	splineVertex: {
-  		overloads: [
-  			[
-  				"Number",
-  				"Number"
-  			],
-  			[
-  				"Number",
-  				"Number",
-  				"Number?"
-  			],
-  			[
-  				"Number",
-  				"Number",
-  				"Number?",
-  				"Number?"
-  			],
-  			[
-  				"Number",
-  				"Number",
-  				"Number",
-  				"Number?",
-  				"Number?"
   			]
   		]
   	},
@@ -87828,10 +90148,21 @@ var p5 = (function () {
   			]
   		]
   	},
+  	bezierOrder: {
+  		overloads: [
+  			[
+  				"Number"
+  			],
+  			[
+  			]
+  		]
+  	},
   	blendMode: {
   		overloads: [
   			[
   				"BLEND|DARKEST|LIGHTEST|DIFFERENCE|MULTIPLY|EXCLUSION|SCREEN|REPLACE|OVERLAY|HARD_LIGHT|SOFT_LIGHT|DODGE|BURN|ADD|REMOVE|SUBTRACT"
+  			],
+  			[
   			]
   		]
   	},
@@ -87850,6 +90181,13 @@ var p5 = (function () {
   			]
   		]
   	},
+  	createStorage: {
+  		overloads: [
+  			[
+  				"Number|Array|Float32Array|Object[]"
+  			]
+  		]
+  	},
   	buildStrokeShader: {
   		overloads: [
   			[
@@ -87862,14 +90200,18 @@ var p5 = (function () {
   			]
   		]
   	},
-  	splineProperty: {
+  	baseComputeShader: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	loadStrokeShader: {
   		overloads: [
   			[
   				"String",
-  				null
-  			],
-  			[
-  				"String"
+  				"Function?",
+  				"Function?"
   			]
   		]
   	},
@@ -87883,25 +90225,22 @@ var p5 = (function () {
   			]
   		]
   	},
-  	loadStrokeShader: {
-  		overloads: [
-  			[
-  				"String",
-  				"Function?",
-  				"Function?"
-  			]
-  		]
-  	},
   	baseStrokeShader: {
   		overloads: [
   			[
   			]
   		]
   	},
-  	splineProperties: {
+  	resetShader: {
   		overloads: [
   			[
-  				"Object"
+  			]
+  		]
+  	},
+  	buildComputeShader: {
+  		overloads: [
+  			[
+  				"Function"
   			]
   		]
   	},
@@ -87914,9 +90253,29 @@ var p5 = (function () {
   			]
   		]
   	},
-  	resetShader: {
+  	splineVertex: {
   		overloads: [
   			[
+  				"Number",
+  				"Number"
+  			],
+  			[
+  				"Number",
+  				"Number",
+  				"Number?"
+  			],
+  			[
+  				"Number",
+  				"Number",
+  				"Number?",
+  				"Number?"
+  			],
+  			[
+  				"Number",
+  				"Number",
+  				"Number",
+  				"Number?",
+  				"Number?"
   			]
   		]
   	},
@@ -87936,6 +90295,85 @@ var p5 = (function () {
   		overloads: [
   			[
   				"p5.Image|p5.MediaElement|p5.Graphics|p5.Texture|p5.Framebuffer|p5.FramebufferTexture"
+  			]
+  		]
+  	},
+  	compute: {
+  		overloads: [
+  			[
+  				"p5.Shader",
+  				"Number",
+  				"Number?",
+  				"Number?"
+  			]
+  		]
+  	},
+  	curveDetail: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
+  	frustum: {
+  		overloads: [
+  			[
+  				"Number?",
+  				"Number?",
+  				"Number?",
+  				"Number?",
+  				"Number?",
+  				"Number?"
+  			]
+  		]
+  	},
+  	createCamera: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	splineProperty: {
+  		overloads: [
+  			[
+  				"String",
+  				null
+  			],
+  			[
+  				"String"
+  			]
+  		]
+  	},
+  	textureMode: {
+  		overloads: [
+  			[
+  				"IMAGE|NORMAL"
+  			],
+  			[
+  			]
+  		]
+  	},
+  	setCamera: {
+  		overloads: [
+  			[
+  				"p5.Camera"
+  			]
+  		]
+  	},
+  	splineProperties: {
+  		overloads: [
+  			[
+  				"Object"
+  			]
+  		]
+  	},
+  	textureWrap: {
+  		overloads: [
+  			[
+  				"CLAMP|REPEAT|MIRROR",
+  				"CLAMP|REPEAT|MIRROR?"
+  			],
+  			[
   			]
   		]
   	},
@@ -87960,26 +90398,7 @@ var p5 = (function () {
   			]
   		]
   	},
-  	frustum: {
-  		overloads: [
-  			[
-  				"Number?",
-  				"Number?",
-  				"Number?",
-  				"Number?",
-  				"Number?",
-  				"Number?"
-  			]
-  		]
-  	},
-  	curveDetail: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	createCamera: {
+  	normalMaterial: {
   		overloads: [
   			[
   			]
@@ -87991,38 +90410,10 @@ var p5 = (function () {
   			]
   		]
   	},
-  	textureMode: {
-  		overloads: [
-  			[
-  				"IMAGE|NORMAL"
-  			]
-  		]
-  	},
-  	setCamera: {
-  		overloads: [
-  			[
-  				"p5.Camera"
-  			]
-  		]
-  	},
   	endContour: {
   		overloads: [
   			[
   				"OPEN|CLOSE?"
-  			]
-  		]
-  	},
-  	textureWrap: {
-  		overloads: [
-  			[
-  				"CLAMP|REPEAT|MIRROR",
-  				"CLAMP|REPEAT|MIRROR?"
-  			]
-  		]
-  	},
-  	normalMaterial: {
-  		overloads: [
-  			[
   			]
   		]
   	},
@@ -88090,6 +90481,50 @@ var p5 = (function () {
   	}
   };
   var dataDoc = {
+  	"p5.Color": {
+  	toString: {
+  		overloads: [
+  			[
+  				"String?"
+  			]
+  		]
+  	},
+  	contrast: {
+  		overloads: [
+  			[
+  				"Color"
+  			]
+  		]
+  	},
+  	setRed: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
+  	setGreen: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
+  	setBlue: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	},
+  	setAlpha: {
+  		overloads: [
+  			[
+  				"Number"
+  			]
+  		]
+  	}
+  },
   	"p5.Image": {
   	pixelDensity: {
   		overloads: [
@@ -88264,50 +90699,6 @@ var p5 = (function () {
   			[
   				"Number",
   				"Number?"
-  			]
-  		]
-  	}
-  },
-  	"p5.Color": {
-  	toString: {
-  		overloads: [
-  			[
-  				"String?"
-  			]
-  		]
-  	},
-  	contrast: {
-  		overloads: [
-  			[
-  				"Color"
-  			]
-  		]
-  	},
-  	setRed: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	setGreen: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	setBlue: {
-  		overloads: [
-  			[
-  				"Number"
-  			]
-  		]
-  	},
-  	setAlpha: {
-  		overloads: [
-  			[
-  				"Number"
   			]
   		]
   	}
@@ -89054,46 +91445,6 @@ var p5 = (function () {
   		]
   	}
   },
-  	"p5.Shader": {
-  	version: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	inspectHooks: {
-  		overloads: [
-  			[
-  			]
-  		]
-  	},
-  	modify: {
-  		overloads: [
-  			[
-  				"Function",
-  				"Object?"
-  			],
-  			[
-  				"Object?"
-  			]
-  		]
-  	},
-  	copyToContext: {
-  		overloads: [
-  			[
-  				"p5|p5.Graphics"
-  			]
-  		]
-  	},
-  	setUniform: {
-  		overloads: [
-  			[
-  				"String",
-  				"Boolean|Number|Number[]|p5.Image|p5.Graphics|p5.MediaElement|p5.Texture"
-  			]
-  		]
-  	}
-  },
   	"p5.Table": {
   	addRow: {
   		overloads: [
@@ -89273,6 +91624,46 @@ var p5 = (function () {
   		]
   	}
   },
+  	"p5.Shader": {
+  	version: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	inspectHooks: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	modify: {
+  		overloads: [
+  			[
+  				"Function",
+  				"Object?"
+  			],
+  			[
+  				"Object?"
+  			]
+  		]
+  	},
+  	copyToContext: {
+  		overloads: [
+  			[
+  				"p5|p5.Graphics"
+  			]
+  		]
+  	},
+  	setUniform: {
+  		overloads: [
+  			[
+  				"String",
+  				"Boolean|p5.Vector|p5.Color|Number|Number[]|p5.Image|p5.Graphics|p5.MediaElement|p5.Texture|p5.StorageBuffer"
+  			]
+  		]
+  	}
+  },
   	"p5.MediaElement": {
   	play: {
   		overloads: [
@@ -89393,6 +91784,29 @@ var p5 = (function () {
   	clearCues: {
   		overloads: [
   			[
+  			]
+  		]
+  	}
+  },
+  	"p5.StorageBuffer": {
+  	update: {
+  		overloads: [
+  			[
+  				"Number[]|Float32Array|Object[]"
+  			]
+  		]
+  	},
+  	read: {
+  		overloads: [
+  			[
+  			]
+  		]
+  	},
+  	set: {
+  		overloads: [
+  			[
+  				"Number",
+  				"Number|Object"
   			]
   		]
   	}
@@ -89668,7 +92082,6 @@ var p5 = (function () {
 
   /**
    * @for p5
-   * @requires core
    */
 
   function validateParams(p5, fn, lifecycles) {
@@ -89729,7 +92142,7 @@ var p5 = (function () {
       'Boolean': boolean(),
       'Function': _function(),
       'Integer': number().int(),
-      'Number': number(),
+      'Number': union([number(), literal$1(Infinity), literal$1(-Infinity)]),
       'Object': object({}),
       'String': string()
     };
@@ -90076,33 +92489,44 @@ var p5 = (function () {
       // of any of them. In this case, aggregate all possible types and print
       // a friendly error message that indicates what the expected types are at
       // which position (position is not 0-indexed, for accessibility reasons).
+
       const processUnionError = error => {
         const expectedTypes = new Set();
         let actualType;
 
-        error.errors.forEach(err => {
-          const issue = err[0];
-          if (issue) {
-            if (!actualType) {
-              actualType = issue.message;
-            }
+        const collectIssue = issue => {
+          if (!issue) return;
+          if (!actualType) {
+            actualType = issue.message;
+          }
 
-            if (issue.code === 'invalid_type') {
-              actualType = issue.message.split(', received ')[1];
-              expectedTypes.add(issue.expected);
-            }
-            // The case for constants. Since we don't want to print out the actual
-            // constant values in the error message, the error message will
-            // direct users to the documentation.
-            else if (issue.code === 'invalid_value') {
+          if (issue.code === 'invalid_type') {
+            actualType = issue.message.split(', received ')[1];
+            expectedTypes.add(issue.expected);
+          }
+          // The case for constants. Since we don't want to print out the actual
+          // constant values in the error message, the error message will
+          // direct users to the documentation.
+          else if (issue.code === 'invalid_value') {
+            if (Array.isArray(issue.values) && issue.values.every(v => v === Infinity || v === -Infinity)) {
+              expectedTypes.add('number');
+            } else {
               expectedTypes.add('constant (please refer to documentation for allowed values)');
               actualType = args[error.path[0]];
-            } else if (issue.code === 'custom') {
-              const match = issue.message.match(/Input not instance of (\w+)/);
-              if (match) expectedTypes.add(match[1]);
-              actualType = undefined;
             }
+          } else if (issue.code === 'custom') {
+            const match = issue.message.match(/Input not instance of (\w+)/);
+            if (match) expectedTypes.add(match[1]);
+            actualType = undefined;
+          } else if (issue.code === 'invalid_union') {
+            issue.errors.forEach(nestedErr => {
+              nestedErr.forEach(nestedIssue => collectIssue(nestedIssue));
+            });
           }
+        };
+
+        error.errors.forEach(err => {
+          err.forEach(issue => collectIssue(issue));
         });
 
         if (expectedTypes.size > 0) {
@@ -90122,6 +92546,7 @@ var p5 = (function () {
 
         return message;
       };
+
 
       switch (currentError.code) {
         case 'invalid_union': {
@@ -90260,6 +92685,9 @@ var p5 = (function () {
       function(target, { kind, name }){
         if(kind === 'method'){
           return function(...args){
+            if (p5.disableFriendlyErrors) {
+              return target.apply(this, args);
+            }
             const wasInternalCall = this._isUserCall;
             this._isUserCall = true;
             try {
@@ -90281,7 +92709,7 @@ var p5 = (function () {
   }
 
   if (typeof p5 !== 'undefined') {
-    validateParams(p5, p5.prototype);
+    p5.registerAddon(validateParams);
   }
 
   // This file was generated. Do not modify manually!
@@ -97052,7 +99480,6 @@ var p5 = (function () {
 
   /**
    * @for p5
-   * @requires core
    */
 
   function fileErrors(p5, fn){
@@ -97157,7 +99584,6 @@ var p5 = (function () {
   /**
    * @module Data
    * @submodule LocalStorage
-   * @requires core
    *
    * This module defines the p5 methods for working with local storage
    */
@@ -97604,7 +100030,6 @@ var p5 = (function () {
    * @module DOM
    * @submodule DOM
    * @for p5
-   * @requires p5
    */
 
 
@@ -99450,7 +101875,6 @@ var p5 = (function () {
    * @module Events
    * @submodule Acceleration
    * @for p5
-   * @requires core
    * @main Events
    */
 
@@ -99467,6 +101891,10 @@ var p5 = (function () {
           signal: this._removeSignal
         });
       }
+
+      // Initialize device orientation value
+      this.deviceOrientation = typeof window !== 'undefined' &&
+  			window.innerWidth / window.innerHeight > 1.0 ? 'landscape' : 'portrait';
     };
 
     /**
@@ -99478,8 +101906,7 @@ var p5 = (function () {
      * @property {(LANDSCAPE|PORTRAIT)} deviceOrientation
      * @readOnly
      */
-    fn.deviceOrientation =
-      window.innerWidth / window.innerHeight > 1.0 ? 'landscape' : 'portrait';
+    fn.deviceOrientation = 'landscape';
 
     /**
      * The system variable accelerationX always contains the acceleration of the
@@ -100164,7 +102591,6 @@ var p5 = (function () {
    * @module Events
    * @submodule Keyboard
    * @for p5
-   * @requires core
    */
   function isCode(input) {
     const leftRightKeys = [
@@ -101262,8 +103688,6 @@ var p5 = (function () {
    * @module Events
    * @submodule Pointer
    * @for p5
-   * @requires core
-   * @requires constants
    */
 
   function pointer(p5, fn, lifecycles){
@@ -101271,6 +103695,7 @@ var p5 = (function () {
       const events = [
         'pointerdown',
         'pointerup',
+        'pointercancel',
         'pointermove',
         'dragend',
         'dragover',
@@ -102330,6 +104755,10 @@ var p5 = (function () {
       this._activePointers.set(e.pointerId, e);
       this._setMouseButton(e);
 
+      if (this.mouseIsPressed && e.buttons === 0) {
+        this._onpointerup(e);
+      }
+
       if (
         !this.mouseIsPressed &&
         typeof this._customActions.mouseMoved === 'function'
@@ -102655,6 +105084,16 @@ var p5 = (function () {
 
     fn._ondragend = fn._onpointerup;
     fn._ondragover = fn._onpointermove;
+
+    fn._onpointercancel = function(e) {
+      this._activePointers.delete(e.pointerId);
+      this._setMouseButton(e);
+      this._updatePointerCoords(e);
+
+      if (this._activePointers.size === 0) {
+        this.mouseIsPressed = false;
+      }
+    };
 
     /**
      * A function that's called once after a mouse button is pressed and released.
@@ -103207,7 +105646,6 @@ var p5 = (function () {
   /**
    * @module IO
    * @submodule Table
-   * @requires core
    */
 
 
@@ -104522,7 +106960,6 @@ var p5 = (function () {
   /**
    * @module IO
    * @submodule Table
-   * @requires core
    */
 
   class TableRow {
@@ -104880,7 +107317,6 @@ var p5 = (function () {
    * @module Math
    * @submodule Calculation
    * @for p5
-   * @requires core
    */
 
   function calculation(p5, fn){
@@ -104891,11 +107327,7 @@ var p5 = (function () {
      * -5 and 5 are both five units away from zero, so calling `abs(-5)` and
      * `abs(5)` both return 5. The absolute value of a number is always positive.
      *
-     * @method abs
-     * @param  {Number} n number to compute.
-     * @return {Number}   absolute value of given number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -104915,6 +107347,55 @@ var p5 = (function () {
      *   // from the middle.
      *   rect(0, 100 - h, 100, h);
      * }
+     * ```
+     *
+     * `abs()` can also be used in shaders with p5.strands. The following example
+     * uses `abs()` to create a mirror effect on the color of a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere with colors that fold back like a mirror.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // sin(t) goes between -1 and 1 over time.
+     *   let sinVal = sin(t);
+     *
+     *   // abs() folds the negative values to positive.
+     *   // Now value goes between 0 and 1, creating a mirror effect.
+     *   let value = abs(sinVal);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let navy = [0.2, 0.2, 0.8, 1];
+     *   let coral = [0.8, 0.2, 0.2, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between navy (when value = 0) and coral (when value = 1).
+     *   finalColor.set(mix(navy, coral, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method abs
+     * @param  {Number} n number to compute.
+     * @return {Number}   absolute value of given number.
+     *
      */
     fn.abs = Math.abs;
 
@@ -104925,11 +107406,7 @@ var p5 = (function () {
      * For example, calling `ceil(9.03)` and `ceil(9.97)` both return the value
      * 10.
      *
-     * @method ceil
-     * @param  {Number} n number to round up.
-     * @return {Integer}   rounded up number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -104954,6 +107431,57 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The one on the left is dark red and the one on the right is bright red.');
      * }
+     * ```
+     *
+     * `ceil()` can also be used in shaders with p5.strands. The following example
+     * uses `ceil()` to create a stepped color effect on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere with stepped color bands.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // sin(t) goes between -1 and 1.
+     *   // 0.5 + 0.5 * sin(t) remaps this to the 0 to 1 range.
+     *   let sinVal = 0.5 + 0.5 * sin(t);
+     *
+     *   // Multiply by 4 then ceil to get the next whole number up.
+     *   // Divide by 4 to bring the result back to the 0 to 1 range.
+     *   // This creates 4 distinct stepped color levels: 0.25, 0.5, 0.75, 1.
+     *   let value = ceil(sinVal * 4) / 4;
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let cyan = [0, 0.5, 1, 1];
+     *   let orange = [1, 0.5, 0, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between cyan (when value = 0) and orange (when value = 1).
+     *   // ceil() creates sharp steps between color levels.
+     *   finalColor.set(mix(cyan, orange, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method ceil
+     * @param  {Number} n number to round up.
+     * @return {Integer}   rounded up number.
      */
     fn.ceil = Math.ceil;
 
@@ -105091,11 +107619,7 @@ var p5 = (function () {
      * Calculates the value of Euler's number e (2.71828...) raised to the power
      * of a number.
      *
-     * @method exp
-     * @param  {Number} n exponent to raise.
-     * @return {Number}   e^n
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105119,8 +107643,9 @@ var p5 = (function () {
      *
      *   describe('A series of circles that grow exponentially from top left to bottom right.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105141,6 +107666,53 @@ var p5 = (function () {
      *   // Draw a point.
      *   point(x, y);
      * }
+     * ```
+     *
+     * `exp()` can also be used in shaders with p5.strands. The following example
+     * uses `exp()` to create an accelerating color transition on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that brightens with accelerating speed.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.0005 to slow it.
+     *   let t = millis() * 0.0005;
+     *
+     *   // exp(t) grows slowly at first, then accelerates (exponential growth).
+     *   // Multiply by 0.01 to keep it from growing too fast.
+     *   // min(..., 1) caps the value at 1 so it doesn't go past white.
+     *   let value = min(exp(t) * 0.01, 1);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let darkBlue = [0.1, 0.1, 0.3, 1];
+     *   let lightYellow = [1, 1, 0.5, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between darkBlue (when value = 0) and lightYellow (when value = 1).
+     *   // Because exp() accelerates, the color transition gets faster over time.
+     *   finalColor.set(mix(darkBlue, lightYellow, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method exp
+     * @param  {Number} n exponent to raise.
+     * @return {Number}   e^n
      */
     fn.exp = Math.exp;
 
@@ -105148,11 +107720,7 @@ var p5 = (function () {
      * Calculates the closest integer value that is less than or equal to the
      * value of a number.
      *
-     * @method floor
-     * @param  {Number} n number to round down.
-     * @return {Integer}  rounded down number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105175,6 +107743,57 @@ var p5 = (function () {
      *
      *   describe('Two rectangles. The one on the left is bright red and the one on the right is black.');
      * }
+     * ```
+     *
+     * `floor()` can also be used in shaders with p5.strands. The following example
+     * uses `floor()` to create banding effects on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere with posterized color bands.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // sin(t) goes between -1 and 1.
+     *   // 0.5 + 0.5 * sin(t) remaps this to the 0 to 1 range.
+     *   let sinVal = 0.5 + 0.5 * sin(t);
+     *
+     *   // Multiply by 4 then floor to get the next whole number down.
+     *   // Divide by 4 to bring the result back to the 0 to 1 range.
+     *   // This creates 5 distinct stepped color levels: 0, 0.25, 0.5, 0.75, 1.
+     *   let value = floor(sinVal * 4) / 4;
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let darkPurple = [0.2, 0, 0.8, 1];
+     *   let brightTeal = [0.2, 1, 0.8, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between darkPurple (when value = 0) and brightTeal (when value = 1).
+     *   // The floor() creates visible banding/posterization in the color.
+     *   finalColor.set(mix(darkPurple, brightTeal, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method floor
+     * @param  {Number} n number to round down.
+     * @return {Integer}  rounded down number.
      */
     fn.floor = Math.floor;
 
@@ -105191,13 +107810,7 @@ var p5 = (function () {
      * number outside of the original interval. For example, calling
      * `lerp(0, 10, 1.5)` will return 15.
      *
-     * @method lerp
-     * @param  {Number} start first value.
-     * @param  {Number} stop  second value.
-     * @param  {Number} amt   number.
-     * @return {Number}       lerped value.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105225,8 +107838,9 @@ var p5 = (function () {
      *
      *   describe('Five points in a horizontal line. The outer points are black and the inner points are gray.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * let x = 50;
      * let y = 50;
      * let targetX = 50;
@@ -105256,6 +107870,54 @@ var p5 = (function () {
      *   x = mouseX;
      *   y = mouseY;
      * }
+     * ```
+     *
+     * `lerp()` can also be used in shaders with p5.strands, where it maps to the
+     * <a href="#/p5/mix">mix()</a> function in GLSL. The following example
+     * uses `lerp()` to blend colors on a shape over time.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that blends between teal and coral.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // sin(t) goes between -1 and 1 over time.
+     *   // 0.5 + 0.5 * sin(t) remaps this to the 0 to 1 range.
+     *   let value = 0.5 + 0.5 * sin(t);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let teal = [0, 0.8, 0.8, 1];
+     *   let coral = [1, 0.5, 0.3, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // lerp() blends teal (when value = 0) and coral (when value = 1).
+     *   finalColor.set(lerp(teal, coral, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method lerp
+     * @param  {Number} start first value.
+     * @param  {Number} stop  second value.
+     * @param  {Number} amt   number.
+     * @return {Number}       lerped value.
      */
     fn.lerp = function(start, stop, amt) {
       // p5._validateParameters('lerp', arguments);
@@ -105268,11 +107930,7 @@ var p5 = (function () {
      * `log()` expects the `n` parameter to be a value greater than 0 because
      * the natural logarithm is defined that way.
      *
-     * @method log
-     * @param  {Number} n number greater than 0.
-     * @return {Number}   natural logarithm of n.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105288,8 +107946,9 @@ var p5 = (function () {
      *
      *   describe('Two white circles. The circle at the top-left is small. The circle at the bottom-right is about five times larger.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105310,6 +107969,53 @@ var p5 = (function () {
      *   // Draw a point.
      *   point(x, y);
      * }
+     * ```
+     *
+     * `log()` can also be used in shaders with p5.strands. The following example
+     * uses `log()` to create a decelerating color transition on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that slowly shifts from purple to yellow.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // log(1 + t * 2) grows at a moderate pace over time.
+     *   // Multiply by 0.4 to bring it into the 0 to 1 range.
+     *   // min(..., 1) caps the value at 1.
+     *   let value = min(log(1 + t * 2) * 0.4, 1);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let purple = [0.5, 0, 0.5, 1];
+     *   let yellow = [1, 1, 0, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between purple (when value = 0) and yellow (when value = 1).
+     *   // Because log() slows down over time, the color transition decelerates.
+     *   finalColor.set(mix(purple, yellow, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method log
+     * @param  {Number} n number greater than 0.
+     * @return {Number}   natural logarithm of n.
      */
     fn.log = Math.log;
 
@@ -105377,16 +108083,7 @@ var p5 = (function () {
      * constrains the remapped value to the target range. For example,
      * `map(11, 0, 10, 0, 100, true)` returns 100.
      *
-     * @method map
-     * @param  {Number} value  the value to be remapped.
-     * @param  {Number} start1 lower bound of the value's current range.
-     * @param  {Number} stop1  upper bound of the value's current range.
-     * @param  {Number} start2 lower bound of the value's target range.
-     * @param  {Number} stop2  upper bound of the value's target range.
-     * @param  {Boolean} [withinBounds] constrain the value to the newly mapped range.
-     * @return {Number}        remapped number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105405,8 +108102,9 @@ var p5 = (function () {
      *   // Draw the bottom line.
      *   line(0, 75, 0, x);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105425,6 +108123,58 @@ var p5 = (function () {
      *   // Draw the circle.
      *   circle(50, 50, 20);
      * }
+     * ```
+     *
+     * `map()` can also be used in shaders with p5.strands. The following example
+     * uses `map()` to remap time values to color in a shader.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that shifts between cyan and orange over time.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // sin(t) goes between -1 and 1 over time.
+     *   let sinVal = sin(t);
+     *
+     *   // map() remaps this from the range [-1, 1] to the range [0, 1].
+     *   let value = map(sinVal, -1, 1, 0, 1);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let cyan = [0, 0.5, 1, 1];
+     *   let orange = [1, 0.5, 0, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between cyan (when value = 0) and orange (when value = 1).
+     *   finalColor.set(mix(cyan, orange, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method map
+     * @param  {Number} value  the value to be remapped.
+     * @param  {Number} start1 lower bound of the value's current range.
+     * @param  {Number} stop1  upper bound of the value's current range.
+     * @param  {Number} start2 lower bound of the value's target range.
+     * @param  {Number} stop2  upper bound of the value's target range.
+     * @param  {Boolean} [withinBounds] constrain the value to the newly mapped range.
+     * @return {Number}        remapped number.
      */
     fn.map = function(n, start1, stop1, start2, stop2, withinBounds) {
       // p5._validateParameters('map', arguments);
@@ -105448,12 +108198,7 @@ var p5 = (function () {
      * The version of `max()` with two or more parameters interprets them as
      * individual numbers and returns the largest number.
      *
-     * @method max
-     * @param  {Number} n0 first number to compare.
-     * @param  {Number} n1 second number to compare.
-     * @return {Number}             maximum number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105471,8 +108216,9 @@ var p5 = (function () {
      *
      *   describe('The number 20 written in the middle of a gray square.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105493,6 +108239,54 @@ var p5 = (function () {
      *
      *   describe('The number 20 written in the middle of a gray square.');
      * }
+     * ```
+     *
+     * `max()` can also be used in shaders with p5.strands. The following example
+     * uses `max()` to clamp values in a shader.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that shifts from rose to steelBlue and stops.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // 1 - t * 0.2 decreases steadily over time.
+     *   // max(..., 0) ensures the value never goes below 0.
+     *   let value = max(1 - t * 0.2, 0);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let steelBlue = [0, 0.3, 0.8, 1];
+     *   let rose = [1, 0.3, 0.8, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between steelBlue (when value = 0) and rose (when value = 1).
+     *   // max() clamps the blend so the color stops changing once it reaches steelBlue.
+     *   finalColor.set(mix(steelBlue, rose, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method max
+     * @param  {Number} n0 first number to compare.
+     * @param  {Number} n1 second number to compare.
+     * @param  {...Number} rest additional numbers to compare.
+     * @return {Number}             maximum number.
      */
     /**
      * @method max
@@ -105524,12 +108318,7 @@ var p5 = (function () {
      * The version of `min()` with two or more parameters interprets them as
      * individual numbers and returns the smallest number.
      *
-     * @method min
-     * @param  {Number} n0 first number to compare.
-     * @param  {Number} n1 second number to compare.
-     * @return {Number}             minimum number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105547,8 +108336,9 @@ var p5 = (function () {
      *
      *   describe('The number 5 written in the middle of a gray square.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105569,6 +108359,54 @@ var p5 = (function () {
      *
      *   describe('The number 5 written in the middle of a gray square.');
      * }
+     * ```
+     *
+     * `min()` can also be used in shaders with p5.strands. The following example
+     * uses `min()` to clamp values in a shader.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that shifts from red to green and stops.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // t * 0.2 grows steadily over time.
+     *   // min(..., 1) caps the value at 1 so it doesn't go past the target color.
+     *   let value = min(t * 0.2, 1);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let deepRed = [0.8, 0, 0.2, 1];
+     *   let yellowGreen = [0.8, 1, 0.2, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between deepRed (when value = 0) and yellowGreen (when value = 1).
+     *   // min() clamps the blend so the color stops changing once it reaches yellowGreen.
+     *   finalColor.set(mix(deepRed, yellowGreen, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method min
+     * @param  {Number} n0 first number to compare.
+     * @param  {Number} n1 second number to compare.
+     * @param  {...Number} rest additional numbers to compare.
+     * @return {Number}             minimum number.
      */
     /**
      * @method min
@@ -105637,12 +108475,7 @@ var p5 = (function () {
      * 2 &times; 2 &times; 2. `pow(2, -3)` evaluates 1 &#247;
      * (2 &times; 2 &times; 2).
      *
-     * @method pow
-     * @param  {Number} n base of the exponential expression.
-     * @param  {Number} e power by which to raise the base.
-     * @return {Number}   n^e.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105669,6 +108502,52 @@ var p5 = (function () {
      *
      *   describe('A series of circles that grow exponentially from top left to bottom right.');
      * }
+     * ```
+     *
+     * `pow()` can also be used in shaders with p5.strands. The following example
+     * uses `pow()` to create a gamma curve effect on colors in a shader.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere with colors that shift with a power curve.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.0005 to slow it.
+     *   let t = millis() * 0.0005;
+     *
+     *   // pow(t, 2) squares the time value: it starts slow then accelerates.
+     *   let value = pow(t, 2);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let deepBlue = [0, 0.1, 0.5, 1];
+     *   let gold = [1, 0.8, 0, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between deepBlue (when value = 0) and gold (when value = 1).
+     *   // Because pow() accelerates, the color transition gets faster over time.
+     *   finalColor.set(mix(deepBlue, gold, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method pow
+     * @param  {Number} n base of the exponential expression.
+     * @param  {Number} e power by which to raise the base.
+     * @return {Number}   n^e.
      */
     fn.pow = Math.pow;
 
@@ -105681,12 +108560,7 @@ var p5 = (function () {
      * decimal places to use when rounding. For example, `round(12.34, 1)` returns
      * 12.3. `decimals` is 0 by default.
      *
-     * @method round
-     * @param  {Number} n number to round.
-     * @param  {Number} [decimals] number of decimal places to round to, default is 0.
-     * @return {Integer}  rounded number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105704,8 +108578,9 @@ var p5 = (function () {
      *
      *   describe('The number 4 written in middle of the canvas.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105723,6 +108598,57 @@ var p5 = (function () {
      *
      *   describe('The number 12.78 written in middle of canvas.');
      * }
+     * ```
+     *
+     * `round()` can also be used in shaders with p5.strands. The following example
+     * uses `round()` to quantize colors in a shader.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere with posterized quantized colors.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // sin(t) goes between -1 and 1.
+     *   // 0.5 + 0.5 * sin(t) remaps this to the 0 to 1 range.
+     *   let sinVal = 0.5 + 0.5 * sin(t);
+     *
+     *   // Multiply by 4 then round to get 5 distinct levels (0, 0.25, 0.5, 0.75, 1).
+     *   // Divide by 4 to bring the result back to the 0 to 1 range.
+     *   let value = round(sinVal * 4) / 4;
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let mutedBlue = [0.3, 0.4, 0.7, 1];
+     *   let rose = [0.8, 0.3, 0.4, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between mutedBlue (when value = 0) and rose (when value = 1).
+     *   // The round() creates stepped bands of color like a posterization effect.
+     *   finalColor.set(mix(mutedBlue, rose, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method round
+     * @param  {Number} n number to round.
+     * @param  {Number} [decimals] number of decimal places to round to, default is 0.
+     * @return {Integer}  rounded number.
      */
     fn.round = function(n, decimals) {
       if (!decimals) {
@@ -105793,11 +108719,7 @@ var p5 = (function () {
      * always returns a positive value. `sqrt()` doesn't work with negative arguments
      * such as `sqrt(-9)`.
      *
-     * @method sqrt
-     * @param  {Number} n non-negative number to square root.
-     * @return {Number}   square root of number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105813,8 +108735,9 @@ var p5 = (function () {
      *
      *   describe('Two white circles. The circle at the top-left is small. The circle at the bottom-right is ten times larger.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105835,6 +108758,63 @@ var p5 = (function () {
      *   // Draw the point.
      *   point(x, y);
      * }
+     * ```
+     *
+     * `sqrt()` can also be used in shaders with p5.strands. The following example
+     * uses `sqrt()` to create a smooth ease-out curve on color and size.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere that grows and shifts from navy to orange with an ease-out curve.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // sin(t) goes between -1 and 1.
+     *   // 0.5 + 0.5 * sin(t) remaps this to the 0 to 1 range.
+     *   let sinVal = 0.5 + 0.5 * sin(t);
+     *
+     *   // sqrt(sinVal) creates an ease-out curve: fast start, slow finish.
+     *   // Since sinVal is in [0,1], sqrt() stays in [0,1].
+     *   let value = sqrt(sinVal);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let navy = [0, 0.1, 0.4, 1];
+     *   let brightOrange = [1, 0.6, 0, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between navy (when value = 0) and brightOrange (when value = 1).
+     *   // The sqrt() ease-out makes the color change fast at first, then slow down.
+     *   finalColor.set(mix(navy, brightOrange, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function drawShape() {
+     *   let t = millis() * 0.001;
+     *   let sinVal = 0.5 + 0.5 * sin(t);
+     *   let size = 10 + sqrt(sinVal) * 30;
+     *   sphere(size);
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   drawShape();
+     * }
+     * ```
+     *
+     * @method sqrt
+     * @param  {Number} n non-negative number to square root.
+     * @return {Number}   square root of number.
      */
     fn.sqrt = Math.sqrt;
 
@@ -105844,11 +108824,7 @@ var p5 = (function () {
      * A number's fractional part includes its decimal values. For example,
      * `fract(12.34)` returns 0.34.
      *
-     * @method fract
-     * @param {Number} n number whose fractional part will be found.
-     * @returns {Number} fractional part of n.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105868,6 +108844,53 @@ var p5 = (function () {
      *
      *   describe('The number 56.78 written above the number 0.78.');
      * }
+     * ```
+     *
+     * `fract()` can also be used in shaders with p5.strands. The following example
+     * uses `fract()` to create repeating patterns in a shader.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere with a repeating gradient pattern.');
+     * }
+     *
+     * function shaderCallback() {
+     *   // shaderCallback runs on the GPU. millis() gives ms since start; multiply by 0.001 for seconds.
+     *   let t = millis() * 0.001;
+     *
+     *   // Multiply by 0.5 to slow the animation to half speed.
+     *   // fract(t * 0.5) extracts only the decimal part of the number.
+     *   // This creates a smooth sawtooth wave that repeats every 2 seconds.
+     *   let value = fract(t * 0.5);
+     *
+     *   // Each color is [R, G, B, A] with values from 0 to 1.
+     *   let cyan = [0, 0.5, 1, 1];
+     *   let orange = [1, 0.5, 0, 1];
+     *
+     *   finalColor.begin();
+     *
+     *   // mix() blends between cyan (when value = 0) and orange (when value = 1).
+     *   // Because fract() resets to 0 each cycle, the color loops smoothly.
+     *   finalColor.set(mix(cyan, orange, value));
+     *
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method fract
+     * @param {Number} n number whose fractional part will be found.
+     * @returns {Number} fractional part of n.
      */
     fn.fract = function(toConvert) {
       // p5._validateParameters('fract', arguments);
@@ -105912,7 +108935,6 @@ var p5 = (function () {
    * @module Math
    * @submodule Noise
    * @for p5
-   * @requires core
    */
   function noise(p5, fn){
     const PERLIN_YWRAPB = 4;
@@ -105963,13 +108985,7 @@ var p5 = (function () {
      * three dimensions. These dimensions can be thought of as space, as in
      * `noise(x, y, z)`, or space and time, as in `noise(x, y, t)`.
      *
-     * @method noise
-     * @param  {Number} x   x-coordinate in noise space.
-     * @param  {Number} [y] y-coordinate in noise space.
-     * @param  {Number} [z] z-coordinate in noise space.
-     * @return {Number}     Perlin noise value at specified coordinates.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -105987,8 +109003,9 @@ var p5 = (function () {
      *   strokeWeight(5);
      *   point(x, y);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106013,8 +109030,9 @@ var p5 = (function () {
      *   strokeWeight(5);
      *   point(x, y);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106036,8 +109054,9 @@ var p5 = (function () {
      *   // Draw the line.
      *   line(x, 0, x, y);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106064,8 +109083,9 @@ var p5 = (function () {
      *     line(x, 0, x, y);
      *   }
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106094,8 +109114,9 @@ var p5 = (function () {
      *
      *   describe('A gray cloudy pattern.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106125,6 +109146,43 @@ var p5 = (function () {
      *     }
      *   }
      * }
+     * ```
+     *
+     * `noise()` can also be used in shaders with p5.strands, where it returns
+     * values in the range 0 to 1. The example below uses `noise()` inside a
+     * filter shader to create a cloud-like texture effect:
+     *
+     * ```js example
+     * let myFilter;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myFilter = buildFilterShader(shaderCallback);
+     *   describe('A cloud-like noise pattern.');
+     * }
+     *
+     * function shaderCallback() {
+     *   filterColor.begin();
+     *   let coord = filterColor.texCoord;
+     *   let t = millis() / 2000;
+     *   // noise() returns values in the range 0 to 1.
+     *   let mixFraction = noise(coord.x * 5, coord.y * 5, t);
+     *   let darkBlue = [0.1, 0.1, 0.3, 1];
+     *   let lightBlue = [0.9, 0.9, 1, 1];
+     *   filterColor.set(mix(darkBlue, lightBlue, mixFraction));
+     *   filterColor.end();
+     * }
+     *
+     * function draw() {
+     *   filter(myFilter);
+     * }
+     * ```
+     *
+     * @method noise
+     * @param  {Number} x   x-coordinate in noise space.
+     * @param  {Number} [y] y-coordinate in noise space.
+     * @param  {Number} [z] z-coordinate in noise space.
+     * @return {Number}     Perlin noise value at specified coordinates.
      */
     fn.noise = function(x, y = 0, z = 0) {
       if (perlin == null) {
@@ -106373,7 +109431,6 @@ var p5 = (function () {
    * @module Math
    * @submodule Random
    * @for p5
-   * @requires core
    */
 
   function random(p5, fn){
@@ -106477,12 +109534,7 @@ var p5 = (function () {
      * For example, calling `random(-5, 10.2)` returns values from -5 up to but
      * not including 10.2.
      *
-     * @method random
-     * @param  {Number} [min]   lower bound (inclusive).
-     * @param  {Number} [max]   upper bound (exclusive).
-     * @return {Number} random number.
-     *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106498,8 +109550,9 @@ var p5 = (function () {
      *
      *   describe('A black dot appears in a random position on a gray square.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106515,8 +109568,9 @@ var p5 = (function () {
      *
      *   describe('A black dot appears in a random position on a gray square.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106537,8 +109591,9 @@ var p5 = (function () {
      *
      *   describe('An animal face is displayed at random. Either a lion, tiger, or bear.');
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106559,8 +109614,9 @@ var p5 = (function () {
      *   strokeWeight(5);
      *   point(x, y);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -106581,8 +109637,9 @@ var p5 = (function () {
      *   strokeWeight(5);
      *   point(x, y);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * let x = 50;
      * let y = 50;
      *
@@ -106602,6 +109659,41 @@ var p5 = (function () {
      *   // Draw the point.
      *   point(x, y);
      * }
+     * ```
+     *
+     * `random()` can also be used in shaders with p5.strands. The following example
+     * uses `random()` to create varying colors on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere with randomly varying colors.');
+     * }
+     *
+     * function shaderCallback() {
+     *   let r = random();
+     *   let g = random();
+     *   let b = random();
+     *   finalColor.begin();
+     *   finalColor.set([r, g, b, 1]);
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method random
+     * @param  {Number} [min]   lower bound (inclusive).
+     * @param  {Number} [max]   upper bound (exclusive).
+     * @return {Number} random number.
      */
     /**
      * @method random
@@ -106723,7 +109815,6 @@ var p5 = (function () {
   /**
    * @module Math
    * @for p5
-   * @requires core
    */
 
   function math$1(p5, fn) {
@@ -106760,7 +109851,7 @@ var p5 = (function () {
      * <a href="#/p5.Vector">p5.Vector</a> class.
      *
      * @method createVector
-     * @param {...Number} x Zero or more numbers, representing each component of the vector.
+     * @param {...Number} x List of numbers representing each component of the vector.
      * @return {p5.Vector} new <a href="#/p5.Vector">p5.Vector</a> object.
      *
      * @example
@@ -106814,20 +109905,15 @@ var p5 = (function () {
      *   point(pos);
      * }
      */
-    fn.createVector = function (x, y, z) {
-      if (arguments.length === 0) {
-        p5._friendlyError(
-          'In 1.x, createVector() was a shortcut for createVector(0, 0, 0). In 2.x, p5.js has vectors of any dimension, so you must provide your desired number of zeros. Use createVector(0, 0) for a 2D vector and createVector(0, 0, 0) for a 3D vector.'
-        );
-      }
+    fn.createVector = function (...args) {
       if (this instanceof p5) {
-        return new p5.Vector(
-          this._fromRadians.bind(this),
-          this._toRadians.bind(this),
-          ...arguments
-        );
+        if (!this._boundFromRadians) {
+          this._boundFromRadians = this._fromRadians.bind(this);
+          this._boundToRadians = this._toRadians.bind(this);
+        }
+        return new p5.Vector(this._boundFromRadians, this._boundToRadians, ...args);
       } else {
-        return new p5.Vector(x, y, z);
+        return new p5.Vector(...args);
       }
     };
 
@@ -106860,6 +109946,99 @@ var p5 = (function () {
     math$1(p5, p5.prototype);
   }
 
+  /**
+   * @private
+   * @internal
+   */
+  function _defaultEmptyVector(target){
+    return function(...args){
+      if(args.length === 0){
+        this.constructor._friendlyError(
+          'In 1.x, createVector() was a shortcut for createVector(0, 0, 0). In 2.x, p5.js has vectors of any dimension, so you must provide your desired number of zeros. Use createVector(0, 0) for a 2D vector and createVector(0, 0, 0) for a 3D vector.',
+          'p5.createVector'
+        );
+        return target.call(this, 0, 0, 0);
+      }else {
+        if (Array.isArray(args[0])) {
+          args = args[0];
+        }
+        return target.call(this, ...args);
+      }
+    };
+  }
+
+
+  /**
+   * @private
+   * @internal
+   */
+  function _validatedVectorOperation(expectsSoloNumberArgument){
+    return function(target){
+      return function (...args) {
+        if (args.length === 0) {
+          // No arguments? No action
+          return this;
+        } else if (args[0] instanceof Vector) {
+          // First argument is a vector? Make it an array
+          args = args[0].values;
+        } else if (Array.isArray(args[0])) {
+          // First argument is an array? Great, keep it!
+          args = args[0];
+        } else if (args.length === 1){
+          // Special case for a solo numeric arguments only applies sometimes
+          if (expectsSoloNumberArgument) {
+            args = args[0];
+          }
+        }
+
+        if(Array.isArray(args)){
+          for (let i = 0; i < args.length; i++) {
+            const v = args[i];
+            if (typeof v !== 'number' || !Number.isFinite(v)) {
+              if (!this.friendlyErrorsDisabled()) {
+                this._friendlyError(
+                  'Arguments contain non-finite numbers',
+                  'p5.Vector'
+                );
+              }
+              return this;
+            }
+          }
+        } else {
+          if (typeof args !== 'number' || !Number.isFinite(args)) {
+            if (!this.friendlyErrorsDisabled()) {
+              this._friendlyError(
+                'Arguments contain non-finite numbers',
+                'p5.Vector'
+              );
+            }
+            return this;
+          }
+        }
+
+        return target.call(this, args);
+      };
+    };
+  }
+
+  /**
+   * @private
+   * @internal
+   * Each of the following decorators validates the data on vector operations.
+   * These ensure that the arguments are consistently formatted, and that
+   * pre-conditions are met.
+   */
+  function vectorValidation(p5, fn, lifecycles){
+
+    p5.registerDecorator('p5.prototype.createVector', _defaultEmptyVector);
+    p5.registerDecorator('p5.Vector.prototype.mult', _validatedVectorOperation(true));
+    p5.registerDecorator('p5.Vector.prototype.rem', _validatedVectorOperation(true));
+    p5.registerDecorator('p5.Vector.prototype.div', _validatedVectorOperation(true));
+    p5.registerDecorator('p5.Vector.prototype.add', _validatedVectorOperation(false));
+    p5.registerDecorator('p5.Vector.prototype.sub', _validatedVectorOperation(false));
+
+  }
+
   function math(p5){
     p5.registerAddon(calculation);
     p5.registerAddon(noise);
@@ -106867,13 +110046,13 @@ var p5 = (function () {
     p5.registerAddon(trigonometry);
     p5.registerAddon(math$1);
     p5.registerAddon(vector);
+    p5.registerAddon(vectorValidation);
   }
 
   /**
    * @module Data
    * @submodule Conversion
    * @for p5
-   * @requires core
    */
 
   function conversion(p5, fn){
@@ -107835,7 +111014,6 @@ var p5 = (function () {
    * @module Data
    * @submodule Utility Functions
    * @for p5
-   * @requires core
    */
 
   function utilityFunctions(p5, fn){
@@ -108577,7 +111755,6 @@ var p5 = (function () {
    * @module IO
    * @submodule Time & Date
    * @for p5
-   * @requires core
    */
 
   function timeDate(p5, fn){
@@ -108684,10 +111861,8 @@ var p5 = (function () {
      * sketch includes asynchronous loading using `async`/`await`, then
      * `millis()` begins tracking time as soon as the asynchronous code
      * starts running.
-     * @method millis
-     * @return {Number} number of milliseconds since starting the sketch.
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -108708,8 +111883,9 @@ var p5 = (function () {
      *     `The text 'Startup time: ${round(ms, 2)} ms' written in black on a gray background.`
      *   );
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -108730,8 +111906,9 @@ var p5 = (function () {
      *   // Display how long the sketch has run.
      *   text(`Running time: ${nf(s, 1, 1)} sec`, 5, 50, 90);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * function setup() {
      *   createCanvas(100, 100);
      *
@@ -108750,8 +111927,9 @@ var p5 = (function () {
      *   // Draw the circle.
      *   circle(x, 50, 30);
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * async function setup() {
      *   // Load the GeoJSON.
      *   await loadJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson');
@@ -108774,6 +111952,40 @@ var p5 = (function () {
      *     `The text "It took ${round(ms, 2)} ms to load the data" written in black on a gray background.`
      *   );
      * }
+     * ```
+     *
+     * `millis()` can also be used in shaders with p5.strands. The following example
+     * uses `millis()` to create time-based color transitions on a shape.
+     *
+     * ```js example
+     * let myShader;
+     *
+     * function setup() {
+     *   createCanvas(100, 100, WEBGL);
+     *   myShader = buildColorShader(shaderCallback);
+     *   describe('A sphere whose color shifts over time.');
+     * }
+     *
+     * function shaderCallback() {
+     *   let t = millis() * 0.001;
+     *   let value = 0.5 + 0.5 * sin(t);
+     *   let skyBlue = [0.2, 0.6, 0.8, 1];
+     *   let magenta = [0.8, 0.2, 0.6, 1];
+     *   finalColor.begin();
+     *   finalColor.set(mix(skyBlue, magenta, value));
+     *   finalColor.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   shader(myShader);
+     *   noStroke();
+     *   sphere(30);
+     * }
+     * ```
+     *
+     * @method millis
+     * @return {Number} number of milliseconds since starting the sketch.
      */
     fn.millis = function() {
       if (this._millisStart === -1) {
@@ -108890,7 +112102,6 @@ var p5 = (function () {
    * @module 3D
    * @submodule Interaction
    * @for p5
-   * @requires core
    */
 
 
@@ -109256,8 +112467,11 @@ var p5 = (function () {
         // accelerate rotate velocity
         this._renderer.rotateVelocity.add(
           deltaTheta * rotateAccelerationFactor,
-          deltaPhi * rotateAccelerationFactor
+          deltaPhi * rotateAccelerationFactor,
+          0
         );
+
+        //console.log("added");
       }
       if (this._renderer.rotateVelocity.magSq() > 0.000001) {
         // if freeRotation is true, the camera always rotates freely in the direction the pointer moves
@@ -109276,8 +112490,10 @@ var p5 = (function () {
         }
         // damping
         this._renderer.rotateVelocity.mult(damping);
+        //console.log("multiplied", damping,  this._renderer.rotateVelocity);
+
       } else {
-        this._renderer.rotateVelocity.set(0, 0);
+        this._renderer.rotateVelocity.set(0, 0, 0);
       }
 
       // move process
@@ -109753,8 +112969,6 @@ var p5 = (function () {
    * @module Shape
    * @submodule 3D Models
    * @for p5
-   * @requires core
-   * @requires p5.Geometry
    */
 
 
@@ -110308,7 +113522,6 @@ var p5 = (function () {
       const usedVerts = {}; // Track colored vertices
       let currentMaterial = null;
       let hasColoredVertices = false;
-      let hasColorlessVertices = false;
       for (let line = 0; line < lines.length; ++line) {
         // Each line is a separate object (vertex, face, vertex normal, etc)
         // For each line, split it into tokens on whitespace. The first token
@@ -110363,7 +113576,7 @@ var p5 = (function () {
                   model.uvs.push(loadedVerts.vt.at(vertParts[1]) ?
                     loadedVerts.vt.at(vertParts[1]).slice() : [0, 0]);
                   model.vertexNormals.push(loadedVerts.vn.at(vertParts[2]) ?
-                    loadedVerts.vn.at(vertParts[2]).copy() : new Vector());
+                    loadedVerts.vn.at(vertParts[2]).copy() : new Vector(0, 0, 0));
 
                   usedVerts[vertString][currentMaterial] = vertIndex;
                   face.push(vertIndex);
@@ -110378,7 +113591,7 @@ var p5 = (function () {
                     model.vertexColors.push(materialDiffuseColor[2]);
                     model.vertexColors.push(1);
                   } else {
-                    hasColorlessVertices = true;
+                    model.vertexColors.push(-1, -1, -1, -1);
                   }
                 } else {
                   face.push(usedVerts[vertString][currentMaterial]);
@@ -110400,9 +113613,8 @@ var p5 = (function () {
       if (model.vertexNormals.length === 0) {
         model.computeNormals();
       }
-      if (hasColoredVertices === hasColorlessVertices) {
-        // If both are true or both are false, throw an error because the model is inconsistent
-        throw new Error('Model coloring is inconsistent. Either all vertices should have colors or none should.');
+      if (!hasColoredVertices) {
+        model.vertexColors = [];
       }
 
       return model;
@@ -110712,7 +113924,7 @@ var p5 = (function () {
     /**
      * Draws a <a href="#/p5.Geometry">p5.Geometry</a> object to the canvas.
      *
-     * The parameter, `model`, is the
+     * The first parameter, `model`, is the
      * <a href="#/p5.Geometry">p5.Geometry</a> object to draw.
      * <a href="#/p5.Geometry">p5.Geometry</a> objects can be built with
      * <a href="#/p5/buildGeometry">buildGeometry()</a>. They can also be loaded from
@@ -110720,11 +113932,7 @@ var p5 = (function () {
      *
      * Note: `model()` can only be used in WebGL mode.
      *
-     * @method model
-     * @param  {p5.Geometry} model 3D shape to be drawn.
-     *
-     * @param {Number} [count=1] number of instances to draw.
-     * @example
+     * ```js example
      * // Click and drag the mouse to view the scene from different angles.
      *
      * let shape;
@@ -110752,8 +113960,9 @@ var p5 = (function () {
      * function createShape() {
      *   cone();
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * // Click and drag the mouse to view the scene from different angles.
      *
      * let shape;
@@ -110799,8 +114008,9 @@ var p5 = (function () {
      *   cylinder(3, 20);
      *   pop();
      * }
+     * ```
      *
-     * @example
+     * ```js example
      * // Click and drag the mouse to view the scene from different angles.
      *
      * let shape;
@@ -110822,6 +114032,51 @@ var p5 = (function () {
      *   // Draw the shape.
      *   model(shape);
      * }
+     * ```
+     *
+     * Multiple instances can be drawn at once with `model(geometry, count)`. On its own,
+     * all the instances get drawn to the same spot, but you can use
+     * <a href="#/p5/instanceID">`instanceID()`</a> inside of a shader to handle each instance.
+     * At large counts, this often runs faster than using a `for` loop.
+     *
+     * ```js example
+     * let instancesShader;
+     * let instance;
+     * let count = 5;
+     *
+     * function drawInstance() {
+     *   sphere(15);
+     * }
+     *
+     * function setup() {
+     *   createCanvas(200, 200, WEBGL);
+     *   instance = buildGeometry(drawInstance);
+     *   instancesShader = buildMaterialShader(drawSpaced);
+     * }
+     *
+     * function drawSpaced() {
+     *   worldInputs.begin();
+     *   // Spread spheres evenly across the canvas based on their index
+     *   let spacing = width / count;
+     *   worldInputs.position.x +=
+     *     (instanceID() - (count - 1) / 2) * spacing;
+     *   worldInputs.end();
+     * }
+     *
+     * function draw() {
+     *   background(220);
+     *   lights();
+     *   noStroke();
+     *   fill('red');
+     *   shader(instancesShader);
+     *   model(instance, count);
+     * }
+     * ```
+     *
+     * @method model
+     * @param  {p5.Geometry} model 3D shape to be drawn.
+     *
+     * @param {Number} [count=1] number of instances to draw.
      */
     fn.model = function (model, count = 1) {
       this._assert3d('model');
@@ -115963,7 +119218,7 @@ var p5 = (function () {
       }
       return s;
     },
-    _tdec: window["TextDecoder"] ? new window["TextDecoder"]() : null,
+    _tdec: globalThis["TextDecoder"] ? new globalThis["TextDecoder"]() : null,
     readUTF8: function (buff, p, l) {
       var tdec = Typr["B"]._tdec;
       if (tdec && p == 0 && l == buff.length) return tdec["decode"](buff);
@@ -119238,7 +122493,7 @@ var p5 = (function () {
      * coordinates of the bounding box's bottom-left corner. See
      * <a href="#/p5/textAlign">textAlign()</a> for more ways to align text.
      *
-     * The fourth parameter, `options`, is also optional. `font.textToPoints()`
+     * The fourth parameter, `options`, is also optional. `font.textToContours()`
      * expects an object with the following properties:
      *
      * `sampleFactor` is the ratio of the text's path length to the number of
@@ -119321,6 +122576,15 @@ var p5 = (function () {
      *
      * The generated model (a Geometry object) can be manipulated further—rotated, scaled,
      * or styled with shaders—to create engaging, interactive visual art.
+     * 
+     * The `options` parameter is also optional. `font.textToModel()` expects an object 
+     * with the following properties:
+     * 
+     * `extrude` is the depth to extrude the text. It defaults to 0. A value of 0 produces
+     * flat text; higher values create thicker, 3D models.
+     * 
+     * `sampleFactor` is a factor controlling the level of detail for the text contours.
+     * It defaults to 1. Higher values result in smoother curves.
      *
      * @param {String} str The text string to convert into a 3D model.
      * @param {Number} x The x-coordinate for the starting position of the text.
@@ -121396,9 +124660,9 @@ var p5 = (function () {
 
   var normalVert = "IN vec3 aPosition;\nIN vec3 aNormal;\nIN vec2 aTexCoord;\nIN vec4 aVertexColor;\n\n#define HOOK_DEFINES\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\nuniform mat4 uModelMatrix;\nuniform mat4 uViewMatrix;\nuniform mat3 uModelNormalMatrix;\nuniform mat3 uCameraNormalMatrix;\n#else\nuniform mat4 uModelViewMatrix;\nuniform mat3 uNormalMatrix;\n#endif\nuniform mat4 uProjectionMatrix;\n\nuniform vec4 uMaterialColor;\nuniform bool uUseVertexColor;\n\nOUT vec3 vVertexNormal;\nOUT highp vec2 vVertTexCoord;\nOUT vec4 vColor;\n\nstruct Vertex {\n  vec3 position;\n  vec3 normal;\n  vec2 texCoord;\n  vec4 color;\n};\n\nvoid main(void) {\n  HOOK_beforeVertex();\n\n  Vertex inputs;\n  inputs.position = aPosition;\n  inputs.normal = aNormal;\n  inputs.texCoord = aTexCoord;\n  inputs.color = (uUseVertexColor && aVertexColor.x >= 0.0) ? aVertexColor : uMaterialColor;\n#ifdef AUGMENTED_HOOK_getObjectInputs\n  inputs = HOOK_getObjectInputs(inputs);\n#endif\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\n  inputs.position = (uModelMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.normal = uModelNormalMatrix * inputs.normal;\n  inputs = HOOK_getWorldInputs(inputs);\n#endif\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\n  // Already multiplied by the model matrix, just apply view\n  inputs.position = (uViewMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.normal = uCameraNormalMatrix * inputs.normal;\n#else\n  // Apply both at once\n  inputs.position = (uModelViewMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.normal = uNormalMatrix * inputs.normal;\n#endif\n#ifdef AUGMENTED_HOOK_getCameraInputs\n  inputs = HOOK_getCameraInputs(inputs);\n#endif\n\n  // Pass varyings to fragment shader\n  vVertTexCoord = inputs.texCoord;\n  vVertexNormal = normalize(inputs.normal);\n  vColor = inputs.color;\n\n  gl_Position = uProjectionMatrix * vec4(inputs.position, 1.);\n\n  HOOK_afterVertex();\n}\n";
 
-  var normalFrag = "IN vec3 vVertexNormal;\nvoid main(void) {\n  HOOK_beforeFragment();\n  OUT_COLOR = HOOK_getFinalColor(vec4(vVertexNormal, 1.0));\n  HOOK_afterFragment();\n}\n";
+  var normalFrag = "IN vec3 vVertexNormal;\nIN highp vec2 vVertTexCoord;\nvoid main(void) {\n  HOOK_beforeFragment();\n  OUT_COLOR = HOOK_getFinalColor(vec4(vVertexNormal, 1.0), vVertTexCoord);\n  HOOK_afterFragment();\n}";
 
-  var basicFrag = "IN vec4 vColor;\nvoid main(void) {\n  HOOK_beforeFragment();\n  OUT_COLOR = HOOK_getFinalColor(vColor);\n  OUT_COLOR.rgb *= OUT_COLOR.a; // Premultiply alpha before rendering\n  HOOK_afterFragment();\n}\n";
+  var basicFrag = "IN vec4 vColor;\nIN highp vec2 vVertTexCoord;\nvoid main(void) {\n  HOOK_beforeFragment();\n  OUT_COLOR = HOOK_getFinalColor(vColor, vVertTexCoord);\n  OUT_COLOR.rgb *= OUT_COLOR.a; // Premultiply alpha before rendering\n  HOOK_afterFragment();\n}";
 
   var lightVert = "// include lighting.glgl\n\nIN vec3 aPosition;\nIN vec3 aNormal;\nIN vec2 aTexCoord;\nIN vec4 aVertexColor;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform mat3 uNormalMatrix;\n\nuniform bool uUseVertexColor;\nuniform vec4 uMaterialColor;\n\nOUT highp vec2 vVertTexCoord;\nOUT vec3 vDiffuseColor;\nOUT vec3 vSpecularColor;\nOUT vec4 vColor;\n\nvoid main(void) {\n\n  vec4 viewModelPosition = uModelViewMatrix * vec4(aPosition, 1.0);\n  gl_Position = uProjectionMatrix * viewModelPosition;\n\n  vec3 vertexNormal = normalize(uNormalMatrix * aNormal);\n  vVertTexCoord = aTexCoord;\n\n  totalLight(viewModelPosition.xyz, vertexNormal, vDiffuseColor, vSpecularColor);\n\n  for (int i = 0; i < 8; i++) {\n    if (i < uAmbientLightCount) {\n      vDiffuseColor += uAmbientColor[i];\n    }\n  }\n  \n  vColor = ((uUseVertexColor && aVertexColor.x >= 0.0) ? aVertexColor : uMaterialColor);\n}\n";
 
@@ -121406,7 +124670,7 @@ var p5 = (function () {
 
   var phongVert = "precision highp int;\n\n#define HOOK_DEFINES\n\nIN vec3 aPosition;\nIN vec3 aNormal;\nIN vec2 aTexCoord;\nIN vec4 aVertexColor;\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\nuniform mat4 uModelMatrix;\nuniform mat4 uViewMatrix;\nuniform mat3 uModelNormalMatrix;\nuniform mat3 uCameraNormalMatrix;\n#else\nuniform mat4 uModelViewMatrix;\nuniform mat3 uNormalMatrix;\n#endif\nuniform mat4 uProjectionMatrix;\n\nuniform bool uUseVertexColor;\nuniform vec4 uMaterialColor;\n\nOUT vec3 vNormal;\nOUT vec2 vTexCoord;\nOUT vec3 vViewPosition;\nOUT vec3 vAmbientColor;\nOUT vec4 vColor;\n\nstruct Vertex {\n  vec3 position;\n  vec3 normal;\n  vec2 texCoord;\n  vec4 color;\n};\n\nvoid main(void) {\n  HOOK_beforeVertex();\n\n  Vertex inputs;\n  inputs.position = aPosition;\n  inputs.normal = aNormal;\n  inputs.texCoord = aTexCoord;\n  inputs.color = (uUseVertexColor && aVertexColor.x >= 0.0) ? aVertexColor : uMaterialColor;\n#ifdef AUGMENTED_HOOK_getObjectInputs\n  inputs = HOOK_getObjectInputs(inputs);\n#endif\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\n  inputs.position = (uModelMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.normal = uModelNormalMatrix * inputs.normal;\n  inputs = HOOK_getWorldInputs(inputs);\n#endif\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\n  // Already multiplied by the model matrix, just apply view\n  inputs.position = (uViewMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.normal = uCameraNormalMatrix * inputs.normal;\n#else\n  // Apply both at once\n  inputs.position = (uModelViewMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.normal = uNormalMatrix * inputs.normal;\n#endif\n#ifdef AUGMENTED_HOOK_getCameraInputs\n  inputs = HOOK_getCameraInputs(inputs);\n#endif\n\n  // Pass varyings to fragment shader\n  vViewPosition = inputs.position;\n  vTexCoord = inputs.texCoord;\n  vNormal = inputs.normal;\n  vColor = inputs.color;\n\n  gl_Position = uProjectionMatrix * vec4(inputs.position, 1.);\n  HOOK_afterVertex();\n}\n";
 
-  var phongFrag = "// include lighting.glsl\nprecision highp int;\n\nuniform bool uHasSetAmbient;\nuniform vec3 uAmbientColor;\nuniform vec4 uSpecularMatColor;\nuniform vec4 uAmbientMatColor;\nuniform vec4 uEmissiveMatColor;\n\nuniform vec4 uTint;\nuniform sampler2D uSampler;\nuniform bool isTexture;\n\nIN vec3 vNormal;\nIN vec2 vTexCoord;\nIN vec3 vViewPosition;\nIN vec4 vColor;\n\nstruct ColorComponents {\n  vec3 baseColor;\n  float opacity;\n  vec3 ambientColor;\n  vec3 specularColor;\n  vec3 diffuse;\n  vec3 ambient;\n  vec3 specular;\n  vec3 emissive;\n};\n\nstruct Inputs {\n  vec3 normal;\n  vec2 texCoord;\n  vec3 ambientLight;\n  vec3 ambientMaterial;\n  vec3 specularMaterial;\n  vec3 emissiveMaterial;\n  vec4 color;\n  float shininess;\n  float metalness;\n};\n\nvoid main(void) {\n  HOOK_beforeFragment();\n\n  Inputs inputs;\n  inputs.normal = normalize(vNormal);\n  inputs.texCoord = vTexCoord;\n  inputs.ambientLight = uAmbientColor;\n  inputs.color = isTexture\n      ? TEXTURE(uSampler, vTexCoord) * (vec4(uTint.rgb/255., 1.) * uTint.a/255.)\n      : vColor;\n  if (isTexture && inputs.color.a > 0.0) {\n    // Textures come in with premultiplied alpha. Temporarily unpremultiply it\n    // so hooks users don't have to think about premultiplied alpha.\n    inputs.color.rgb /= inputs.color.a;\n  }\n  inputs.shininess = uShininess;\n  inputs.metalness = uMetallic;\n  inputs.ambientMaterial = uHasSetAmbient ? uAmbientMatColor.rgb : inputs.color.rgb;\n  inputs.specularMaterial = uSpecularMatColor.rgb;\n  inputs.emissiveMaterial = uEmissiveMatColor.rgb;\n  inputs = HOOK_getPixelInputs(inputs);\n\n  vec3 diffuse;\n  vec3 specular;\n  totalLight(vViewPosition, inputs.normal, inputs.shininess, inputs.metalness, diffuse, specular);\n\n  // Calculating final color as result of all lights (plus emissive term).\n\n  vec4 baseColor = inputs.color;\n  ColorComponents c;\n  c.opacity = baseColor.a;\n  c.baseColor = baseColor.rgb;\n  c.ambientColor = inputs.ambientMaterial;\n  c.specularColor = inputs.specularMaterial;\n  c.diffuse = diffuse;\n  c.ambient = inputs.ambientLight;\n  c.specular = specular;\n  c.emissive = inputs.emissiveMaterial;\n  OUT_COLOR = HOOK_getFinalColor(HOOK_combineColors(c));\n  OUT_COLOR.rgb *= OUT_COLOR.a; // Premultiply alpha before rendering\n  HOOK_afterFragment();\n}\n";
+  var phongFrag = "// include lighting.glsl\nprecision highp int;\n\nuniform bool uHasSetAmbient;\nuniform vec3 uAmbientColor;\nuniform vec4 uSpecularMatColor;\nuniform vec4 uAmbientMatColor;\nuniform vec4 uEmissiveMatColor;\n\nuniform vec4 uTint;\nuniform sampler2D uSampler;\nuniform bool isTexture;\n\nIN vec3 vNormal;\nIN vec2 vTexCoord;\nIN vec3 vViewPosition;\nIN vec4 vColor;\n\nstruct ColorComponents {\n  vec3 baseColor;\n  float opacity;\n  vec3 ambientColor;\n  vec3 specularColor;\n  vec3 diffuse;\n  vec3 ambient;\n  vec3 specular;\n  vec3 emissive;\n};\n\nstruct Inputs {\n  vec3 normal;\n  vec2 texCoord;\n  vec3 ambientLight;\n  vec3 ambientMaterial;\n  vec3 specularMaterial;\n  vec3 emissiveMaterial;\n  vec4 color;\n  float shininess;\n  float metalness;\n};\n\nvoid main(void) {\n  HOOK_beforeFragment();\n\n  Inputs inputs;\n  inputs.normal = normalize(vNormal);\n  inputs.texCoord = vTexCoord;\n  inputs.ambientLight = uAmbientColor;\n  inputs.color = isTexture\n      ? TEXTURE(uSampler, vTexCoord) * (vec4(uTint.rgb/255., 1.) * uTint.a/255.)\n      : vColor;\n  if (isTexture && inputs.color.a > 0.0) {\n    // Textures come in with premultiplied alpha. Temporarily unpremultiply it\n    // so hooks users don't have to think about premultiplied alpha.\n    inputs.color.rgb /= inputs.color.a;\n  }\n  inputs.shininess = uShininess;\n  inputs.metalness = uMetallic;\n  inputs.ambientMaterial = uHasSetAmbient ? uAmbientMatColor.rgb : inputs.color.rgb;\n  inputs.specularMaterial = uSpecularMatColor.rgb;\n  inputs.emissiveMaterial = uEmissiveMatColor.rgb;\n  inputs = HOOK_getPixelInputs(inputs);\n\n  vec3 diffuse;\n  vec3 specular;\n  totalLight(vViewPosition, inputs.normal, inputs.shininess, inputs.metalness, diffuse, specular);\n\n  // Calculating final color as result of all lights (plus emissive term).\n\n  vec4 baseColor = inputs.color;\n  ColorComponents c;\n  c.opacity = baseColor.a;\n  c.baseColor = baseColor.rgb;\n  c.ambientColor = inputs.ambientMaterial;\n  c.specularColor = inputs.specularMaterial;\n  c.diffuse = diffuse;\n  c.ambient = inputs.ambientLight;\n  c.specular = specular;\n  c.emissive = inputs.emissiveMaterial;\n  OUT_COLOR = HOOK_getFinalColor(HOOK_combineColors(c), vTexCoord);\n  OUT_COLOR.rgb *= OUT_COLOR.a; // Premultiply alpha before rendering\n  HOOK_afterFragment();\n}\n";
 
   var fontVert = "IN vec3 aPosition;\nIN vec2 aTexCoord;\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\n\nuniform vec4 uGlyphRect;\nuniform float uGlyphOffset;\n\nOUT vec2 vTexCoord;\n\nvoid main() {\n  vec4 positionVec4 = vec4(aPosition, 1.0);\n\n  // scale by the size of the glyph's rectangle\n  positionVec4.xy *= uGlyphRect.zw - uGlyphRect.xy;\n\n  // Expand glyph bounding boxes by 1px on each side to give a bit of room\n  // for antialiasing\n  vec3 newOrigin = (uModelViewMatrix * vec4(0., 0., 0., 1.)).xyz;\n  vec3 newDX = (uModelViewMatrix * vec4(1., 0., 0., 1.)).xyz;\n  vec3 newDY = (uModelViewMatrix * vec4(0., 1., 0., 1.)).xyz;\n  vec2 pixelScale = vec2(\n    1. / length(newOrigin - newDX),\n    1. / length(newOrigin - newDY)\n  );\n  vec2 offset = pixelScale * normalize(aTexCoord - vec2(0.5, 0.5));\n  vec2 textureOffset = offset * (1. / vec2(\n    uGlyphRect.z - uGlyphRect.x,\n    uGlyphRect.w - uGlyphRect.y\n  ));\n\n  // move to the corner of the glyph\n  positionVec4.xy += uGlyphRect.xy;\n\n  // move to the letter's line offset\n  positionVec4.x += uGlyphOffset;\n\n  positionVec4.xy += offset;\n  \n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n  vTexCoord = aTexCoord + textureOffset;\n}\n";
 
@@ -121414,7 +124678,7 @@ var p5 = (function () {
 
   var lineVert = "/*\n  Part of the Processing project - http://processing.org\n  Copyright (c) 2012-15 The Processing Foundation\n  Copyright (c) 2004-12 Ben Fry and Casey Reas\n  Copyright (c) 2001-04 Massachusetts Institute of Technology\n  This library is free software; you can redistribute it and/or\n  modify it under the terms of the GNU Lesser General Public\n  License as published by the Free Software Foundation, version 2.1.\n  This library is distributed in the hope that it will be useful,\n  but WITHOUT ANY WARRANTY; without even the implied warranty of\n  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU\n  Lesser General Public License for more details.\n  You should have received a copy of the GNU Lesser General\n  Public License along with this library; if not, write to the\n  Free Software Foundation, Inc., 59 Temple Place, Suite 330,\n  Boston, MA  02111-1307  USA\n*/\n\n#define PROCESSING_LINE_SHADER\n\n#define HOOK_DEFINES\n\nprecision highp int;\nprecision highp float;\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\nuniform mat4 uModelMatrix;\nuniform mat4 uViewMatrix;\n#else\nuniform mat4 uModelViewMatrix;\n#endif\n\nuniform mat4 uProjectionMatrix;\nuniform float uStrokeWeight;\n\nuniform bool uUseLineColor;\nuniform bool uSimpleLines;\nuniform vec4 uMaterialColor;\n\nuniform vec4 uViewport;\nuniform int uPerspective;\nuniform int uStrokeJoin;\n\nIN vec3 aPosition;\nIN vec3 aTangentIn;\nIN vec3 aTangentOut;\nIN float aSide;\nIN vec4 aVertexColor;\n\nOUT vec4 vColor;\nOUT vec2 vTangent;\nOUT vec2 vCenter;\nOUT vec2 vPosition;\nOUT float vMaxDist;\nOUT float vCap;\nOUT float vJoin;\nOUT float vStrokeWeight;\n\nvec2 lineIntersection(vec2 aPoint, vec2 aDir, vec2 bPoint, vec2 bDir) {\n  // Rotate and translate so a starts at the origin and goes out to the right\n  bPoint -= aPoint;\n  vec2 rotatedBFrom = vec2(\n    bPoint.x*aDir.x + bPoint.y*aDir.y,\n    bPoint.y*aDir.x - bPoint.x*aDir.y\n  );\n  vec2 bTo = bPoint + bDir;\n  vec2 rotatedBTo = vec2(\n    bTo.x*aDir.x + bTo.y*aDir.y,\n    bTo.y*aDir.x - bTo.x*aDir.y\n  );\n  float intersectionDistance =\n    rotatedBTo.x + (rotatedBFrom.x - rotatedBTo.x) * rotatedBTo.y /\n    (rotatedBTo.y - rotatedBFrom.y);\n  return aPoint + aDir * intersectionDistance;\n}\n\nstruct StrokeVertex {\n  vec3 position;\n  vec3 tangentIn;\n  vec3 tangentOut;\n  vec4 color;\n  float weight;\n};\n\nvoid main() {\n  HOOK_beforeVertex();\n\n  if (!uSimpleLines) {\n      // Caps have one of either the in or out tangent set to 0\n      vCap = (aTangentIn == vec3(0.)) != (aTangentOut == vec3(0.)) ? 1. : 0.;\n\n      // Joins have two unique, defined tangents\n      vJoin = (\n          aTangentIn != vec3(0.) &&\n          aTangentOut != vec3(0.) &&\n          aTangentIn != aTangentOut\n      ) ? 1. : 0.;\n  }\n\n  StrokeVertex inputs;\n  inputs.position = aPosition.xyz;\n  inputs.color = uUseLineColor ? aVertexColor : uMaterialColor;\n  inputs.weight = uStrokeWeight;\n  inputs.tangentIn = aTangentIn;\n  inputs.tangentOut = aTangentOut;\n\n#ifdef AUGMENTED_HOOK_getObjectInputs\n  inputs = HOOK_getObjectInputs(inputs);\n#endif\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\n  inputs.position = (uModelMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.tangentIn = (uModelMatrix * vec4(aTangentIn, 0.)).xyz;\n  inputs.tangentOut = (uModelMatrix * vec4(aTangentOut, 0.)).xyz;\n  inputs = HOOK_getWorldInputs(inputs);\n#endif\n\n#ifdef AUGMENTED_HOOK_getWorldInputs\n  // Already multiplied by the model matrix, just apply view\n  inputs.position = (uViewMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.tangentIn = (uViewMatrix * vec4(aTangentIn, 0.)).xyz;\n  inputs.tangentOut = (uViewMatrix * vec4(aTangentOut, 0.)).xyz;\n#else\n  // Apply both at once\n  inputs.position = (uModelViewMatrix * vec4(inputs.position, 1.)).xyz;\n  inputs.tangentIn = (uModelViewMatrix * vec4(aTangentIn, 0.)).xyz;\n  inputs.tangentOut = (uModelViewMatrix * vec4(aTangentOut, 0.)).xyz;\n#endif\n#ifdef AUGMENTED_HOOK_getCameraInputs\n  inputs = HOOK_getCameraInputs(inputs);\n#endif\n\n  vec4 posp = vec4(inputs.position, 1.);\n  vec4 posqIn = vec4(inputs.position + inputs.tangentIn, 1.);\n  vec4 posqOut = vec4(inputs.position + inputs.tangentOut, 1.);\n  vStrokeWeight = inputs.weight;\n\n  float facingCamera = pow(\n    // The word space tangent's z value is 0 if it's facing the camera\n    abs(normalize(posqIn-posp).z),\n\n    // Using pow() here to ramp `facingCamera` up from 0 to 1 really quickly\n    // so most lines get scaled and don't get clipped\n    0.25\n  );\n\n  // Moving vertices slightly toward the camera\n  // to avoid depth-fighting with the fill triangles.\n  // A mix of scaling and offsetting is used based on distance\n  // Discussion here:\n  // https://github.com/processing/p5.js/issues/7200 \n\n  // using a scale <1 moves the lines towards nearby camera\n  // in order to prevent popping effects due to half of\n  // the line disappearing behind the geometry faces.\n  float zDistance = -posp.z; \n  float distanceFactor = smoothstep(0.0, 800.0, zDistance); \n  \n  // Discussed here:\n  // http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=252848  \n  float scale = mix(1., 0.995, facingCamera);\n  float dynamicScale = mix(scale, 1.0, distanceFactor); // Closer = more scale, farther = less\n\n  posp.xyz = posp.xyz * dynamicScale;\n  posqIn.xyz = posqIn.xyz * dynamicScale;\n  posqOut.xyz = posqOut.xyz * dynamicScale;\n\n  // Moving vertices slightly toward camera when far away \n  // https://github.com/processing/p5.js/issues/6956 \n  float zOffset = mix(0., -1., facingCamera);\n  float dynamicZAdjustment = mix(0.0, zOffset, distanceFactor); // Closer = less zAdjustment, farther = more\n\n  posp.z -= dynamicZAdjustment;\n  posqIn.z -= dynamicZAdjustment;\n  posqOut.z -= dynamicZAdjustment;\n  \n  vec4 p = uProjectionMatrix * posp;\n  vec4 qIn = uProjectionMatrix * posqIn;\n  vec4 qOut = uProjectionMatrix * posqOut;\n\n  // formula to convert from clip space (range -1..1) to screen space (range 0..[width or height])\n  // screen_p = (p.xy/p.w + <1,1>) * 0.5 * uViewport.zw\n\n  // prevent division by W by transforming the tangent formula (div by 0 causes\n  // the line to disappear, see https://github.com/processing/processing/issues/5183)\n  // t = screen_q - screen_p\n  //\n  // tangent is normalized and we don't care which aDirection it points to (+-)\n  // t = +- normalize( screen_q - screen_p )\n  // t = +- normalize( (q.xy/q.w+<1,1>)*0.5*uViewport.zw - (p.xy/p.w+<1,1>)*0.5*uViewport.zw )\n  //\n  // extract common factor, <1,1> - <1,1> cancels out\n  // t = +- normalize( (q.xy/q.w - p.xy/p.w) * 0.5 * uViewport.zw )\n  //\n  // convert to common divisor\n  // t = +- normalize( ((q.xy*p.w - p.xy*q.w) / (p.w*q.w)) * 0.5 * uViewport.zw )\n  //\n  // remove the common scalar divisor/factor, not needed due to normalize and +-\n  // (keep uViewport - can't remove because it has different components for x and y\n  //  and corrects for aspect ratio, see https://github.com/processing/processing/issues/5181)\n  // t = +- normalize( (q.xy*p.w - p.xy*q.w) * uViewport.zw )\n\n  vec2 tangentIn = normalize((qIn.xy*p.w - p.xy*qIn.w) * uViewport.zw);\n  vec2 tangentOut = normalize((qOut.xy*p.w - p.xy*qOut.w) * uViewport.zw);\n\n  vec2 curPerspScale;\n  if(uPerspective == 1) {\n    // Perspective ---\n    // convert from world to clip by multiplying with projection scaling factor\n    // to get the right thickness (see https://github.com/processing/processing/issues/5182)\n\n    // The y value of the projection matrix may be flipped if rendering to a Framebuffer.\n    // Multiplying again by its sign here negates the flip to get just the scale.\n    curPerspScale = (uProjectionMatrix * vec4(1, sign(uProjectionMatrix[1][1]), 0, 0)).xy;\n  } else {\n    // No Perspective ---\n    // multiply by W (to cancel out division by W later in the pipeline) and\n    // convert from screen to clip (derived from clip to screen above)\n    curPerspScale = p.w / (0.5 * uViewport.zw);\n  }\n\n  vec2 offset;\n  if (vJoin == 1. && !uSimpleLines) {\n    vTangent = normalize(tangentIn + tangentOut);\n    vec2 normalIn = vec2(-tangentIn.y, tangentIn.x);\n    vec2 normalOut = vec2(-tangentOut.y, tangentOut.x);\n    float side = sign(aSide);\n    float sideEnum = abs(aSide);\n\n    // We generate vertices for joins on either side of the centerline, but\n    // the \"elbow\" side is the only one needing a join. By not setting the\n    // offset for the other side, all its vertices will end up in the same\n    // spot and not render, effectively discarding it.\n    if (sign(dot(tangentOut, vec2(-tangentIn.y, tangentIn.x))) != side) {\n      // Side enums:\n      //   1: the side going into the join\n      //   2: the middle of the join\n      //   3: the side going out of the join\n      if (sideEnum == 2.) {\n        // Calculate the position + tangent on either side of the join, and\n        // find where the lines intersect to find the elbow of the join\n        vec2 c = (posp.xy/posp.w + vec2(1.,1.)) * 0.5 * uViewport.zw;\n        vec2 intersection = lineIntersection(\n          c + (side * normalIn * inputs.weight / 2.),\n          tangentIn,\n          c + (side * normalOut * inputs.weight / 2.),\n          tangentOut\n        );\n        offset = (intersection - c);\n\n        // When lines are thick and the angle of the join approaches 180, the\n        // elbow might be really far from the center. We'll apply a limit to\n        // the magnitude to avoid lines going across the whole screen when this\n        // happens.\n        float mag = length(offset);\n        float maxMag = 3. * inputs.weight;\n        if (mag > maxMag) {\n          offset *= maxMag / mag;\n        }\n      } else if (sideEnum == 1.) {\n        offset = side * normalIn * inputs.weight / 2.;\n      } else if (sideEnum == 3.) {\n        offset = side * normalOut * inputs.weight / 2.;\n      }\n    }\n    if (uStrokeJoin == STROKE_JOIN_BEVEL) {\n      vec2 avgNormal = vec2(-vTangent.y, vTangent.x);\n      vMaxDist = abs(dot(avgNormal, normalIn * inputs.weight / 2.));\n    } else {\n      vMaxDist = inputs.weight / 2.;\n    }\n  } else {\n    vec2 tangent = aTangentIn == vec3(0.) ? tangentOut : tangentIn;\n\n    vTangent = tangent;\n    vec2 normal = vec2(-tangent.y, tangent.x);\n\n    float normalOffset = sign(aSide);\n    // Caps will have side values of -2 or 2 on the edge of the cap that\n    // extends out from the line\n    float tangentOffset = abs(aSide) - 1.;\n    offset = (normal * normalOffset + tangent * tangentOffset) *\n      inputs.weight * 0.5;\n    vMaxDist = inputs.weight / 2.;\n  }\n\n  vCenter = p.xy;\n  vPosition = vCenter + offset;\n  vColor = inputs.color;\n\n  gl_Position.xy = p.xy + offset.xy * curPerspScale;\n  gl_Position.zw = p.zw;\n  \n  HOOK_afterVertex();\n}\n";
 
-  var lineFrag = "precision highp int;\nprecision highp float;\n\nuniform vec4 uMaterialColor;\nuniform int uStrokeCap;\nuniform int uStrokeJoin;\n\nIN vec4 vColor;\nIN vec2 vTangent;\nIN vec2 vCenter;\nIN vec2 vPosition;\nIN float vStrokeWeight;\nIN float vMaxDist;\nIN float vCap;\nIN float vJoin;\n\nfloat distSquared(vec2 a, vec2 b) {\n  vec2 aToB = b - a;\n  return dot(aToB, aToB);\n}\n\nstruct Inputs {\n  vec4 color;\n  vec2 tangent;\n  vec2 center;\n  vec2 position;\n  float strokeWeight;\n};\n\nvoid main() {\n  HOOK_beforeFragment();\n\n  Inputs inputs;\n  inputs.color = vColor;\n  inputs.tangent = vTangent;\n  inputs.center = vCenter;\n  inputs.position = vPosition;\n  inputs.strokeWeight = vStrokeWeight;\n  inputs = HOOK_getPixelInputs(inputs);\n\n  if (vCap > 0.) {\n    if (\n      uStrokeCap == STROKE_CAP_ROUND &&\n      HOOK_shouldDiscard(distSquared(inputs.position, inputs.center) > inputs.strokeWeight * inputs.strokeWeight * 0.25)\n    ) {\n      discard;\n    } else if (\n      uStrokeCap == STROKE_CAP_SQUARE &&\n      HOOK_shouldDiscard(dot(inputs.position - inputs.center, inputs.tangent) > 0.)\n    ) {\n      discard;\n    // Use full area for PROJECT\n    } else if (HOOK_shouldDiscard(false)) {\n      discard;\n    }\n  } else if (vJoin > 0.) {\n    if (\n      uStrokeJoin == STROKE_JOIN_ROUND &&\n      HOOK_shouldDiscard(distSquared(inputs.position, inputs.center) > inputs.strokeWeight * inputs.strokeWeight * 0.25)\n    ) {\n      discard;\n    } else if (uStrokeJoin == STROKE_JOIN_BEVEL) {\n      vec2 normal = vec2(-inputs.tangent.y, inputs.tangent.x);\n      if (HOOK_shouldDiscard(abs(dot(inputs.position - inputs.center, normal)) > vMaxDist)) {\n        discard;\n      }\n    // Use full area for MITER\n    } else if (HOOK_shouldDiscard(false)) {\n      discard;\n    }\n  }\n  OUT_COLOR = HOOK_getFinalColor(vec4(inputs.color.rgb, 1.) * inputs.color.a);\n  HOOK_afterFragment();\n}\n";
+  var lineFrag = "precision highp int;\nprecision highp float;\n\nuniform vec4 uMaterialColor;\nuniform int uStrokeCap;\nuniform int uStrokeJoin;\n\nIN vec4 vColor;\nIN vec2 vTangent;\nIN vec2 vCenter;\nIN vec2 vPosition;\nIN float vStrokeWeight;\nIN float vMaxDist;\nIN float vCap;\nIN float vJoin;\n\nfloat distSquared(vec2 a, vec2 b) {\n  vec2 aToB = b - a;\n  return dot(aToB, aToB);\n}\n\nstruct Inputs {\n  vec4 color;\n  vec2 tangent;\n  vec2 center;\n  vec2 position;\n  float strokeWeight;\n};\n\nvoid main() {\n  HOOK_beforeFragment();\n\n  Inputs inputs;\n  inputs.color = vColor;\n  inputs.tangent = vTangent;\n  inputs.center = vCenter;\n  inputs.position = vPosition;\n  inputs.strokeWeight = vStrokeWeight;\n  inputs = HOOK_getPixelInputs(inputs);\n\n  if (vCap > 0.) {\n    if (\n      uStrokeCap == STROKE_CAP_ROUND &&\n      HOOK_shouldDiscard(distSquared(inputs.position, inputs.center) > inputs.strokeWeight * inputs.strokeWeight * 0.25)\n    ) {\n      discard;\n    } else if (\n      uStrokeCap == STROKE_CAP_SQUARE &&\n      HOOK_shouldDiscard(dot(inputs.position - inputs.center, inputs.tangent) > 0.)\n    ) {\n      discard;\n    // Use full area for PROJECT\n    } else if (HOOK_shouldDiscard(false)) {\n      discard;\n    }\n  } else if (vJoin > 0.) {\n    if (\n      uStrokeJoin == STROKE_JOIN_ROUND &&\n      HOOK_shouldDiscard(distSquared(inputs.position, inputs.center) > inputs.strokeWeight * inputs.strokeWeight * 0.25)\n    ) {\n      discard;\n    } else if (uStrokeJoin == STROKE_JOIN_BEVEL) {\n      vec2 normal = vec2(-inputs.tangent.y, inputs.tangent.x);\n      if (HOOK_shouldDiscard(abs(dot(inputs.position - inputs.center, normal)) > vMaxDist)) {\n        discard;\n      }\n    // Use full area for MITER\n    } else if (HOOK_shouldDiscard(false)) {\n      discard;\n    }\n  }\n  OUT_COLOR = HOOK_getFinalColor(inputs.color, vec2(0.0, 0.0));\n  OUT_COLOR.rgb *= OUT_COLOR.a;\n  HOOK_afterFragment();\n}\n";
 
   var imageLightVert = "precision highp float;\nIN vec3 aPosition;\nIN vec3 aNormal;\nIN vec2 aTexCoord;\n\nOUT vec3 localPos;\nOUT vec3 vWorldNormal;\nOUT vec3 vWorldPosition;\nOUT vec2 vTexCoord;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform mat3 uNormalMatrix;\n\nvoid main() {\n  // Multiply the position by the matrix.\n  vec4 viewModelPosition = uModelViewMatrix * vec4(aPosition, 1.0);\n  gl_Position = uProjectionMatrix * viewModelPosition;  \n  \n  // orient the normals and pass to the fragment shader\n  vWorldNormal = uNormalMatrix * aNormal;\n  \n  // send the view position to the fragment shader\n  vWorldPosition = (uModelViewMatrix * vec4(aPosition, 1.0)).xyz;\n  \n  localPos = vWorldPosition;\n  vTexCoord = aTexCoord;\n}\n\n\n/*\nin the vertex shader we'll compute the world position and world oriented normal of the vertices and pass those to the fragment shader as varyings.\n*/\n";
 
@@ -121680,7 +124944,14 @@ var p5 = (function () {
           }
         }
       } else {
-        const glMode = mode === TRIANGLES ? gl.TRIANGLES : gl.TRIANGLE_STRIP;
+        let glMode;
+        if (mode === TRIANGLES) {
+          glMode = gl.TRIANGLES;
+        } else if (mode === TRIANGLE_FAN) {
+          glMode = gl.TRIANGLE_FAN;
+        } else {
+          glMode = gl.TRIANGLE_STRIP;
+        }
         if (count === 1) {
           gl.drawArrays(glMode, 0, geometry.vertices.length);
         } else {
@@ -121824,14 +125095,14 @@ var p5 = (function () {
       return gl.getParameter(gl.MAX_TEXTURE_SIZE);
     }
 
-    _adjustDimensions(width, height) {
+    _adjustDimensions(width, height, density = this._pixelDensity) {
       if (!this._maxTextureSize) {
         this._maxTextureSize = this._getMaxTextureSize();
       }
       let maxTextureSize = this._maxTextureSize;
 
       let maxAllowedPixelDimensions = Math.floor(
-        maxTextureSize / this._pixelDensity
+        maxTextureSize / density
       );
       let adjustedWidth = Math.min(width, maxAllowedPixelDimensions);
       let adjustedHeight = Math.min(height, maxAllowedPixelDimensions);
@@ -121912,7 +125183,7 @@ var p5 = (function () {
 
     /**
      * Loads the pixels data for this canvas into the pixels[] attribute.
-     * Note that updatePixels() and set() do not work.
+     * Note that set() does not work.
      * Any pixel manipulation must be done directly to the pixels[] array.
      *
      * @private
@@ -121976,6 +125247,10 @@ var p5 = (function () {
     }
     defaultFarScale() {
       return 10;
+    }
+
+    supportsTriangleFan() {
+      return true;
     }
 
     viewport(w, h) {
@@ -122105,7 +125380,7 @@ var p5 = (function () {
                 color.a = components.opacity;
                 return color;
               }`,
-                "vec4 getFinalColor": "(vec4 color) { return color; }",
+                "vec4 getFinalColor": "(vec4 color, vec2 texCoord) { return color; }",
                 "void afterFragment": "() {}",
               },
             }
@@ -122142,7 +125417,7 @@ var p5 = (function () {
             },
             fragment: {
               "void beforeFragment": "() {}",
-              "vec4 getFinalColor": "(vec4 color) { return color; }",
+              "vec4 getFinalColor": "(vec4 color, vec2 texCoord) { return color; }",
               "void afterFragment": "() {}",
             },
           }
@@ -122170,7 +125445,7 @@ var p5 = (function () {
             },
             fragment: {
               "void beforeFragment": "() {}",
-              "vec4 getFinalColor": "(vec4 color) { return color; }",
+              "vec4 getFinalColor": "(vec4 color, vec2 texCoord) { return color; }",
               "void afterFragment": "() {}",
             },
           }
@@ -122202,7 +125477,7 @@ var p5 = (function () {
             fragment: {
               "void beforeFragment": "() {}",
               "Inputs getPixelInputs": "(Inputs inputs) { return inputs; }",
-              "vec4 getFinalColor": "(vec4 color) { return color; }",
+              "vec4 getFinalColor": "(vec4 color, vec2 texCoord) { return color; }",
               "bool shouldDiscard": "(bool outside) { return outside; }",
               "void afterFragment": "() {}",
             },
@@ -122511,6 +125786,7 @@ var p5 = (function () {
         );
       }
 
+      shader._compiled = true;
       shader._glProgram = program;
       shader._vertShader = vertShader;
       shader._fragShader = fragShader;
@@ -123202,7 +126478,7 @@ var p5 = (function () {
       }
 
       // Create image from data
-      const region = new Image(w * framebuffer.density, h * framebuffer.density);
+      const region = new Image$1(w * framebuffer.density, h * framebuffer.density);
       region.imageData = region.canvas.getContext('2d').createImageData(
         region.width,
         region.height
@@ -123284,10 +126560,6 @@ var p5 = (function () {
         }
         this.bindFramebuffer(prevFramebuffer);
       }
-    }
-
-    getNoiseShaderSnippet() {
-      return noiseGLSL;
     }
 
   }
@@ -130733,6 +134005,50 @@ var p5 = (function () {
       );
   }
 
+  function nodeIsUniformCallbackFn(node, names) {
+    if (!names?.size) return false;
+    if (node.type === 'FunctionDeclaration' && names.has(node.id?.name)) return true;
+    if (
+      node.type === 'VariableDeclarator' && names.has(node.id?.name) &&
+      (node.init?.type === 'FunctionExpression' || node.init?.type === 'ArrowFunctionExpression')
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  function collectUniformCallbackNames(ast) {
+    // Sub-pass 1: collect all named function definitions
+    const namedFunctions = new Set();
+    ancestor(ast, {
+      FunctionDeclaration(node) {
+        if (node.id) namedFunctions.add(node.id.name);
+      },
+      VariableDeclarator(node) {
+        if (
+          node.id?.type === 'Identifier' &&
+          (node.init?.type === 'FunctionExpression' || node.init?.type === 'ArrowFunctionExpression')
+        ) {
+          namedFunctions.add(node.id.name);
+        }
+      }
+    });
+    // Sub-pass 2: find which of those names are passed as uniform call arguments
+    const names = new Set();
+    ancestor(ast, {
+      CallExpression(node) {
+        if (nodeIsUniform(node)) {
+          for (const arg of node.arguments) {
+            if (arg.type === 'Identifier' && namedFunctions.has(arg.name)) {
+              names.add(arg.name);
+            }
+          }
+        }
+      }
+    });
+    return names;
+  }
+
   function nodeIsVarying(node) {
     return node && node.type === 'CallExpression'
       && (
@@ -130747,7 +134063,64 @@ var p5 = (function () {
         )
       );
   }
+  // Convert static member expressions into dotted paths such as
+  // `loopProtect.protect` so loop-protection calls can be matched reliably.
+  function getMemberExpressionPath(node) {
+    if (node?.type === 'Identifier') return node.name;
 
+    // Computed properties like `obj[prop]` are not safe to match as fixed paths.
+    if (node?.type !== 'MemberExpression' || node.computed) return null;
+
+    const objectPath = getMemberExpressionPath(node.object);
+    const propertyName = node.property?.name;
+
+    return objectPath && propertyName
+      ? `${objectPath}.${propertyName}`
+      : null;
+  }
+
+  // Detect calls added by loop protection before Strands tries to transpile them.
+  function isLoopProtectionCall(node) {
+    if (node?.type !== 'CallExpression') return false;
+
+    const path = getMemberExpressionPath(node.callee);
+
+    if (!path) return false;
+
+    return (
+      path === 'loopProtect.protect' ||
+      path.endsWith('.loopProtect') ||
+      path.endsWith('.loopProtect.protect')
+    );
+  }
+
+  // Scan AST for loop-protection injection and throw with `// noprotect` hint.
+  function throwIfLoopProtectionInserted(ast) {
+    let found = false;
+
+    ancestor(ast, {
+      CallExpression(node) {
+        if (isLoopProtectionCall(node)) {
+          found = true;
+        }
+      },
+      LogicalExpression(node) {
+        // Loop protection may appear as the right side of a short-circuit check.
+        if (
+          node.right?.type === 'CallExpression' &&
+          isLoopProtectionCall(node.right)
+        ) {
+          found = true;
+        }
+      }
+    });
+
+    if (found) {
+      internalError(
+        'loop protection error Loop protection code detected. Add `// noprotect` at the top of your sketch and run again.'
+      );
+    }
+  }
   // Helper function to check if a statement is a variable declaration with strands control flow init
   function statementContainsStrandsControlFlow(stmt) {
     // Check for variable declarations with strands control flow init
@@ -130884,9 +134257,134 @@ var p5 = (function () {
     internalReplaceReferences(node);
   }
 
+  function replaceIdentifierReferences(node, oldName, newName) {
+    if (!node || typeof node !== 'object') return node;
+
+    const replaceInNode = (n) => {
+      if (!n || typeof n !== 'object') return n;
+      if (n.type === 'Identifier' && n.name === oldName) {
+        return { ...n, name: newName };
+      }
+      const newNode = { ...n };
+      for (const key in n) {
+        if (n.hasOwnProperty(key) && key !== 'parent') {
+          if (Array.isArray(n[key])) {
+            newNode[key] = n[key].map(replaceInNode);
+          } else if (typeof n[key] === 'object') {
+            newNode[key] = replaceInNode(n[key]);
+          }
+        }
+      }
+      return newNode;
+    };
+
+    return replaceInNode(node);
+  }
+
+  // Shared handler for both BinaryExpression and LogicalExpression —
+  // both follow the same operator-to-method-call transformation pattern.
+  function transformBinaryOrLogical(node, state, ancestors) {
+    if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+      return;
+    }
+    node.left = {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: '__p5.strandsNode',
+      },
+      arguments: [node.left]
+    };
+    node.type = 'CallExpression';
+    node.callee = {
+      type: 'MemberExpression',
+      object: node.left,
+      property: {
+        type: 'Identifier',
+        name: replaceBinaryOperator(node.operator),
+      },
+    };
+    node.arguments = [node.right];
+  }
+
+  // Shared helper used by both IfStatement and ForStatement handlers.
+  // Adds temp variable copies, replaces references, and appends a return
+  // statement to a branch/loop function body.
+  // sourcePrefix: the root identifier to read from ('vars' for loops,
+  // null for if-branches where we read directly from the outer variable).
+  function addCopyingAndReturn(functionBody, varsToReturn, sourcePrefix = null) {
+    if (functionBody.type !== 'BlockStatement') return;
+
+    const tempVarMap = new Map();
+    const copyStatements = [];
+
+    for (const varPath of varsToReturn) {
+      const parts = varPath.split('.');
+      const tempName = `__copy_${parts.join('_')}_${blockVarCounter++}`;
+      tempVarMap.set(varPath, tempName);
+
+      // If sourcePrefix is set (loop case), read from vars.x.y
+      // Otherwise (if-branch case), read directly from x.y
+      let sourceExpr = sourcePrefix
+        ? { type: 'Identifier', name: sourcePrefix }
+        : { type: 'Identifier', name: parts[0] };
+
+      const pathParts = sourcePrefix ? parts : parts.slice(1);
+      for (const part of pathParts) {
+        sourceExpr = {
+          type: 'MemberExpression',
+          object: sourceExpr,
+          property: { type: 'Identifier', name: part },
+          computed: false
+        };
+      }
+
+      copyStatements.push({
+        type: 'VariableDeclaration',
+        declarations: [{
+          type: 'VariableDeclarator',
+          id: { type: 'Identifier', name: tempName },
+          init: {
+            type: 'CallExpression',
+            callee: {
+              type: 'MemberExpression',
+              object: sourceExpr,
+              property: { type: 'Identifier', name: 'copy' },
+              computed: false
+            },
+            arguments: []
+          }
+        }],
+        kind: 'let'
+      });
+    }
+
+    functionBody.body.forEach(node => replaceReferences(node, tempVarMap));
+    functionBody.body.unshift(...copyStatements);
+
+    const returnObj = {
+      type: 'ObjectExpression',
+      properties: Array.from(varsToReturn).map(varPath => ({
+        type: 'Property',
+        key: { type: 'Literal', value: varPath },
+        value: { type: 'Identifier', name: tempVarMap.get(varPath) },
+        kind: 'init',
+        computed: false,
+        shorthand: false
+      }))
+    };
+
+    functionBody.body.push({
+      type: 'ReturnStatement',
+      argument: returnObj
+    });
+  }
+
   const ASTCallbacks = {
-    UnaryExpression(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
+    UnaryExpression(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
       const unaryFnName = UnarySymbolToName[node.operator];
       const standardReplacement = (node) => {
         node.type = 'CallExpression';
@@ -130905,7 +134403,7 @@ var p5 = (function () {
         ];
         let isSwizzle = swizzleSets.some(set =>
           [...property].every(char => set.includes(char))
-        ) && node.argument.type === 'MemberExpression';
+        ) && node.argument.type === 'MemberExpression' && !node.argument.computed;
         if (isSwizzle) {
           node.type = 'MemberExpression';
           node.object = {
@@ -130929,8 +134427,10 @@ var p5 = (function () {
       delete node.argument;
       delete node.operator;
     },
-    BreakStatement(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
+    BreakStatement(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
       node.callee = {
         type: 'Identifier',
         name: '__p5.break'
@@ -130938,8 +134438,39 @@ var p5 = (function () {
       node.arguments = [];
       node.type = 'CallExpression';
     },
-    VariableDeclarator(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
+    MemberExpression(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
+      // Skip sets -- these will be converted to .set() method
+      // calls at the AssignmentExpression level
+      if (
+        ancestors.at(-2)?.type === 'AssignmentExpression' &&
+        ancestors.at(-2).left === node
+      ) {
+        return;
+      }
+      if (node.computed) {
+        const callee = node.object;
+        const member = node.property;
+        node.computed = undefined;
+        node.object = undefined;
+        node.callee = {
+          type: 'MemberExpression',
+          object: callee,
+          property: {
+            type: 'Identifier',
+            name: 'get',
+          }
+        };
+        node.arguments = [member];
+        node.type = 'CallExpression';
+      }
+    },
+    VariableDeclarator(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
       if (nodeIsUniform(node.init)) {
         // Only inject the variable name if the first argument isn't already a string
         if (node.init.arguments.length === 0 ||
@@ -130964,16 +134495,18 @@ var p5 = (function () {
             value: node.id.name
           };
           node.init.arguments.unshift(varyingNameLiteral);
-          _state.varyings[node.id.name] = varyingNameLiteral;
+          state.varyings[node.id.name] = varyingNameLiteral;
         } else {
           // Still track it as a varying even if name wasn't injected
-          _state.varyings[node.id.name] = node.init.arguments[0];
+          state.varyings[node.id.name] = node.init.arguments[0];
         }
       }
     },
-    Identifier(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
-      if (_state.varyings[node.name]
+    Identifier(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
+      if (state.varyings[node.name]
         && !ancestors.some(a => a.type === 'AssignmentExpression' && a.left === node)
       ) {
         node.type = 'CallExpression';
@@ -130993,8 +134526,18 @@ var p5 = (function () {
     },
     // The callbacks for AssignmentExpression and BinaryExpression handle
     // operator overloading including +=, *= assignment expressions
-    ArrayExpression(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
+    ArrayExpression(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
+
+      if (node.elements.length < 2 || node.elements.length > 4) {
+        userError(
+          'type error',
+          `Array literals in shader functions are transpiled to vectors and must have 2-4 elements (got ${node.elements.length}).`
+        );
+      }
+
       const original = JSON.parse(JSON.stringify(node));
       node.type = 'CallExpression';
       node.callee = {
@@ -131003,8 +134546,10 @@ var p5 = (function () {
       };
       node.arguments = [original];
     },
-    AssignmentExpression(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
+    AssignmentExpression(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
       const unsafeTypes = ['Literal', 'ArrayExpression', 'Identifier'];
       if (node.operator !== '=') {
         const methodName = replaceBinaryOperator(node.operator.replace('=',''));
@@ -131033,7 +134578,7 @@ var p5 = (function () {
         node.right = rightReplacementNode;
       }
       // Handle direct varying variable assignment: myVarying = value
-      if (_state.varyings[node.left.name]) {
+      if (state.varyings[node.left.name]) {
         node.type = 'ExpressionStatement';
         node.expression = {
           type: 'CallExpression',
@@ -131054,10 +134599,31 @@ var p5 = (function () {
       // Handle swizzle assignment to varying variable: myVarying.xyz = value
       // Note: node.left.object might be worldPos.getValue() due to prior Identifier transformation
       else if (node.left.type === 'MemberExpression') {
+        if (node.left.computed) {
+          const source = node.left;
+          const value = node.right;
+          const callee = source.object;
+          const member = source.property;
+          node.right = undefined;
+          node.left = undefined;
+          node.operator = undefined;
+          node.callee = {
+            type: 'MemberExpression',
+            object: callee,
+            property: {
+              type: 'Identifier',
+              name: 'set'
+            }
+          };
+          node.arguments = [member, value];
+          node.type = 'CallExpression';
+          return;
+        }
+
         let varyingName = null;
 
         // Check if it's a direct identifier: myVarying.xyz
-        if (node.left.object.type === 'Identifier' && _state.varyings[node.left.object.name]) {
+        if (node.left.object.type === 'Identifier' && state.varyings[node.left.object.name]) {
           varyingName = node.left.object.name;
         }
         // Check if it's a getValue() call: myVarying.getValue().xyz
@@ -131065,7 +134631,7 @@ var p5 = (function () {
                  node.left.object.callee?.type === 'MemberExpression' &&
                  node.left.object.callee.property?.name === 'getValue' &&
                  node.left.object.callee.object?.type === 'Identifier' &&
-                 _state.varyings[node.left.object.callee.object.name]) {
+                 state.varyings[node.left.object.callee.object.name]) {
           varyingName = node.left.object.callee.object.name;
         }
 
@@ -131096,70 +134662,30 @@ var p5 = (function () {
         }
       }
     },
-    BinaryExpression(node, _state, ancestors) {
-      // Don't convert uniform default values to node methods, as
-      // they should be evaluated at runtime, not compiled.
-      if (ancestors.some(nodeIsUniform)) { return; }
-      // If the left hand side of an expression is one of these types,
-      // we should construct a node from it.
-      const unsafeTypes = ['Literal', 'ArrayExpression', 'Identifier'];
-      if (unsafeTypes.includes(node.left.type)) {
-        const leftReplacementNode = {
-          type: 'CallExpression',
-          callee: {
-            type: 'Identifier',
-            name: '__p5.strandsNode',
-          },
-          arguments: [node.left]
-        };
-        node.left = leftReplacementNode;
+    BinaryExpression: transformBinaryOrLogical,
+    LogicalExpression: transformBinaryOrLogical,
+
+
+    ConditionalExpression(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
       }
-      // Replace the binary operator with a call expression
-      // in other words a call to BaseNode.mult(), .div() etc.
+      // Transform condition ? consequent : alternate
+      // into __p5.strandsTernary(condition, consequent, alternate)
+      const test = node.test;
+      const consequent = node.consequent;
+      const alternate = node.alternate;
       node.type = 'CallExpression';
-      node.callee = {
-        type: 'MemberExpression',
-        object: node.left,
-        property: {
-          type: 'Identifier',
-          name: replaceBinaryOperator(node.operator),
-        },
-      };
-      node.arguments = [node.right];
+      node.callee = { type: 'Identifier', name: '__p5.strandsTernary' };
+      node.arguments = [test, consequent, alternate];
+      delete node.test;
+      delete node.consequent;
+      delete node.alternate;
     },
-    LogicalExpression(node, _state, ancestors) {
-      // Don't convert uniform default values to node methods, as
-      // they should be evaluated at runtime, not compiled.
-      if (ancestors.some(nodeIsUniform)) { return; }
-      // If the left hand side of an expression is one of these types,
-      // we should construct a node from it.
-      const unsafeTypes = ['Literal', 'ArrayExpression', 'Identifier'];
-      if (unsafeTypes.includes(node.left.type)) {
-        const leftReplacementNode = {
-          type: 'CallExpression',
-          callee: {
-            type: 'Identifier',
-            name: '__p5.strandsNode',
-          },
-          arguments: [node.left]
-        };
-        node.left = leftReplacementNode;
+    IfStatement(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
       }
-      // Replace the logical operator with a call expression
-      // in other words a call to BaseNode.or(), .and() etc.
-      node.type = 'CallExpression';
-      node.callee = {
-        type: 'MemberExpression',
-        object: node.left,
-        property: {
-          type: 'Identifier',
-          name: replaceBinaryOperator(node.operator),
-        },
-      };
-      node.arguments = [node.right];
-    },
-    IfStatement(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
       // Transform if statement into strandsIf() call
       // The condition is evaluated directly, not wrapped in a function
       const condition = node.test;
@@ -131263,70 +134789,6 @@ var p5 = (function () {
       analyzeBranch(thenFunction.body);
       analyzeBranch(elseFunction.body);
       if (assignedVars.size > 0) {
-        // Add copying, reference replacement, and return statements to branch functions
-        const addCopyingAndReturn = (functionBody, varsToReturn) => {
-          if (functionBody.type === 'BlockStatement') {
-            // Create temporary variables and copy statements
-            const tempVarMap = new Map(); // property path -> temp name
-            const copyStatements = [];
-            for (const varPath of varsToReturn) {
-              const parts = varPath.split('.');
-              const tempName = `__copy_${parts.join('_')}_${blockVarCounter++}`;
-              tempVarMap.set(varPath, tempName);
-
-              // Build the member expression for the property path
-              let sourceExpr = { type: 'Identifier', name: parts[0] };
-              for (let i = 1; i < parts.length; i++) {
-                sourceExpr = {
-                  type: 'MemberExpression',
-                  object: sourceExpr,
-                  property: { type: 'Identifier', name: parts[i] },
-                  computed: false
-                };
-              }
-
-              // let tempName = propertyPath.copy()
-              copyStatements.push({
-                type: 'VariableDeclaration',
-                declarations: [{
-                  type: 'VariableDeclarator',
-                  id: { type: 'Identifier', name: tempName },
-                  init: {
-                    type: 'CallExpression',
-                    callee: {
-                      type: 'MemberExpression',
-                      object: sourceExpr,
-                      property: { type: 'Identifier', name: 'copy' },
-                      computed: false
-                    },
-                    arguments: []
-                  }
-                }],
-                kind: 'let'
-              });
-            }
-            // Apply reference replacement to all statements
-            functionBody.body.forEach(node => replaceReferences(node, tempVarMap));
-            // Insert copy statements at the beginning
-            functionBody.body.unshift(...copyStatements);
-            // Add return statement with flat object using property paths as keys
-            const returnObj = {
-              type: 'ObjectExpression',
-              properties: Array.from(varsToReturn).map(varPath => ({
-                type: 'Property',
-                key: { type: 'Literal', value: varPath },
-                value: { type: 'Identifier', name: tempVarMap.get(varPath) },
-                kind: 'init',
-                computed: false,
-                shorthand: false
-              }))
-            };
-            functionBody.body.push({
-              type: 'ReturnStatement',
-              argument: returnObj
-            });
-          }
-        };
         addCopyingAndReturn(thenFunction.body, assignedVars);
         addCopyingAndReturn(elseFunction.body, assignedVars);
         // Create a block variable to capture the return value
@@ -131427,8 +134889,10 @@ var p5 = (function () {
       delete node.consequent;
       delete node.alternate;
     },
-    UpdateExpression(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
+    UpdateExpression(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
 
       // Transform ++var, var++, --var, var-- into assignment expressions
       let operator;
@@ -131459,11 +134923,13 @@ var p5 = (function () {
       // Replace the update expression with the assignment expression
       Object.assign(node, assignmentExpr);
       delete node.prefix;
-      this.BinaryExpression(node.right, _state, [...ancestors, node]);
-      this.AssignmentExpression(node, _state, ancestors);
+      ASTCallbacks.BinaryExpression(node.right, state, [...ancestors, node]);
+      ASTCallbacks.AssignmentExpression(node, state, ancestors);
     },
-    ForStatement(node, _state, ancestors) {
-      if (ancestors.some(nodeIsUniform)) { return; }
+    ForStatement(node, state, ancestors) {
+      if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, state.uniformCallbackNames))) {
+        return;
+      }
 
       // Transform for statement into strandsFor() call
       // for (init; test; update) body -> strandsFor(initCb, conditionCb, updateCb, bodyCb, initialVars)
@@ -131515,7 +134981,7 @@ var p5 = (function () {
       // Replace loop variable references with the parameter
       if (node.init?.type === 'VariableDeclaration') {
         const loopVarName = node.init.declarations[0].id.name;
-        conditionBody = this.replaceIdentifierReferences(conditionBody, loopVarName, uniqueLoopVar);
+        conditionBody = replaceIdentifierReferences(conditionBody, loopVarName, uniqueLoopVar);
       }
       const conditionAst = { body: [{ type: 'ExpressionStatement', expression: conditionBody }] };
       conditionBody = conditionAst.body[0].expression;
@@ -131533,7 +134999,7 @@ var p5 = (function () {
         // Replace loop variable references with the parameter
         if (node.init?.type === 'VariableDeclaration') {
           const loopVarName = node.init.declarations[0].id.name;
-          updateExpr = this.replaceIdentifierReferences(updateExpr, loopVarName, uniqueLoopVar);
+          updateExpr = replaceIdentifierReferences(updateExpr, loopVarName, uniqueLoopVar);
         }
         const updateAst = { body: [{ type: 'ExpressionStatement', expression: updateExpr }] };
         updateExpr = updateAst.body[0].expression;
@@ -131572,7 +135038,7 @@ var p5 = (function () {
       // Replace loop variable references in the body
       if (node.init?.type === 'VariableDeclaration') {
         const loopVarName = node.init.declarations[0].id.name;
-        bodyBlock = this.replaceIdentifierReferences(bodyBlock, loopVarName, uniqueLoopVar);
+        bodyBlock = replaceIdentifierReferences(bodyBlock, loopVarName, uniqueLoopVar);
       }
 
       const bodyFunction = {
@@ -131627,73 +135093,8 @@ var p5 = (function () {
       });
 
       if (assignedVars.size > 0) {
-        // Add copying, reference replacement, and return statements similar to if statements
-        const addCopyingAndReturn = (functionBody, varsToReturn) => {
-          if (functionBody.type === 'BlockStatement') {
-            const tempVarMap = new Map();
-            const copyStatements = [];
 
-            for (const varPath of varsToReturn) {
-              const parts = varPath.split('.');
-              const tempName = `__copy_${parts.join('_')}_${blockVarCounter++}`;
-              tempVarMap.set(varPath, tempName);
-
-              // Build the member expression for vars.propertyPath
-              // e.g., vars.inputs.color or vars.x
-              let sourceExpr = { type: 'Identifier', name: 'vars' };
-              for (const part of parts) {
-                sourceExpr = {
-                  type: 'MemberExpression',
-                  object: sourceExpr,
-                  property: { type: 'Identifier', name: part },
-                  computed: false
-                };
-              }
-
-              copyStatements.push({
-                type: 'VariableDeclaration',
-                declarations: [{
-                  type: 'VariableDeclarator',
-                  id: { type: 'Identifier', name: tempName },
-                  init: {
-                    type: 'CallExpression',
-                    callee: {
-                      type: 'MemberExpression',
-                      object: sourceExpr,
-                      property: { type: 'Identifier', name: 'copy' },
-                      computed: false
-                    },
-                    arguments: []
-                  }
-                }],
-                kind: 'let'
-              });
-            }
-
-            functionBody.body.forEach(node => replaceReferences(node, tempVarMap));
-            functionBody.body.unshift(...copyStatements);
-
-            // Add return statement with flat object using property paths as keys
-            const returnObj = {
-              type: 'ObjectExpression',
-              properties: Array.from(varsToReturn).map(varPath => ({
-                type: 'Property',
-                key: { type: 'Literal', value: varPath },
-                value: { type: 'Identifier', name: tempVarMap.get(varPath) },
-                kind: 'init',
-                computed: false,
-                shorthand: false
-              }))
-            };
-
-            functionBody.body.push({
-              type: 'ReturnStatement',
-              argument: returnObj
-            });
-          }
-        };
-
-        addCopyingAndReturn(bodyFunction.body, assignedVars);
+        addCopyingAndReturn(bodyFunction.body, assignedVars, 'vars');
 
         // Create block variable and assignments similar to if statements
         const blockVar = `__block_${blockVarCounter++}`;
@@ -131808,33 +135209,8 @@ var p5 = (function () {
       delete node.update;
     },
 
-    // Helper method to replace identifier references in AST nodes
-    replaceIdentifierReferences(node, oldName, newName) {
-      if (!node || typeof node !== 'object') return node;
 
-      const replaceInNode = (n) => {
-        if (!n || typeof n !== 'object') return n;
 
-        if (n.type === 'Identifier' && n.name === oldName) {
-          return { ...n, name: newName };
-        }
-
-        // Create a copy and recursively process properties
-        const newNode = { ...n };
-        for (const key in n) {
-          if (n.hasOwnProperty(key) && key !== 'parent') {
-            if (Array.isArray(n[key])) {
-              newNode[key] = n[key].map(replaceInNode);
-            } else if (typeof n[key] === 'object') {
-              newNode[key] = replaceInNode(n[key]);
-            }
-          }
-        }
-        return newNode;
-      };
-
-      return replaceInNode(node);
-    }
   };
 
   // Helper function to check if a function body contains return statements in control flow
@@ -132169,22 +135545,31 @@ var p5 = (function () {
   }
 
   // Main transformation pass: find and transform functions with .set() calls in control flow
-  function transformSetCallsInControlFlow(ast) {
+  function transformSetCallsInControlFlow(ast, names) {
     const functionsToTransform = [];
 
     // Collect functions that have .set() calls in control flow
     const collectFunctions = {
       ArrowFunctionExpression(node, ancestors) {
+        if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, names))) {
+          return;
+        }
         if (functionHasSetInControlFlow(node)) {
           functionsToTransform.push(node);
         }
       },
       FunctionExpression(node, ancestors) {
+        if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, names))) {
+          return;
+        }
         if (functionHasSetInControlFlow(node)) {
           functionsToTransform.push(node);
         }
       },
       FunctionDeclaration(node, ancestors) {
+        if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, names))) {
+          return;
+        }
         if (functionHasSetInControlFlow(node)) {
           functionsToTransform.push(node);
         }
@@ -132200,12 +135585,15 @@ var p5 = (function () {
   }
 
   // Main transformation pass: find and transform helper functions with early returns
-  function transformHelperFunctionEarlyReturns(ast) {
+  function transformHelperFunctionEarlyReturns(ast, names) {
     const helperFunctionsToTransform = [];
 
     // Collect helper functions that need transformation
     const collectHelperFunctions = {
       VariableDeclarator(node, ancestors) {
+        if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, names))) {
+          return;
+        }
         const init = node.init;
         if (init && (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression')) {
           if (functionHasEarlyReturns(init)) {
@@ -132214,6 +135602,9 @@ var p5 = (function () {
         }
       },
       FunctionDeclaration(node, ancestors) {
+        if (ancestors.some(a => nodeIsUniform(a) || nodeIsUniformCallbackFn(a, names))) {
+          return;
+        }
         if (functionHasEarlyReturns(node)) {
           helperFunctionsToTransform.push(node);
         }
@@ -132233,67 +135624,63 @@ var p5 = (function () {
     }
   }
 
-  function transpileStrandsToJS(p5, sourceString, srcLocations, scope) {
-    // Reset counters at the start of each transpilation
-    blockVarCounter = 0;
-    loopVarCounter = 0;
-
-    const ast = parse(sourceString, {
-      ecmaVersion: 2021,
-      locations: srcLocations
-    });
-
-    // First pass: transform .set() calls in control flow to use intermediate variables
-    transformSetCallsInControlFlow(ast);
-
-    // Second pass: transform everything except if/for statements using normal ancestor traversal
-    const nonControlFlowCallbacks = { ...ASTCallbacks };
+  function runNonControlFlowPass(ast, uniformCallbackNames) {
+    const nonControlFlowCallbacks = ({ ...ASTCallbacks });
     delete nonControlFlowCallbacks.IfStatement;
     delete nonControlFlowCallbacks.ForStatement;
-    ancestor(ast, nonControlFlowCallbacks, undefined, { varyings: {} });
+    ancestor(ast, nonControlFlowCallbacks, undefined, { varyings: {}, uniformCallbackNames });
+  }
 
-    // Third pass: transform helper functions with early returns to use __returnValue pattern
-    transformHelperFunctionEarlyReturns(ast);
-
-    // Fourth pass: transform if/for statements in post-order using recursive traversal
+  function runControlFlowPass(ast, uniformCallbackNames) {
     const postOrderControlFlowTransform = {
+      CallExpression(node, state, c) {
+        if (nodeIsUniform(node)) { return; }
+        if (node.callee) c(node.callee, state);
+        for (const arg of node.arguments) c(arg, state);
+      },
+      FunctionDeclaration(node, state, c) {
+        if (state.uniformCallbackNames?.has(node.id?.name)) return;
+        if (node.body) c(node.body, state);
+      },
+      VariableDeclarator(node, state, c) {
+        if (
+          state.uniformCallbackNames?.has(node.id?.name) &&
+          (node.init?.type === 'FunctionExpression' || node.init?.type === 'ArrowFunctionExpression')
+        ) { return; }
+        if (node.init) c(node.init, state);
+      },
       IfStatement(node, state, c) {
         state.inControlFlow++;
-        // First recursively process children
         if (node.test) c(node.test, state);
         if (node.consequent) c(node.consequent, state);
         if (node.alternate) c(node.alternate, state);
-        // Then apply the transformation to this node
         ASTCallbacks.IfStatement(node, state, []);
         state.inControlFlow--;
       },
       ForStatement(node, state, c) {
         state.inControlFlow++;
-        // First recursively process children
         if (node.init) c(node.init, state);
         if (node.test) c(node.test, state);
         if (node.update) c(node.update, state);
         if (node.body) c(node.body, state);
-        // Then apply the transformation to this node
         ASTCallbacks.ForStatement(node, state, []);
         state.inControlFlow--;
       },
       ReturnStatement(node, state, c) {
         if (!state.inControlFlow) return;
-        // Convert return statement to strandsEarlyReturn call
         node.type = 'ExpressionStatement';
         node.expression = {
           type: 'CallExpression',
-          callee: {
-            type: 'Identifier',
-            name: '__p5.strandsEarlyReturn'
-          },
+          callee: { type: 'Identifier', name: '__p5.strandsEarlyReturn' },
           arguments: node.argument ? [node.argument] : []
         };
         delete node.argument;
       }
     };
-    recursive(ast, { varyings: {}, inControlFlow: 0 }, postOrderControlFlowTransform);
+    recursive(ast, { varyings: {}, inControlFlow: 0, uniformCallbackNames }, postOrderControlFlowTransform);
+  }
+
+  function buildStrandsCallback(p5, ast, scope) {
     const transpiledSource = escodegen.generate(ast);
     const scopeKeys = Object.keys(scope);
     const match = /\(?\s*(?:function)?\s*\w*\s*\(([^)]*)\)\s*(?:=>)?\s*{((?:.|\n)*)}\s*;?\s*\)?/
@@ -132313,15 +135700,11 @@ var p5 = (function () {
     }
     const body = match[2];
     try {
-      const internalStrandsCallback = new Function(
-          // Create a parameter called __p5, not just p5, because users of instance mode
-          // may pass in a variable called p5 as a scope variable. If we rely on a variable called
-          // p5, then the scope variable called p5 might accidentally override internal function
-          // calls to p5 static methods.
-        '__p5',
-        ...paramNames,
-        body,
-      );
+      const internalStrandsCallback = new Function('__p5', ...paramNames, body);
+      // Create a parameter called __p5, not just p5, because users of instance mode
+      // may pass in a variable called p5 as a scope variable. If we rely on a variable called
+      // p5, then the scope variable called p5 might accidentally override internal function
+      // calls to p5 static methods.
       return () => internalStrandsCallback(p5, ...paramVals);
     } catch (e) {
       console.error(e);
@@ -132331,29 +135714,70 @@ var p5 = (function () {
     }
   }
 
+
+
+  function transpileStrandsToJS(p5, sourceString, srcLocations, scope) {
+    blockVarCounter = 0;
+    loopVarCounter = 0;
+
+    const ast = parse(sourceString, { ecmaVersion: 2021, locations: srcLocations });
+
+    throwIfLoopProtectionInserted(ast);
+
+    // Pre-pass: collect names of functions passed by reference as uniform callbacks
+    const uniformCallbackNames = collectUniformCallbackNames(ast);
+
+    // Pass 1: transform .set() calls in control flow to use intermediate variables
+    transformSetCallsInControlFlow(ast, uniformCallbackNames);
+
+    // Pass 2: transform non-control-flow nodes (operators, varyings, uniforms, arrays)
+    runNonControlFlowPass(ast, uniformCallbackNames);
+
+    // Pass 3: transform helper functions with early returns to use __returnValue pattern
+    transformHelperFunctionEarlyReturns(ast, uniformCallbackNames);
+
+    // Pass 4: transform if/for statements post-order into strandsIf/strandsFor calls
+    runControlFlowPass(ast, uniformCallbackNames);
+
+    return buildStrandsCallback(p5, ast, scope);
+  }
+
   function generateShaderCode(strandsContext) {
     const {
       cfg,
       backend,
       vertexDeclarations,
-      fragmentDeclarations
+      fragmentDeclarations,
+      computeDeclarations
     } = strandsContext;
 
     const hooksObj = {
       uniforms: {},
+      storageUniforms: {},
       varyingVariables: [],
     };
 
     for (const {name, typeInfo, defaultValue} of strandsContext.uniforms) {
-      const key = backend.generateHookUniformKey(name, typeInfo);
-      if (key !== null) {
-        hooksObj.uniforms[key] = defaultValue;
+      if (typeInfo.baseType === 'storage') {
+        if (defaultValue !== null && defaultValue !== undefined) {
+          hooksObj.storageUniforms[name] = defaultValue;
+        }
+      } else {
+        const key = backend.generateHookUniformKey(name, typeInfo);
+        if (key !== null) {
+          hooksObj.uniforms[key] = defaultValue;
+        }
       }
     }
 
     // Add texture bindings to declarations for WebGPU backend
     if (backend.addTextureBindingsToDeclarations) {
       backend.addTextureBindingsToDeclarations(strandsContext);
+    }
+
+    // Add storage buffer bindings to declarations for WebGPU backend
+    if (backend.addStorageBufferBindingsToDeclarations) {
+      backend.addStorageBufferBindingsToDeclarations(strandsContext);
     }
 
     for (const { hookType, rootNodeID, entryBlockID, shaderContext } of strandsContext.hooks) {
@@ -132380,14 +135804,13 @@ var p5 = (function () {
       let returnType;
       if (hookType.returnType.properties) {
         returnType = structType(hookType.returnType);
+      } else if (!hookType.returnType.dataType || hookType.returnType.typeName?.trim() === 'void') {
+        returnType = null;
       } else {
-        if (!hookType.returnType.dataType) {
-          throw new Error(`Missing dataType for return type ${hookType.returnType.typeName}`);
-        }
         returnType = hookType.returnType.dataType;
       }
 
-      if (rootNodeID) {
+      if (rootNodeID !== undefined) {
         backend.generateReturnStatement(strandsContext, generationContext, rootNodeID, returnType);
       }
       hooksObj[`${hookType.returnType.typeName} ${hookType.name}`] = [firstLine, ...generationContext.codeLines, '}'].join('\n');
@@ -132410,8 +135833,14 @@ var p5 = (function () {
       }
     }
 
+    // Register instanceID varying if used in a fragment hook
+    if (strandsContext._instanceIDUsedInFragment) {
+      hooksObj.instanceIDVarying = backend.generateInstanceIDVarying();
+    }
+
     hooksObj.vertexDeclarations = [...vertexDeclarations].join('\n');
     hooksObj.fragmentDeclarations = [...fragmentDeclarations].join('\n');
+    hooksObj.computeDeclarations = [...computeDeclarations].join('\n');
 
     return hooksObj;
   }
@@ -133014,6 +136443,54 @@ var p5 = (function () {
     }
   }
 
+  function buildTernary(strandsContext, condition, ifTrue, ifFalse) {
+    const { dag, cfg, p5 } = strandsContext;
+
+    // Ensure all inputs are StrandsNodes
+    const condNode = condition?.isStrandsNode ? condition : p5.strandsNode(condition);
+    const trueNode = ifTrue?.isStrandsNode ? ifTrue : p5.strandsNode(ifTrue);
+    const falseNode = ifFalse?.isStrandsNode ? ifFalse : p5.strandsNode(ifFalse);
+
+    // Get type info for both nodes
+    let trueType = extractNodeTypeInfo(dag, trueNode.id);
+    let falseType = extractNodeTypeInfo(dag, falseNode.id);
+
+    // Propagate type from the known branch to any ASSIGN_ON_USE branch
+    if (trueType.baseType === BaseType.ASSIGN_ON_USE && falseType.baseType !== BaseType.ASSIGN_ON_USE) {
+      propagateTypeToAssignOnUse(dag, trueNode.id, falseType.baseType, falseType.dimension);
+      trueType = extractNodeTypeInfo(dag, trueNode.id);
+    } else if (falseType.baseType === BaseType.ASSIGN_ON_USE && trueType.baseType !== BaseType.ASSIGN_ON_USE) {
+      propagateTypeToAssignOnUse(dag, falseNode.id, trueType.baseType, trueType.dimension);
+      falseType = extractNodeTypeInfo(dag, falseNode.id);
+    }
+
+    // After ASSIGN_ON_USE propagation, if both types are known, they must match
+    if (
+      trueType.baseType !== BaseType.ASSIGN_ON_USE &&
+      falseType.baseType !== BaseType.ASSIGN_ON_USE &&
+      (trueType.baseType !== falseType.baseType || trueType.dimension !== falseType.dimension)
+    ) {
+      userError('type error',
+        'The true and false branches of a ternary expression must have the same type. ' +
+        `Right now, the true branch is a ${trueType.baseType}${trueType.dimension}, and the false branch is a ${falseType.baseType}${falseType.dimension}.`
+      );
+    }
+
+    const resultType = trueType;
+
+    const nodeData = createNodeData({
+      nodeType: NodeType.OPERATION,
+      opCode: OpCode.Nary.TERNARY,
+      dependsOn: [condNode.id, trueNode.id, falseNode.id],
+      baseType: resultType.baseType,
+      dimension: resultType.dimension,
+    });
+
+    const id = getOrCreateNode(dag, nodeData);
+    recordInBasicBlock(cfg, cfg.currentBlock, id);
+    return createStrandsNode(id, resultType.dimension, strandsContext);
+  }
+
   const BUILTIN_GLOBAL_SPECS = {
     width: { typeInfo: DataType.float1, get: (p) => p.width },
     height: { typeInfo: DataType.float1, get: (p) => p.height },
@@ -133094,17 +136571,114 @@ var p5 = (function () {
 
     for (const name of Object.keys(BUILTIN_GLOBAL_SPECS)) {
       const spec = BUILTIN_GLOBAL_SPECS[name];
-      Object.defineProperty(window, name, {
-        get: () => {
+      const backingKey = `_strands_${name}`;
+
+      // Define on window for global mode only
+      const inst = getRuntimeP5Instance();
+      if (inst?._isGlobal) {
+        Object.defineProperty(window, name, {
+          get: () => {
+            if (strandsContext.active) {
+              return getBuiltinGlobalNode(strandsContext, name);
+            }
+            const inst = getRuntimeP5Instance();
+            return spec.get(inst);
+          },
+          configurable: true,
+        });
+      }
+
+      // Capture original descriptor (held in closure for the getter to delegate to)
+      const originalProtoDesc = Object.getOwnPropertyDescriptor(strandsContext.p5.prototype, name);
+
+      // Define on p5.prototype for instance mode
+      Object.defineProperty(strandsContext.p5.prototype, name, {
+        get: function() {
           if (strandsContext.active) {
             return getBuiltinGlobalNode(strandsContext, name);
           }
-          const inst = getRuntimeP5Instance();
-            return spec.get(inst);
+          // If our setter stored a value on this instance, return it
+          if (Object.prototype.hasOwnProperty.call(this, backingKey)) {
+            return this[backingKey];
+          }
+          // Delegate to original getter (e.g. width -> this._renderer?.width)
+          if (originalProtoDesc?.get) {
+            return originalProtoDesc.get.call(this);
+          }
+          // Fall back to original value for data properties (like mouseX)
+          return originalProtoDesc?.value;
         },
+        set: function(val) {
+          this[backingKey] = val;
+        },
+        configurable: true,
       });
+
+      // Define on p5.Graphics.prototype for graphics mode
+      const GraphicsProto = strandsContext.p5?.Graphics?.prototype;
+      if (GraphicsProto) {
+        const originalDesc = Object.getOwnPropertyDescriptor(GraphicsProto, name);
+
+        Object.defineProperty(GraphicsProto, name, {
+          get: function() {
+            if (strandsContext.active) {
+              return getBuiltinGlobalNode(strandsContext, name);
+            }
+            // Delegate to original getter if it exists (class-level getters like width, deltaTime)
+            if (originalDesc?.get) {
+              return originalDesc.get.call(this);
+            }
+            return this[backingKey];
+          },
+          set: function(val) {
+            if (originalDesc?.set) {
+              originalDesc.set.call(this, val);
+            } else {
+              this[backingKey] = val;
+            }
+          },
+          configurable: true,
+        });
+      }
     }
     strandsContext._builtinGlobalsAccessorsInstalled = true;
+  }
+
+  function installInstanceIndexAccessor(strandsContext) {
+    if (strandsContext._instanceIndexAccessorInstalled) return;
+
+    const getRuntimeP5Instance = () => strandsContext.renderer?._pInst || strandsContext.p5?.instance;
+
+    const instanceIndexGetter = function() {
+      if (strandsContext.active) {
+        const node = variableNode(strandsContext, { baseType: BaseType.INT, dimension: 1 }, strandsContext.backend.instanceIdReference());
+        return createStrandsNode(node.id, node.dimension, strandsContext);
+      }
+      return undefined;
+    };
+
+    const inst = getRuntimeP5Instance();
+    if (inst?._isGlobal) {
+      Object.defineProperty(window, 'instanceIndex', {
+        get: instanceIndexGetter,
+        configurable: true,
+      });
+    }
+
+    Object.defineProperty(strandsContext.p5.prototype, 'instanceIndex', {
+      get: instanceIndexGetter,
+      configurable: true,
+    });
+
+    const GraphicsProto = strandsContext.p5?.Graphics?.prototype;
+    if (GraphicsProto) {
+      Object.defineProperty(GraphicsProto, 'instanceIndex', {
+        get: instanceIndexGetter,
+        configurable: true,
+      });
+    }
+
+    strandsContext._instanceIndexAccessorInstalled = true;
   }
 
   //////////////////////////////////////////////
@@ -133187,6 +136761,10 @@ var p5 = (function () {
       return new StrandsFor(strandsContext, initialCb, conditionCb, updateCb, bodyCb, initialVars).build();
     };
     augmentFn(fn, p5, 'strandsFor', p5.strandsFor);
+    p5.strandsTernary = function(condition, ifTrue, ifFalse) {
+      return buildTernary(strandsContext, condition, ifTrue, ifFalse);
+    };
+    augmentFn(fn, p5, 'strandsTernary', p5.strandsTernary);
     p5.strandsEarlyReturn = function(value) {
       const { dag, cfg } = strandsContext;
 
@@ -133207,7 +136785,7 @@ var p5 = (function () {
       const nodeData = createNodeData({
         nodeType: NodeType.STATEMENT,
         statementType: StatementType.EARLY_RETURN,
-        dependsOn: [valueNode.id]
+        dependsOn: value !== undefined ? [valueNode.id] : []
       });
       const earlyReturnID = getOrCreateNode(dag, nodeData);
       recordInBasicBlock(cfg, cfg.currentBlock, earlyReturnID);
@@ -133272,6 +136850,166 @@ var p5 = (function () {
       }
     }
 
+    // Alias lerp to GLSL mix in strands context
+    const originalLerp = fn.lerp;
+    augmentFn(fn, p5, 'lerp', function (...args) {
+      if (strandsContext.active) {
+        return this.mix(...args);
+      } else {
+        return originalLerp.apply(this, args);
+      }
+    });
+
+    const originalMap = fn.map;
+    augmentFn(fn, p5, 'map', function (...args) {
+      if (!strandsContext.active) {
+        return originalMap.apply(this, args);
+      }
+      const [n, start1, stop1, start2, stop2, withinBounds] = args;
+      const nNode = p5.strandsNode(n);
+      const start1Node = p5.strandsNode(start1);
+      const stop1Node = p5.strandsNode(stop1);
+      const t = nNode.sub(start1Node).div(stop1Node.sub(start1Node));
+      const result = this.mix(start2, stop2, t);
+      if (withinBounds) {
+        return this.clamp(result, this.min(start2, stop2), this.max(start2, stop2));
+      }
+      return result;
+    });
+
+    const originalColor = fn.color;
+    augmentFn(fn, p5, 'color', function (...args) {
+      if (!strandsContext.active) {
+        return originalColor.apply(this, args);
+      }
+      // Reuse p5's parser - handles hex strings, rgb(), CSS named colors, numerics
+      const c = originalColor.apply(this, args);
+      // _getRGBA() returns [r, g, b, a] normalized to 0-1
+      const rgba = c._getRGBA();
+      const { id, dimension } = primitiveConstructorNode(
+        strandsContext,
+        { baseType: BaseType.FLOAT, dimension: null },
+        rgba
+      );
+      return createStrandsNode(id, dimension, strandsContext);
+    });
+    const originalLerpColor = fn.lerpColor;
+    augmentFn(fn, p5, 'lerpColor', function (...args) {
+      if (!strandsContext.active) {
+        return originalLerpColor.apply(this, args);
+      }
+      // In strands, colors are vec4s - lerpColor maps directly to GLSL mix()
+      return this.mix(...args);
+    });
+    // Component accessors: extract scalar channels from a vec4 color
+    const originalRed = fn.red;
+    augmentFn(fn, p5, 'red', function (...args) {
+      if (!strandsContext.active) {
+        return originalRed.apply(this, args);
+      }
+      return p5.strandsNode(args[0]).x;
+    });
+
+    const originalGreen = fn.green;
+    augmentFn(fn, p5, 'green', function (...args) {
+      if (!strandsContext.active) {
+        return originalGreen.apply(this, args);
+      }
+      return p5.strandsNode(args[0]).y;
+    });
+
+    const originalBlue = fn.blue;
+    augmentFn(fn, p5, 'blue', function (...args) {
+      if (!strandsContext.active) {
+        return originalBlue.apply(this, args);
+      }
+      return p5.strandsNode(args[0]).z;
+    });
+
+    const originalAlpha = fn.alpha;
+    augmentFn(fn, p5, 'alpha', function (...args) {
+      if (!strandsContext.active) {
+        return originalAlpha.apply(this, args);
+      }
+      return p5.strandsNode(args[0]).w;
+    });
+
+    // RGB to HSB conversion based on:
+    // https://en.wikipedia.org/wiki/HSL_and_HSV#From_RGB
+    // Using mix/step to avoid branching, via the compact form from:
+    // http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
+    const _rgb2hsb = (instance, colorNode) => {
+    const r = colorNode.x;
+    const g = colorNode.y;
+    const b = colorNode.z;
+    const K = instance.vec4(0, -1/3, 2/3, -1);
+    const p = instance.mix(
+      instance.vec4(b, g, K.w, K.z),
+      instance.vec4(g, b, K.x, K.y),
+      instance.step(b, g)
+    );
+    const q = instance.mix(
+      instance.vec4(p.x, p.y, p.w, r),
+      instance.vec4(r, p.y, p.z, p.x),
+      instance.step(p.x, r)
+    );
+    const d = q.x.sub(instance.min(q.w, q.y));
+    const e = p5.strandsNode(1e-10);
+    const h = instance.abs(q.z.add(q.w.sub(q.y).div(d.mult(6).add(e))));
+    const s = d.div(q.x.add(e));
+    return instance.vec3(h, s, q.x);
+  };
+
+  const _rgb2hsl = (instance, colorNode) => {
+    const r = colorNode.x;
+    const g = colorNode.y;
+    const b = colorNode.z;
+    const maxC = instance.max(r, instance.max(g, b));
+    const minC = instance.min(r, instance.min(g, b));
+    const l = maxC.add(minC).div(2);
+    const d = maxC.sub(minC);
+    const e = p5.strandsNode(1e-10);
+    const s = instance.mix(
+      p5.strandsNode(0),
+      d.div(p5.strandsNode(1).sub(instance.abs(l.mult(2).sub(1)))),
+      instance.step(e, d)
+    );
+    const h_rg = instance.mod(g.sub(b).div(d.add(e)), p5.strandsNode(6)).div(6);
+    const h_gb = b.sub(r).div(d.add(e)).add(2).div(6);
+    const h_br = r.sub(g).div(d.add(e)).add(4).div(6);
+    const isR = instance.step(maxC.sub(e), r).mult(instance.step(r.sub(e), maxC));
+    const isG = instance.step(maxC.sub(e), g).mult(instance.step(g.sub(e), maxC));
+    const h = instance.mix(instance.mix(h_br, h_gb, isG), h_rg, isR);
+    return instance.vec3(h, s, l);
+  };
+    const originalHue = fn.hue;
+    augmentFn(fn, p5, 'hue', function (...args) {
+      if (!strandsContext.active) return originalHue.apply(this, args);
+      const colorNode = p5.strandsNode(args[0]);
+      return _rgb2hsl(this, this.vec3(colorNode.x, colorNode.y, colorNode.z)).x;
+    });
+
+    const originalSaturation = fn.saturation;
+    augmentFn(fn, p5, 'saturation', function (...args) {
+      if (!strandsContext.active) return originalSaturation.apply(this, args);
+      const colorNode = p5.strandsNode(args[0]);
+      return _rgb2hsl(this, this.vec3(colorNode.x, colorNode.y, colorNode.z)).y;
+    });
+
+    const originalBrightness = fn.brightness;
+    augmentFn(fn, p5, 'brightness', function (...args) {
+      if (!strandsContext.active) return originalBrightness.apply(this, args);
+      const colorNode = p5.strandsNode(args[0]);
+      return _rgb2hsb(this, this.vec3(colorNode.x, colorNode.y, colorNode.z)).z;
+    });
+
+    const originalLightness = fn.lightness;
+    augmentFn(fn, p5, 'lightness', function (...args) {
+      if (!strandsContext.active) return originalLightness.apply(this, args);
+      const colorNode = p5.strandsNode(args[0]);
+      return _rgb2hsl(this, this.vec3(colorNode.x, colorNode.y, colorNode.z)).z;
+    });
+
     augmentFn(fn, p5, 'getTexture', function (...rawArgs) {
       if (strandsContext.active) {
         const { id, dimension } = strandsContext.backend.createGetTextureCall(strandsContext, rawArgs);
@@ -133296,6 +137034,9 @@ var p5 = (function () {
     // Add noise function with backend-agnostic implementation
     const originalNoise = fn.noise;
     const originalNoiseDetail = fn.noiseDetail;
+    const originalRandom = fn.random;
+    const originalRandomGaussian=fn.randomGaussian;
+    const originalRandomSeed = fn.randomSeed;
     const originalMillis = fn.millis;
 
     strandsContext._noiseOctaves = null;
@@ -133315,9 +137056,10 @@ var p5 = (function () {
         return originalNoise.apply(this, args); // fallback to regular p5.js noise
       }
       // Get noise shader snippet from the current renderer
-      const noiseSnippet = this._renderer.getNoiseShaderSnippet();
+      const noiseSnippet = strandsContext.backend.getNoiseShaderSnippet();
       strandsContext.vertexDeclarations.add(noiseSnippet);
       strandsContext.fragmentDeclarations.add(noiseSnippet);
+      strandsContext.computeDeclarations.add(noiseSnippet);
 
       // Make each input into a strands node so that we can check their dimensions
       const strandsArgs = args.flat().map(arg => p5.strandsNode(arg));
@@ -133358,6 +137100,98 @@ var p5 = (function () {
       });
       return createStrandsNode(id, dimension, strandsContext);
     });
+
+    strandsContext._randomSeed = null;
+
+    augmentFn(fn, p5, 'randomSeed', function (seed) {
+      if (!strandsContext.active) {
+        return originalRandomSeed.apply(this, arguments);
+      }
+      strandsContext._randomSeed = seed;
+    });
+
+    augmentFn(fn, p5, 'random', function (...args) {
+      if (!strandsContext.active) {
+        return originalRandom.apply(this, args);
+      }
+
+      const randomVertSnippet = strandsContext.backend.getRandomVertexShaderSnippet();
+      const randomFragSnippet = strandsContext.backend.getRandomFragmentShaderSnippet();
+
+      strandsContext.vertexDeclarations.add(randomVertSnippet);
+      strandsContext.fragmentDeclarations.add(randomFragSnippet);
+
+      if (strandsContext.backend.getRandomComputeShaderSnippet) {
+        const randomComputeSnippet = strandsContext.backend.getRandomComputeShaderSnippet();
+        strandsContext.computeDeclarations.add(randomComputeSnippet);
+      }
+
+      let seedNode;
+      if (strandsContext._randomSeed !== null && strandsContext._randomSeed.isStrandsNode) {
+        seedNode = strandsContext._randomSeed;
+      } else {
+        const userSeed = strandsContext._randomSeed;
+        seedNode = getOrCreateUniformNode(
+          strandsContext,
+          '_p5_randomSeed',
+          DataType.float1,
+          userSeed !== null
+            ? () => userSeed
+            : () => performance.now(),
+        );
+      }
+
+      // The shader-side random() owns a private per-invocation counter, so a
+      // single AST node still produces distinct values across runtime loop
+      // iterations. We just pass the seed.
+      const nodeArgs = [seedNode];
+      const randomOverloads = [{
+        params: [DataType.float1],
+        returnType: DataType.float1,
+      }];
+
+      if (args.length === 0) {
+        const { id, dimension } = functionCallNode(strandsContext, 'random', nodeArgs, {
+          overloads: randomOverloads,
+        });
+        return createStrandsNode(id, dimension, strandsContext);
+      } else if (args.length === 1) {
+        // random(max) → [0, max)
+        const rawNode = functionCallNode(strandsContext, 'random', nodeArgs, {
+          overloads: randomOverloads,
+        });
+        const rawStrandsNode = createStrandsNode(rawNode.id, rawNode.dimension, strandsContext);
+        return rawStrandsNode.mult(p5.strandsNode(args[0]));
+      } else if (args.length === 2) {
+        // random(min, max) → [min, max)
+        const rawNode = functionCallNode(strandsContext, 'random', nodeArgs, {
+          overloads: randomOverloads,
+        });
+        const rawStrandsNode = createStrandsNode(rawNode.id, rawNode.dimension, strandsContext);
+        const minNode = p5.strandsNode(args[0]);
+        const maxNode = p5.strandsNode(args[1]);
+        // min + raw * (max - min)
+        return rawStrandsNode.mult(maxNode.sub(minNode)).add(minNode);
+      } else {
+        p5._friendlyError(
+          `It looks like you've called random() with ${args.length} arguments. In strands, random() supports 0, 1, or 2 numeric arguments.`
+        );
+      }
+    });
+
+     augmentFn(fn, p5, 'randomGaussian', function(...args){
+        if(!strandsContext.active){
+          return originalRandomGaussian.apply(this, args);
+        }
+        const mean = args.length >= 1 ? args[0] : 0;
+        const stdDev = args.length >= 2 ? args[1] : 1;
+
+        const u1 = this.max(this.random(), 1e-6);
+        const u2 = this.random();
+        const z = this.sqrt(this.log(u1).mult(-2)).mult(this.cos(u2.mult(2*Math.PI)));
+
+        return z.mult(stdDev).add(mean);
+      });
 
     augmentFn(fn, p5, 'millis', function (...args) {
       if (!strandsContext.active) {
@@ -133470,6 +137304,53 @@ var p5 = (function () {
         }
       });
     }
+
+    // Storage buffer uniform function for compute shaders
+    fn.uniformStorage = function(name, bufferOrSchema) {
+      let schema = null;
+      let defaultValue = null;
+
+      // If it's a function, evaluate it immediately to infer schema,
+      // then store the function so it gets called each frame.
+      let value = bufferOrSchema;
+      if (typeof bufferOrSchema === 'function') {
+        value = bufferOrSchema();
+        if (value?._schema) {
+          defaultValue = bufferOrSchema;
+        }
+      }
+
+      if (value?._schema) {
+        // Struct storage buffer with pre-computed schema
+        schema = value._schema;
+        if (defaultValue === null) defaultValue = value;
+      } else if (value && typeof value === 'object' && !value._isStorageBuffer) {
+        // Plain object schema template -- only used to infer struct layout, not as a default value
+        schema = strandsContext.renderer?._inferStructSchema(value) ?? null;
+      } else if (value?._isStorageBuffer) {
+        defaultValue = bufferOrSchema;
+      }
+
+      const { id, dimension } = variableNode(
+        strandsContext,
+        { baseType: 'storage', dimension: 1 },
+        name
+      );
+      strandsContext.uniforms.push({
+        name,
+        typeInfo: { baseType: 'storage', dimension: 1, schema },
+        defaultValue,
+      });
+
+      // Create StrandsNode with _originalIdentifier set (like varying variables)
+      // This enables proper assignment node creation and ordering preservation
+      const node = createStrandsNode(id, dimension, strandsContext);
+      node._originalIdentifier = name;
+      node._originalBaseType = 'storage';
+      node._originalDimension = 1;
+      node._schema = schema;
+      return node;
+    };
   }
   //////////////////////////////////////////////
   // Per-Hook functions
@@ -133480,7 +137361,7 @@ var p5 = (function () {
     for (const param of parameters) {
       if(isStructType(param.type)) {
         const structTypeInfo = structType(param);
-        const { id, dimension } = structInstanceNode(strandsContext, structTypeInfo, param.name, []);
+        const { id, dimension } = structInstanceNode(strandsContext, structTypeInfo, `${HOOK_PARAM_PREFIX}${param.name}`, []);
         const structNode = createStrandsNode(id, dimension, strandsContext).withStructProperties(
           structTypeInfo.properties.map(prop => prop.name)
         );
@@ -133493,7 +137374,7 @@ var p5 = (function () {
                 const oldDeps = dag.dependsOn[structNode.id];
                 const newDeps = oldDeps.slice();
                 newDeps[i] = newFieldID;
-                const rebuilt = structInstanceNode(strandsContext, structTypeInfo, param.name, newDeps);
+                const rebuilt = structInstanceNode(strandsContext, structTypeInfo, `${HOOK_PARAM_PREFIX}${param.name}`, newDeps);
                 structNode.id = rebuilt.id;
               };
               // TODO: implement member access operations
@@ -133503,6 +137384,17 @@ var p5 = (function () {
               return createStrandsNode(propNode.id, propNode.dimension, strandsContext, onRebind);
             },
             set(val) {
+              const valDim = val?.isStrandsNode
+                ? val.dimension
+                : (Array.isArray(val) ? val.length : 1);
+              if( valDim !== propertyType.dataType.dimension && valDim !== 1){
+                dimensionMismatchError(
+                  propertyType.dataType.dimension,
+                  valDim,
+                  `${param.name}.${propertyType.name}`
+                );
+              }
+
               const oldDependsOn = dag.dependsOn[structNode.id];
               const newDependsOn = [...oldDependsOn];
               let newValueID;
@@ -133514,7 +137406,7 @@ var p5 = (function () {
                 newValueID = newVal.id;
               }
               newDependsOn[i] = newValueID;
-              const newStructInfo = structInstanceNode(strandsContext, structTypeInfo, param.name, newDependsOn);
+              const newStructInfo = structInstanceNode(strandsContext, structTypeInfo, `${HOOK_PARAM_PREFIX}${param.name}`, newDependsOn);
               structNode.id = newStructInfo.id;
             }
           });
@@ -133530,7 +137422,7 @@ var p5 = (function () {
           throw new Error(`Missing dataType for parameter ${param.name} of type ${param.type.typeName}`);
         }
         const typeInfo = param.type.dataType;
-        const { id, dimension } = variableNode(strandsContext, typeInfo, param.name);
+        const { id, dimension } = variableNode(strandsContext, typeInfo, `${HOOK_PARAM_PREFIX}${param.name}`);
         const arg = createStrandsNode(id, dimension, strandsContext);
         args.push(arg);
       }
@@ -133580,6 +137472,7 @@ var p5 = (function () {
   }
   function createShaderHooksFunctions(strandsContext, fn, shader) {
     installBuiltinGlobalAccessors(strandsContext);
+    installInstanceIndexAccessor(strandsContext);
 
     // Add shader context to hooks before spreading
     const vertexHooksWithContext = Object.fromEntries(
@@ -133588,10 +137481,14 @@ var p5 = (function () {
     const fragmentHooksWithContext = Object.fromEntries(
       Object.entries(shader.hooks.fragment).map(([name, hook]) => [name, { ...hook, shaderContext: 'fragment' }])
     );
+    const computeHooksWithContext = Object.fromEntries(
+      Object.entries(shader.hooks.compute).map(([name, hook]) => [name, { ...hook, shaderContext: 'compute' }])
+    );
 
     const availableHooks = {
       ...vertexHooksWithContext,
       ...fragmentHooksWithContext,
+      ...computeHooksWithContext,
     };
     const hookTypes = Object.keys(availableHooks).map(name => shader.hookTypes(name));
 
@@ -133608,6 +137505,54 @@ var p5 = (function () {
       hook.set = function(result) {
         hook._result = result;
       };
+      hook._active = false;
+
+      const numStructArgs = hookType.parameters.filter(
+        param => param.type && param.type.properties
+      ).length;
+      let argIdx = -1;
+      if (numStructArgs === 1) {
+        argIdx = hookType.parameters.findIndex(
+          param => param.type && param.type.properties
+        );
+      }
+      if (argIdx >= 0) {
+        const structParam = hookType.parameters[argIdx];
+        if (structParam.type.properties) {
+          const nameMatch = /^get([A-Z0-9]\w*)$/.exec(hookType.name);
+          const displayName = nameMatch
+            ? nameMatch[1][0].toLowerCase() + nameMatch[1].slice(1)
+            : hookType.name;
+          for (const prop of structParam.type.properties) {
+            const key = prop.name;
+            Object.defineProperty(hook, key, {
+              get() {
+                if (!this._active) {
+                  userError(
+                    'scope error',
+                    `It looks like you're trying to access "${displayName}.${key}" outside of its begin()/end() block.\n\n` +
+                    `Properties of ${displayName} are only available between ` +
+                    `${displayName}.begin() and ${displayName}.end().\n\n` +
+                    `To share data between hooks, use sharedVec3() or sharedFloat() ` +
+                    `to pass values between them.`
+                  );
+                }
+                return this._args[this._argIdx][key];
+              },
+              set(val) {
+                if (!this._active) {
+                  userError(
+                    'scope error',
+                    `It looks like you're trying to set "${displayName}.${key}" outside of its begin()/end() block.`
+                  );
+                }
+                this._args[this._argIdx][key] = val;
+              },
+              enumerable: true,
+            });
+          }
+        }
+      }
 
       let entryBlockID;
       function setupHook() {
@@ -133616,34 +137561,27 @@ var p5 = (function () {
         addEdge(cfg, cfg.currentBlock, entryBlockID);
         pushBlock(cfg, entryBlockID);
         const args = createHookArguments(strandsContext, hookType.parameters);
-        const numStructArgs = hookType.parameters.filter(param => param.type.properties).length;
-        let argIdx = -1;
-        if (numStructArgs === 1) {
-          argIdx = hookType.parameters.findIndex(param => param.type.properties);
-        }
+        hook._active = true;
+        hook._args = args;
+        hook._argIdx = argIdx;
+        hook._properties = [];
         for (let i = 0; i < args.length; i++) {
           if (i === argIdx) {
             for (const key of args[argIdx].structProperties || []) {
-              Object.defineProperty(hook, key, {
-                get() {
-                  return args[argIdx][key];
-                },
-                set(val) {
-                  args[argIdx][key] = val;
-                },
-                enumerable: true,
-              });
+              hook._properties.push(key);
             }
             if (hookType.returnType?.typeName === hookType.parameters[argIdx].type.typeName) {
               hook.set(args[argIdx]);
             }
           } else {
+            hook._properties.push(hookType.parameters[i].name);
             hook[hookType.parameters[i].name] = args[i];
           }
         }
         return args;
       }
       function finishHook() {
+        hook._active = false;
         const userReturned = hook._result;
         strandsContext.activeHook = undefined;
 
@@ -133708,17 +137646,21 @@ var p5 = (function () {
               return newStruct.id;
             }
           }
+          else if (!expectedReturnType.dataType || expectedReturnType.typeName?.trim() === 'void') {
+            return null;
+          }
           else /*if(isNativeType(expectedReturnType.typeName))*/ {
-            if (!expectedReturnType.dataType) {
-              throw new Error(`Missing dataType for return type ${expectedReturnType.typeName}`);
-            }
             const expectedTypeInfo = expectedReturnType.dataType;
             return enforceReturnTypeMatch(strandsContext, expectedTypeInfo, retNode, hookType.name);
           }
         };
         for (const { valueNode, earlyReturnID } of hook.earlyReturns) {
           const id = handleRetVal(valueNode);
-          dag.dependsOn[earlyReturnID] = [id];
+          if (id !== null) {
+            dag.dependsOn[earlyReturnID] = [id];
+          } else {
+            dag.dependsOn[earlyReturnID] = [];
+          }
         }
         rootNodeID = userReturned ? handleRetVal(userReturned) : undefined;
         const fullHookName = `${hookType.returnType.typeName} ${hookType.name}`;
@@ -133727,7 +137669,7 @@ var p5 = (function () {
           hookType,
           entryBlockID,
           rootNodeID,
-          shaderContext: hookInfo?.shaderContext, // 'vertex' or 'fragment'
+          shaderContext: hookInfo?.shaderContext, // 'vertex', 'fragment', or 'compute'
         });
         popBlock(cfg);
       }    hook.begin = setupHook;
@@ -133759,7 +137701,6 @@ var p5 = (function () {
    * @module 3D
    * @submodule p5.strands
    * @for p5
-   * @requires core
    */
 
 
@@ -133782,6 +137723,7 @@ var p5 = (function () {
       ctx.uniforms = [];
       ctx.vertexDeclarations = new Set();
       ctx.fragmentDeclarations = new Set();
+      ctx.computeDeclarations = new Set();
       ctx.hooks = [];
       ctx.backend = backend;
       ctx.active = active;
@@ -133791,6 +137733,7 @@ var p5 = (function () {
       ctx.windowOverrides = {};
       ctx.fnOverrides = {};
       ctx.graphicsOverrides = {};
+      ctx._randomSeed = null;
       if (active) {
         p5.disableFriendlyErrors = true;
       }
@@ -133803,8 +137746,10 @@ var p5 = (function () {
       ctx.uniforms = [];
       ctx.vertexDeclarations = new Set();
       ctx.fragmentDeclarations = new Set();
+      ctx.computeDeclarations = new Set();
       ctx.hooks = [];
       ctx.active = false;
+      ctx._randomSeed = null;
       p5.disableFriendlyErrors = ctx.previousFES;
       for (const key in ctx.windowOverrides) {
         window[key] = ctx.windowOverrides[key];
@@ -133855,7 +137800,10 @@ var p5 = (function () {
     //////////////////////////////////////////////
     const oldModify = p5.Shader.prototype.modify;
 
-    p5.Shader.prototype.modify = function (shaderModifier, scope = {}) {
+    p5.Shader.prototype.modify = function (shaderModifier, scope = {}, options = {}) {
+      const fnOverrides = {};
+      const windowOverrides = {};
+      const graphicsOverrides = {};
       try {
         if (
           shaderModifier instanceof Function ||
@@ -133870,11 +137818,12 @@ var p5 = (function () {
           });
           createShaderHooksFunctions(strandsContext, fn, this);
           // TODO: expose this, is internal for debugging for now.
-          const options = { srcLocations: false };
+          options.parser = true;
+          options.srcLocations = false;
 
           // 1. Transpile from strands DSL to JS
           let strandsCallback;
-          {
+          if (options.parser) {
             // #7955 Wrap function declaration code in brackets so anonymous functions are not top level statements, which causes an error in acorn when parsing
             // https://github.com/acornjs/acorn/issues/1385
             const sourceString =
@@ -133887,6 +137836,8 @@ var p5 = (function () {
               options.srcLocations,
               scope,
             );
+          } else {
+            strandsCallback = shaderModifier;
           }
 
           // 2. Build the IR from JavaScript API
@@ -133895,11 +137846,24 @@ var p5 = (function () {
             BlockType.GLOBAL,
           );
           pushBlock(strandsContext.cfg, globalScope);
+          if (options.hook) {
+            strandsContext.renderer._pInst[options.hook].begin();
+            for (const key of strandsContext.renderer._pInst[options.hook]._properties) {
+              const hookProp = strandsContext.renderer._pInst[options.hook][key];
+              fnOverrides[key] = fn[key];
+              fn[key] = hookProp;
+              windowOverrides[key] = window[key];
+              window[key] = hookProp;
+              graphicsOverrides[key] = p5.Graphics.prototype[key];
+              p5.Graphics.prototype[key] = hookProp;
+            }
+          }
           if (strandsContext.renderer?._pInst?._runStrandsInGlobalMode) {
             withTempGlobalMode(strandsContext.renderer._pInst, strandsCallback);
           } else {
             strandsCallback();
           }
+          if (options.hook) strandsContext.renderer._pInst[options.hook].end();
           popBlock(strandsContext.cfg);
 
           // 3. Generate shader code hooks object from the IR
@@ -133912,6 +137876,15 @@ var p5 = (function () {
           return oldModify.call(this, shaderModifier);
         }
       } finally {
+        for (const key in fnOverrides) {
+          fn[key] = fnOverrides[key];
+        }
+        for (const key in windowOverrides) {
+          window[key] = windowOverrides[key];
+        }
+        for (const key in graphicsOverrides) {
+          p5.Graphics[key] = graphicsOverrides[key];
+        }
         // Reset the strands runtime context
         deinitStrandsContext(strandsContext);
       }
@@ -133924,7 +137897,18 @@ var p5 = (function () {
 
   /* ------------------------------------------------------------- */
   /**
-   * @property {Object} worldInputs
+   * @typedef {Object} WorldInputsHook
+   * @property {any} position
+   * @property {any} normal
+   * @property {any} texCoord
+   * @property {any} color
+   * @property {function(): undefined} begin
+   * @property {function(): undefined} end
+   */
+
+  /**
+   * @property {WorldInputsHook} worldInputs
+   * @beta
    * @description
    * A shader hook block that modifies the world-space properties of each vertex in a shader. This hook can be used inside <a href="#/p5/buildColorShader">`buildColorShader()`</a> and similar shader <a href="#/p5.Shader/modify">`modify()`</a> calls to customize vertex positions, normals, texture coordinates, and colors before rendering. Modifications happen between the `.begin()` and `.end()` methods of the hook. "World space" refers to the coordinate system of the 3D scene, before any camera or projection transformations are applied.
    *
@@ -133968,7 +137952,23 @@ var p5 = (function () {
    */
 
   /**
-   * @property {Object} combineColors
+   * @typedef {Object} CombineColorsHook
+   * @property {any} baseColor
+   * @property {any} diffuse
+   * @property {any} ambientColor
+   * @property {any} ambient
+   * @property {any} specularColor
+   * @property {any} specular
+   * @property {any} emissive
+   * @property {any} opacity
+   * @property {function(): undefined} begin
+   * @property {function(): undefined} end
+   * @property {function(color: any): void} set
+   */
+
+  /**
+   * @property {CombineColorsHook} combineColors
+   * @beta
    * @description
    * A shader hook block that modifies how color components are combined in the fragment shader. This hook can be used inside <a href="#/p5/buildMaterialShader">`buildMaterialShader()`</a> and similar shader <a href="#/p5.Shader/modify">`modify()`</a> calls to control the final color output of a material. Modifications happen between the `.begin()` and `.end()` methods of the hook.
    *
@@ -134020,7 +138020,143 @@ var p5 = (function () {
    */
 
   /**
+   * @property instanceIndex
+   * @beta
+   * @description
+   * Returns the index of the current instance when drawing multiple copies of a
+   * shape with <a href="#/p5/model">`model(count)`</a>. The first instance has an
+   * index of `0`, the second has `1`, and so on.
+   *
+   * This lets each copy of a shape behave differently. For example, you can use
+   * the index to place instances at different positions, give them different colors,
+   * or animate them at different speeds.
+   *
+   * `instanceIndex` can only be used inside a p5.strands shader callback.
+   *
+   * (Note: `instanceID()` is also available as a function for compatibility.)
+   *
+   * ```js example
+   * let instancesShader;
+   * let instance;
+   * let count = 5;
+   *
+   * function drawInstance() {
+   *   sphere(15);
+   * }
+   *
+   * function setup() {
+   *   createCanvas(200, 200, WEBGL);
+   *   instance = buildGeometry(drawInstance);
+   *   instancesShader = buildMaterialShader(drawSpaced);
+   *   describe('Five red spheres arranged in a horizontal line.');
+   * }
+   *
+   * function drawSpaced() {
+   *   worldInputs.begin();
+   *   // Spread spheres evenly across the canvas based on their index
+   *   let spacing = width / count;
+   *   worldInputs.position.x +=
+   *     (instanceIndex - (count - 1) / 2) * spacing;
+   *   worldInputs.end();
+   * }
+   *
+   * function draw() {
+   *   background(220);
+   *   lights();
+   *   noStroke();
+   *   fill('red');
+   *   shader(instancesShader);
+   *   model(instance, count);
+   * }
+   * ```
+   *
+   * If you are using WebGPU mode, a common pattern is to use `instanceIndex` to look up data made with
+   * <a href="#/p5/createStorage">`createStorage()`</a>.
+   * This lets you give each instance different properties.
+   *
+   * ```js example
+   * let instanceData;
+   * let instancesShader;
+   * let instance;
+   * let count = 5;
+   *
+   * async function setup() {
+   *   await createCanvas(200, 200, WEBGPU);
+   *
+   *   let data = [];
+   *   for (let i = 0; i < count; i++) {
+   *     data.push({
+   *       position: createVector(
+   *         random(-1, 1) * width / 2,
+   *         random(-1, 1) * height / 2,
+   *         0,
+   *       ),
+   *       color: color(
+   *         random(255),
+   *         random(255),
+   *         random(255)
+   *       )
+   *     });
+   *   }
+   *   instanceData = createStorage(data);
+   *   instance = buildGeometry(drawInstance);
+   *   instancesShader = buildMaterialShader(drawInstances);
+   *   describe('Five spheres at random positions, each a different random color.');
+   * }
+   *
+   * function drawInstance() {
+   *   sphere(15);
+   * }
+   *
+   * function drawInstances() {
+   *   let data = uniformStorage(instanceData);
+   *   let itemColor = sharedVec4();
+   *
+   *   worldInputs.begin();
+   *   let item = data[instanceIndex];
+   *   itemColor = item.color;
+   *   worldInputs.position += item.position;
+   *   worldInputs.end();
+   *
+   *   finalColor.begin();
+   *   finalColor.set(itemColor);
+   *   finalColor.end();
+   * }
+   *
+   * function draw() {
+   *   background(220);
+   *   lights();
+   *   noStroke();
+   *   shader(instancesShader);
+   *   model(instance, count);
+   * }
+   * ```
+   *
+   * This can be paired with <a href="#/p5/buildComputeShader">`buildComputeShader`</a>
+   * to update the data being read.
+   *
+   * @type {*}
+   */
+
+  /**
+   * @method instanceID
+   * @beta
+   * @deprecated Use <a href="#/p5/instanceIndex">`instanceIndex`</a> instead.
+   * @description
+   * A function alias for <a href="#/p5/instanceIndex">`instanceIndex`</a>, kept for compatibility.
+   * Prefer using <a href="#/p5/instanceIndex">`instanceIndex`</a> directly as a value instead.
+   *
+   * Returns the index of the current instance when drawing multiple copies of a
+   * shape with <a href="#/p5/model">`model(count)`</a>.
+   *
+   * `instanceID()` can only be used inside a p5.strands shader callback.
+   *
+   * @returns {*} The index of the current instance.
+   */
+
+  /**
    * @method smoothstep
+   * @beta
    * @description
    * A shader function that performs smooth Hermite interpolation between `0.0`
    * and `1.0`.
@@ -134181,7 +138317,27 @@ var p5 = (function () {
    */
 
   /**
-   * @property {Object} pixelInputs
+   * @typedef {Object} PixelInputsHook
+   * @property {any} normal
+   * @property {any} texCoord
+   * @property {any} ambientLight
+   * @property {any} ambientMaterial
+   * @property {any} specularMaterial
+   * @property {any} emissiveMaterial
+   * @property {any} color
+   * @property {any} shininess
+   * @property {any} metalness
+   * @property {any} tangent
+   * @property {any} center
+   * @property {any} position
+   * @property {any} strokeWeight
+   * @property {function(): undefined} begin
+   * @property {function(): undefined} end
+   */
+
+  /**
+   * @property {PixelInputsHook} pixelInputs
+   * @beta
    * @description
    * A shader hook block that modifies the properties of each pixel before the final color is calculated. This hook can be used inside <a href="#/p5/buildMaterialShader">`buildMaterialShader()`</a> and similar shader <a href="#/p5.Shader/modify">`modify()`</a> calls to adjust per-pixel data before lighting is applied. Modifications happen between the `.begin()` and `.end()` methods of the hook.
    *
@@ -134268,12 +138424,23 @@ var p5 = (function () {
    */
 
   /**
-   * @property finalColor
+   * @typedef {Object} FinalColorHook
+   * @property {any} color
+   * @property {any} texCoord
+   * @property {function(): undefined} begin
+   * @property {function(): undefined} end
+   * @property {function(color: any): void} set
+   */
+
+  /**
+   * @property {FinalColorHook} finalColor
+   * @beta
    * @description
    * A shader hook block that modifies the final color of each pixel after all lighting is applied. This hook can be used inside <a href="#/p5/buildMaterialShader">`buildMaterialShader()`</a> and similar shader <a href="#/p5.Shader/modify">`modify()`</a> calls to adjust the color before it appears on the screen. Modifications happen between the `.begin()` and `.end()` methods of the hook.
    *
    * `finalColor` has the following properties:
    * - `color`: a four-component vector representing the pixel color (red, green, blue, alpha).
+   * - `texCoord`: a two-component vector representing the texture coordinates (u, v)
    *
    * Call `.set()` on the hook with a vector with four components (red, green, blue, alpha) to update the final color.
    *
@@ -134350,7 +138517,18 @@ var p5 = (function () {
    */
 
   /**
-   * @property {Object} filterColor
+   * @typedef {Object} FilterColorHook
+   * @property {any} texCoord
+   * @property {any} canvasSize
+   * @property {any} texelSize
+   * @property {any} canvasContent
+   * @property {function(): undefined} begin
+   * @property {function(): undefined} end
+   * @property {function(color: any): void} set
+   */
+
+  /**
+   * @property {FilterColorHook} filterColor
    * @description
    * A shader hook block that sets the color for each pixel in a filter shader. This hook can be used inside <a href="#/p5/buildFilterShader">`buildFilterShader()`</a> to control the output color for each pixel.
    *
@@ -134394,7 +138572,18 @@ var p5 = (function () {
    */
 
   /**
-   * @property {Object} objectInputs
+   * @typedef {Object} ObjectInputsHook
+   * @property {any} position
+   * @property {any} normal
+   * @property {any} texCoord
+   * @property {any} color
+   * @property {function(): undefined} begin
+   * @property {function(): undefined} end
+   */
+
+  /**
+   * @property {ObjectInputsHook} objectInputs
+   * @beta
    * @description
    * A shader hook block to modify the properties of each vertex before any transformations are applied. This hook can be used inside <a href="#/p5/buildMaterialShader">`buildMaterialShader()`</a> and similar shader <a href="#/p5.Shader/modify">`modify()`</a> calls to customize vertex positions, normals, texture coordinates, and colors before rendering. Modifications happen between the `.begin()` and `.end()` methods of the hook. "Object space" refers to the coordinate system of the 3D scene before any transformations, cameras, or projection transformations are applied.
    *
@@ -134435,7 +138624,18 @@ var p5 = (function () {
    */
 
   /**
-   * @property {Object} cameraInputs
+   * @typedef {Object} CameraInputsHook
+   * @property {any} position
+   * @property {any} normal
+   * @property {any} texCoord
+   * @property {any} color
+   * @property {function(): undefined} begin
+   * @property {function(): undefined} end
+   */
+
+  /**
+   * @property {CameraInputsHook} cameraInputs
+   * @beta
    * @description
    * A shader hook block that adjusts vertex properties from the perspective of the camera. This hook can be used inside <a href="#/p5/buildMaterialShader">`buildMaterialShader()`</a> and similar shader <a href="#/p5.Shader/modify">`modify()`</a> calls to customize vertex positions, normals, texture coordinates, and colors before rendering. "Camera space" refers to the coordinate system of the 3D scene after transformations have been applied, seen relative to the camera.
    *
@@ -134478,30 +138678,37 @@ var p5 = (function () {
    */
 
   /**
-   * Retrieves the current color of a given texture at given coordinates.
+   * Declares a storage buffer uniform inside a <a href="#/p5.Shader/modify">modify()</a> callback,
+   * making a <a href="#/p5/createStorage">createStorage()</a> buffer accessible in the shader.
    *
-   * The given coordinates should be between [0, 0] representing the top-left of
-   * the texture, and [1, 1] representing the bottom-right of the texture.
+   * Pass a `p5.StorageBuffer` (or a function returning one) as the second argument
+   * to set it as the default value, applied automatically each frame. Pass a plain
+   * object with the same field layout as the buffer's struct elements to declare the
+   * schema without binding a specific buffer.
    *
-   * The given texture could be, for example:
-   * * <a href="#/p5.Image">p5.Image</a>,
-   * * a <a href="#/p5.Graphics">p5.Graphics</a>, or
-   * * a <a href="#/p5.Framebuffer">p5.Framebuffer</a>.
+   * When called without a name, p5.strands automatically uses the name of the
+   * variable it is assigned to as the uniform name.
    *
-   * The retrieved color that is returned will behave like a vec4, with components
-   * for red, green, blue, and alpha, each between 0.0 and 1.0.
+   * Note: `uniformStorage` is only available when using p5.strands.
    *
-   * Linear interpolation is used by default. For Framebuffer sources, you can
-   * prevent this by creating the buffer with:
-   * ```js
-   * createFramebuffer({
-   *     textureFiltering: NEAREST
-   *  })
-   * ```
-   * This can be useful if you are using your texture to store data other than color.
-   * See <a href="#/p5/createFramebuffer/">createFramebuffer</a>.
-   *
-   * Note: The `getTexture` function is only available when using p5.strands.
+   * @method uniformStorage
+   * @beta
+   * @webgpu
+   * @webgpuOnly
+   * @submodule p5.strands
+   * @param {String} name The name of the storage buffer uniform in the shader.
+   * @param {p5.StorageBuffer|Function|Object} [bufferOrSchema] A storage buffer to bind,
+   *   a function returning a storage buffer (called each frame), or a plain object
+   *   describing the struct field layout.
+   * @returns {*} A strands node representing the storage buffer.
+   */
+  /**
+   * @method uniformStorage
+   * @param {p5.StorageBuffer|Function|Object} [bufferOrSchema]
+   * @returns {*}
+   */
+
+  /**
    *
    * @method getTexture
    * @beta
@@ -134611,32 +138818,172 @@ var p5 = (function () {
 
   /**
    * @method getWorldInputs
+   * @beta
    * @param {Function} callback
    */
 
   /**
    * @method getPixelInputs
+   * @beta
    * @param {Function} callback
    */
 
   /**
    * @method getFinalColor
+   * @beta
    * @param {Function} callback
    */
 
   /**
    * @method getColor
+   * @beta
    * @param {Function} callback
    */
 
   /**
    * @method getObjectInputs
+   * @beta
    * @param {Function} callback
    */
 
   /**
    * @method getCameraInputs
+   * @beta
    * @param {Function} callback
+   */
+
+  /**
+   * Performs linear interpolation between two values.
+   *
+   * The `mix()` function linearly interpolates between two values based on a third
+   * parameter. It's a GLSL built-in function available in p5.strands shaders.
+   *
+   * The function computes: `x * (1 - a) + y * a`
+   *
+   * When `a` is 0.0, the function returns `x`. When `a` is 1.0, it returns `y`.
+   * Values between 0.0 and 1.0 produce a linear blend between the two values.
+   *
+   * This function works with scalars, vectors (vec2, vec3, vec4), and can also
+   * accept a boolean for the third parameter to select between the two values.
+   *
+   * Note: This function is only available inside shader code created with
+   * <a href="#/p5/buildMaterialShader">buildMaterialShader()</a>,
+   * <a href="#/p5/buildColorShader">buildColorShader()</a>, or similar functions.
+   * For regular p5.js code, use <a href="#/p5/lerp">lerp()</a> instead.
+   *
+   * @method mix
+   * @param  {Number|p5.Vector} x first value to interpolate from.
+   * @param  {Number|p5.Vector} y second value to interpolate to.
+   * @param  {Number|Boolean} a interpolation amount (0.0-1.0) or boolean selector.
+   * @return {Number|p5.Vector} interpolated value.
+   *
+   * @example
+   * <div modernizr='webgl'>
+   * <code>
+   * let myShader;
+   *
+   * function setup() {
+   *   createCanvas(200, 200, WEBGL);
+   *   myShader = buildMaterialShader(applyMix);
+   *   describe('A sphere that transitions smoothly between red and blue.');
+   * }
+   *
+   * function applyMix() {
+   *   let factor = uniformFloat();
+   *
+   *   pixelInputs.begin();
+   *   // Mix between red and blue based on factor
+   *   let red = vec3(1, 0, 0);
+   *   let blue = vec3(0, 0, 1);
+   *   let mixedColor = mix(red, blue, factor);
+   *   pixelInputs.color = vec4(mixedColor, 1);
+   *   // Set ambient color to match to avoid default ambient lighting
+   *   pixelInputs.ambientColor = pixelInputs.color.rgb;
+   *   pixelInputs.end();
+   * }
+   *
+   * function draw() {
+   *   background(255);
+   *   shader(myShader);
+   *   // Oscillate factor between 0 and 1
+   *   let factor = (sin(frameCount * 0.02) + 1) / 2;
+   *   myShader.setUniform('factor', factor);
+   *   noStroke();
+   *   sphere(80);
+   * }
+   * </code>
+   * </div>
+   *
+   * @example
+   * <div modernizr='webgl'>
+   * <code>
+   * let myShader;
+   *
+   * function setup() {
+   *   createCanvas(200, 200, WEBGL);
+   *   myShader = buildMaterialShader(positionMix);
+   *   describe('A sphere with vertices that blend between two positions.');
+   * }
+   *
+   * function positionMix() {
+   *   let time = uniformFloat();
+   *
+   *   worldInputs.begin();
+   *   // Blend vertex position between original and modified
+   *   let originalPos = worldInputs.position;
+   *   let modifiedPos = originalPos + vec3(0, sin(time * 0.001) * 20, 0);
+   *   let factor = (sin(worldInputs.position.x * 0.1) + 1) / 2;
+   *   worldInputs.position = mix(originalPos, modifiedPos, factor);
+   *   worldInputs.end();
+   * }
+   *
+   * function draw() {
+   *   background(220);
+   *   shader(myShader);
+   *   myShader.setUniform('time', millis());
+   *   lights();
+   *   noStroke();
+   *   fill('red');
+   *   sphere(70);
+   * }
+   * </code>
+   * </div>
+   *
+   * @example
+   * <div modernizr='webgl'>
+   * <code>
+   * let myShader;
+   *
+   * function setup() {
+   *   createCanvas(200, 200, WEBGL);
+   *   myShader = buildMaterialShader(gradientMix);
+   *   describe('A torus with a color gradient created using mix().');
+   * }
+   *
+   * function gradientMix() {
+   *   pixelInputs.begin();
+   *   // Create a gradient based on texture coordinates
+   *   let gradient = pixelInputs.texCoord.x;
+   *   let color1 = vec3(1, 0.5, 0); // Orange
+   *   let color2 = vec3(0.5, 0, 1); // Purple
+   *   let mixedColor = mix(color1, color2, gradient);
+   *   pixelInputs.color = vec4(mixedColor, 1);
+   *   // Set ambient color to match to avoid default ambient lighting
+   *   pixelInputs.ambientColor = pixelInputs.color.rgb;
+   *   pixelInputs.end();
+   * }
+   *
+   * function draw() {
+   *   background(200);
+   *   shader(myShader);
+   *   lights();
+   *   noStroke();
+   *   rotateX(frameCount * 0.01);
+   *   rotateY(frameCount * 0.01);
+   *   torus(60, 20);
+   * }
+   * </code>
+   * </div>
    */
 
   /**
@@ -134651,6 +138998,7 @@ var p5 = (function () {
    * @return {Undefined}
    */
   const _globalInit = () => {
+    if(typeof window === 'undefined') return;
     // Could have been any property defined within the p5 constructor.
     // If that property is already a part of the global object,
     // this code has already run before, likely due to a duplicate import
@@ -134678,17 +139026,20 @@ var p5 = (function () {
   };
 
   // make a promise that resolves when the document is ready
-  const waitForDocumentReady = () =>
-    new Promise((resolve, reject) => {
-      // if the page is ready, initialize p5 immediately
-      if (document.readyState === 'complete') {
-        resolve();
-        // if the page is still loading, add an event listener
-        // and initialize p5 as soon as it finishes loading
-      } else {
-        window.addEventListener('load', resolve, false);
-      }
-    });
+  const waitForDocumentReady = () =>{
+    if(typeof document !== 'undefined'){
+      return new Promise((resolve, reject) => {
+        // if the page is ready, initialize p5 immediately
+        if (document.readyState === 'complete') {
+          resolve();
+          // if the page is still loading, add an event listener
+          // and initialize p5 as soon as it finishes loading
+        } else {
+          window.addEventListener('load', resolve, false);
+        }
+      });
+    }
+  };
 
   // only load translations if we're using the full, un-minified library
   const waitingForTranslator =

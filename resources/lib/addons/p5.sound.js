@@ -329,13 +329,47 @@
      * 	console.log("context started");
      * });
      * @category Core
-     */  function clamp(value, min, max) {
+     */  
+  /**
+       * A private function used to constrain values to a range and prevent boundary violations. 
+       * @private
+       * @function clamp
+    */
+  function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
   }
   /**
-     *  Get the window's audio context.
+     *  Get the window's audio context. For patching p5.sound.js into other JavaScript sound libraries. 
      *  @function getAudioContext
      *  @return {AudioContext} the audio context
+     *  @example
+     *  <div>
+     *  <code>
+     *  let synth, ctx
+     *  
+     *  function setup() {
+     *    createCanvas(400, 400);
+     *    //get the p5.sound.js Audio Context
+     *    ctx = getAudioContext()
+     *    //set the Tone.js Audio Context to match the p5.sound.js context
+     *    Tone.setContext(ctx)
+     *    //create a new MembraneSynth from the Tone.js library
+     *    synth = new Tone.MembraneSynth();
+     *    //create a new p5.sound.js Reverb effect
+     *    rev = new p5.Reverb(3)
+     *    //connect the MembraneSynth to the Reverb
+     *    rev.setInput(synth)
+     *  }
+     *  
+     *  function draw() {
+     *    background(220);
+     *  }
+     *  
+     *  function mousePressed() {
+     *    synth.triggerAttackRelease("C2", "8n");
+     *  }
+     *  </code>
+     *  </div>
      */  function getAudioContext() {
     return audioContext || (audioContext = new window.AudioContext, setContext(audioContext)), 
     audioContext;
@@ -344,6 +378,34 @@
      *  Sets the AudioContext to a specified context to enable cross library compatibility.
      *  @function setAudioContext
      *  @param {AudioContext} the desired AudioContext.
+     *  @example
+     *  <div>
+     *  <code>
+     *  let synth, ctx
+     *  
+     *  function setup() {
+     *    createCanvas(400, 400);
+     *    //get the p5.sound.js Audio Context
+     *    ctx = getAudioContext()
+     *    //set the Tone.js Audio Context to match the p5.sound.js context
+     *    Tone.setContext(ctx)
+     *    //create a new MembraneSynth from the Tone.js library
+     *    synth = new Tone.MembraneSynth();
+     *    //create a new p5.sound.js Reverb effect
+     *    rev = new p5.Reverb(3)
+     *    //connect the MembraneSynth to the Reverb
+     *    rev.setInput(synth)
+     *  }
+     *  
+     *  function draw() {
+     *    background(220);
+     *  }
+     *  
+     *  function mousePressed() {
+     *    synth.triggerAttackRelease("C2", "8n");
+     *  }
+     *  </code>
+     *  </div>
      */  
   /**
      * Equal power gain scale. Good for cross-fading.
@@ -7087,9 +7149,9 @@
      *  @for p5.sound
      */
   /**
-     * This is the primary or "base" class for p5.sound.js nodes.
+     * This is the primary or "base" class for p5.sound.js "nodes."
      * 
-     * It allows p5.sound.js audio sources and effects to connect to one another. It also allows you to modify their volumes. 
+     * It allows p5.sound.js audio sources and effects to connect to one another. It also allows you to change how loud they are. 
      * @class p5soundNode
      * @constructor
      */
@@ -7109,23 +7171,23 @@
        * <div>
        * <code>
        * let osc, lfo;
-       * let cnv;
        * 
        * function setup() {
        *   describe("a sketch that demonstrates amplitude modulation with an LFO and sine tone");
-       *   cnv = createCanvas(100, 100);
-       *   cnv.mousePressed(startSound);
+       *   createCanvas(100, 100);
        *   textAlign(CENTER);
        *   textWrap(WORD);
        *   textSize(10);
        *   
        *   osc = new p5.Oscillator('sine');
+       *   // an LFO stands for 'Low Frequency Oscillator,' they are used often in sound synthesis to create control signals for audio parameters. In the line below, we create an LFO by initializing a slowly moving oscillator which we will use to control the amplitude (or volume) of another sound source.
        *   lfo = new p5.Oscillator(1);
        *   lfo.disconnect();
+       *   //comment out the line below to only adjust the source sound amplitude with mouse movements.
        *   osc.amp(lfo);
        * }
        * 
-       * function startSound() {
+       * function mousePressed() {
        *   lfo.start();
        *   osc.start();
        * }
@@ -7141,14 +7203,14 @@
        * </code>
        * </div>
        */    amp(value, p = .1) {
-      if ("object" == typeof value) return void value.getNode().connect(this.node.volume);
+      if ("object" == typeof value) return void value.connect(this.output.gain);
       let dbValue = gainToDb(value);
       this.node.volume.rampTo(dbValue, p);
     }
     /**
        * Connects audio nodes together.  
        * 
-       * You can connect a node to multiple destinations simultaneously by calling this method multiple times.
+       * You can connect a node to multiple destinations simultaneously by calling this method multiple times on additional destination nodes.
        * @method connect
        * @for p5soundNode
        * @param {Object} destination The node you would like to connect to.
@@ -7160,8 +7222,7 @@
        * 
        * function setup() {
        *   describe("a sketch that demonstrates how to connect an audio source node to an effect node");
-       *   cnv = createCanvas(100, 100);
-       *   cnv.mousePressed(startSound);
+       *   createCanvas(100, 100);
        *   textAlign(CENTER);
        *   textWrap(WORD);
        *   textSize(10);
@@ -7174,7 +7235,7 @@
        *   osc.connect(delay);
        * }
        * 
-       * function startSound() {
+       * function mousePressed() {
        *   osc.start();
        * }
        * 
@@ -7191,25 +7252,92 @@
        */    connect(destination) {
       "function" == typeof destination.getNode ? this.output.connect(destination.getNode()) : this.output.connect(destination);
     }
-    setInput(source) {
+    /**
+       * Set the input of an effect node. 
+       * 
+       * @method setInput
+       * @for p5soundNode
+       * @param {Object} input The node you would like to use as an input.
+       * @example
+       * <div>
+       * <code>
+       * let osc, delay;
+       * let cnv;
+       * 
+       * function setup() {
+       *   describe("a sketch that demonstrates how to connect an audio source node to an effect node");
+       *   createCanvas(100, 100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       *   
+       *   osc = new p5.Oscillator('sine');
+       *   delay = new p5.Delay(0.120, 0.65);
+       *   //disconnect the oscillator from the speakers before connecting to the delay effect!
+       *   osc.disconnect();
+       *   //connect the oscillator to the delay effect.
+       *   delay.setInput(osc);
+       * }
+       * 
+       * function mousePressed() {
+       *   osc.start();
+       * }
+       * 
+       * function draw(){
+       *   background(220);
+       *   text('click to play sound', 0, height/2 - 20, 100);
+       *   text('control oscillator frequency with mouseX position', 0, height/2, 100);
+       * 
+       *   let freq = map(mouseX, 0, width, 800, 1600);
+       *   osc.freq(freq);
+       * }
+       * </code>
+       * </div>
+       */    setInput(source) {
       //for p5 nodes
-      return "function" == typeof source.getNode ? (source.connect(this.input), void console.log("firstcase")) : 
-      //for tone.js nodes
-      "function" != typeof source.connect || void 0 === source.output ? 
+      "function" != typeof source.getNode && ("function" != typeof source.connect || void 0 === source.output) ? 
       //for web audio nodes
-      source instanceof AudioNode ? (source.connect(this.input), void console.log("thirdcase")) : void 0 : void source.connect(this.input);
-    }
+      source instanceof AudioNode && source.connect(this.input) : source.connect(this.input);
+      //for tone.js nodes
+        }
     /**
        * Disconnect an audio node from the main output.
        * 
-       * You may want to disconnect your audio source from the main output before you connect it to another effect. It is used in many of the p5.sound.js examples.
+       * You may want to disconnect your audio node from the main output before you connect it to another effect. It is used in many of the p5.sound.js examples.
        * @method disconnect
        * @for p5soundNode
+       * @example
+       * <div>
+       * <code>
+       * instruction = "click to start"
+       *
+       * function setup() {
+       *   describe("a sketch that demonstrates how to disconnect an audio node from the main output destination");
+       *   createCanvas(100, 100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       *   osc = new p5.Oscillator('sine');   
+       * }
+       *     
+       * function mousePressed() { 
+       *   osc.start();
+       *   osc.disconnect();
+       *   instruction = "oscillator has started but is disonnected"
+       * }
+       *     
+       * function draw() {
+       *   background(220)
+       *   text(instruction, 0, 10, 100);
+       * }
+       * </code>
+       * </div>
        */    disconnect() {
       this.output.disconnect();
     }
     /**
-       * A private function that is called when an audio source tries to connect to this node.  
+       * A private function that is called when an audio source tries to connect to this node. Called internally by the connect() method. 
+       * @private
        * @method getNode
        * @for p5soundNode
        */    getNode() {
@@ -7222,18 +7350,18 @@
      *  @for p5.sound
      */
   /**
-     * Generic methods for p5 sound nodes that GENERATE audio. 
+     * Generic methods for p5 sound nodes that GENERATE sound. 
      * @class p5soundSource
      * @constructor
      * @extends p5soundNode
      */  class p5soundSource extends p5soundNode {
     constructor() {
-      super();
+      super(), this.started = !1;
     }
     /**
        * Starts the p5 sound source.
        * 
-       * Should be called from a user interaction, such as MousePressed() in order respect the browser's autoplay policy.
+       * Should be called from a user interaction such as MousePressed() in order to adhere to the browser's autoplay policy.
        * @method start
        * @for p5soundSource
        * @example
@@ -7244,8 +7372,7 @@
        * 
        * function setup() {
        *   describe("a sketch that demonstrates how to connect an audio source node to an effect node");
-       *   cnv = createCanvas(100, 100);
-       *   cnv.mousePressed(startSound);
+       *   createCanvas(100, 100);
        *   textAlign(CENTER);
        *   textWrap(WORD);
        *   textSize(10);
@@ -7258,7 +7385,7 @@
        *   osc.connect(delay);
        * }
        * 
-       * function startSound() {
+       * function mousePressed() {
        *   osc.start();
        * }
        * 
@@ -7273,7 +7400,7 @@
        * </code>
        * </div>
        */    start() {
-      this.node.start();
+      this.node.start(), this.started = !0;
     }
     /**
        * Stops the p5 sound source.
@@ -7288,8 +7415,7 @@
        * 
        * function setup() {
        *   describe("a sketch that demonstrates how to stop and start an audio source node");
-       *   cnv = createCanvas(100, 100);
-       *   cnv.mousePressed(startSound);
+       *   createCanvas(100, 100);
        *   textAlign(CENTER);
        *   textWrap(WORD);
        *   textSize(10);
@@ -7302,7 +7428,7 @@
        *   osc.connect(delay);
        * }
        * 
-       * function startSound() {
+       * function mousePressed() {
        *   if (!isPlaying) {
        *     osc.start();
        *     isPlaying = true; 
@@ -7320,7 +7446,7 @@
        * </code>
        * </div>
        */    stop() {
-      this.node.stop();
+      this.node.stop(), this.started = !1;
     }
   }
   /**
@@ -7350,14 +7476,14 @@
        * let osc, del
        *
        * function setup() {
-       *   cnv = createCanvas(100, 100);
-       *   background(220);
+       *   createCanvas(100, 100);
        *   osc = new p5.Oscillator();
        *   osc.disconnect();
        *   del = new p5.Delay();
        *   osc.connect(del);
        *   del.delayTime(0.25);
        *   del.feedback(0.5);
+       *   //changes the blend between the original and effect signal to 50%
        *   del.wet(0.5);
        * }
        *
@@ -7367,6 +7493,7 @@
        *
        * function draw() {
        *   del.delayTime(map(mouseX, 0, width, 0.01, 0.5));
+       *   //map the blend between effect and dry signal to mouse position
        *   del.wet(map(mouseY, 0, height, 0.1, 0.9));
        *   background(220);
        *   textAlign(CENTER);
@@ -7911,12 +8038,23 @@
      * @hidden
      */  const scaleIndexToNote = [ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" ];
   /**
+     * Convert a value into a FrequencyClass object.
+     * @category Unit
+     * @example
+     * const midi = Tone.Frequency("C3").toMidi();
+     * console.log(midi);
+     * @example
+     * const hertz = Tone.Frequency(38, "midi").toFrequency();
+     * console.log(hertz);
+     */  
+  /**
      * TransportTime is a time along the Transport's
      * timeline. It is similar to Tone.Time, but instead of evaluating
      * against the AudioContext's clock, it is evaluated against
      * the Transport's position. See [TransportTime wiki](https://github.com/Tonejs/Tone.js/wiki/TransportTime).
      * @category Unit
-     */  class TransportTimeClass extends TimeClass {
+     */
+  class TransportTimeClass extends TimeClass {
     constructor() {
       super(...arguments), this.name = "TransportTime";
     }
@@ -11410,23 +11548,27 @@
      * </code> 
      * </div>
      */
+  // new p5.Osillator(400, "triangle")
+  // new p5.Oscillator("triangle", 400)
+  //act as enum
+  //if one of inputs is a number we know the other is a type
+  //if on of the types is a string like"sawtooth" the other is the frequency
+  //assume first is frequency
+  //string in list of types ['sine', 'sawtooth', 'square', 'triangle']
   class Oscillator extends p5soundSource {
     constructor(frequency = 440, type = "sine") {
-      if (super(), "string" == typeof frequency && "string" == typeof type) {
-        let f = frequency;
-        frequency = 440, type = f;
-      }
-      if ("string" == typeof frequency && "number" == typeof type) {
-        let t = type;
-        type = frequency, frequency = t;
-      }
-      this.frequency = frequency, this.type = type, this.node = (new Oscillator$2).connect(this.output), 
-      this.node.frequency.value = this.frequency, this.node.type = this.type, this.node.volume.value = -6;
+      let tempType;
+      let tempFrequency;
+      super(), [ "sine", "triangle", "sawtooth", "square" ].includes(frequency) && (tempType = frequency, 
+      tempFrequency = [ "sine", "triangle", "sawtooth", "square" ].includes(type) ? 440 : type, 
+      type = tempType, frequency = tempFrequency), this.frequency = frequency, this.type = type, 
+      this.node = (new Oscillator$2).connect(this.output), this.node.frequency.value = this.frequency, 
+      this.node.type = this.type, this.node.volume.value = -6;
     }
     /**
        * Adjusts the frequency of the oscillator.
        * 
-       * Frequency is measured int Hertz (Hz) and determines the amount of cycles a waveform (square, sawtooth, etc...) will repeat in a second. The amount of repetitions will result in a change in perceived 'pitch.' You can lookup corresponding frequency values for 'notes' if you would like to play a scale. For example, 'middle C' on the keyboard has a frequency of 261.63 Hz.
+       * Frequency is measured int Hertz (Hz) and determines the amount of cycles a waveform (square, sawtooth, etc...) will repeat in a second. The amount of repetitions results in a change of perceived 'pitch.' You can lookup corresponding frequency values for 'notes' if you would like to play a scale. For example, 'middle C' on the keyboard has a frequency of 261.63 Hz. You can also use note names such as C4, D4, C#4 (for octaves in range of -4 to 11).  
        * @method freq
        * @for Oscillator
        * @param {Number} frequency frequency of the oscillator in Hz (cycles per second). used to change 'pitch' or 'notes.'
@@ -11437,16 +11579,27 @@
        * 
        * </code>
        * </div>
-       */    freq(f, p = 0) {
-      this.node.frequency.rampTo(clamp(f, 0, 24e3), p);
+       */    freq(f, rampTime = 0) {
+      if ("number" == typeof f) this.node.frequency.rampTo(clamp(f, 0, 24e3), rampTime); else {
+        if ("string" != typeof f) return void console.warn("Oscillator.freq(): argument must be a number (Hz) or a note name string (e.g. 'C4')");
+        {
+          let hz = clamp((value = f, new FrequencyClass(getContext(), value, units)).toFrequency(), 0, 24e3);
+          this.node.frequency.rampTo(hz, rampTime);
+        }
+      }
+      var value, units;
     }
     /**
        * Adjusts the phase of the oscillator. Effectively, this changes the starting point of waveform.
        * 
-       * You might want to adjust the phase of an oscillator in more advanced sound design tasks when layering multiple oscillators to produce a particular instrument or timbre.
+       * You might want to adjust the phase of an oscillator in more advanced sound design scenarios when layering multiple oscillators at different offsets to produce a particular instrument or timbre.
        * @method phase
        * @for Oscillator
-       * @param {Number} phase phase of the oscillator in degrees (0-360). 
+       * @param {Number} phase phase of the oscillator in degrees (0-360).
+       * @example
+       * <div>
+       * <code>
+       * 
        */    phase(p) {
       this.node.phase = p;
     }
@@ -11457,6 +11610,36 @@
        * @param {String} type type of the oscillator. Options:
        *                 'sine' (default), 'triangle',
        *                 'sawtooth', 'square'
+       * @example
+       * <div>
+       * <code>
+       * let waveShapes = ['sine', 'sawtooth', 'square', 'triangle'];
+       * let currentWaveShape;
+       *  
+       * function setup() {
+       *   createCanvas(100, 100);
+       *   textAlign(CENTER);
+       *   currentWaveShape = random(waveShapes)
+       *   osc = new p5.Oscillator(currentWaveShape);
+       *   //create an envelope to stop the oscillator after a second or so. 
+       *   env = new p5.Envelope(0.01, 0.1, 0.45, 0.5);
+       *   osc.disconnect();
+       *   osc.connect(env);
+       * }
+       *  
+       * function mousePressed() {
+       *   osc.start();
+       *   env.play();
+       *   currentWaveShape = random(waveShapes);
+       *   osc.setType(currentWaveShape);
+       * }
+       *  
+       * function draw() {
+       *   background(220);
+       *   text('tap to play', width/2, 20);
+       *   let txt = 'type: ' + currentWaveShape;
+       *   text(txt, width/2, 40);
+       * }
        */    setType(t) {
       this.node.type = t;
     }
@@ -11467,6 +11650,28 @@
      * @constructor
      * @extends Oscillator
      * @param {Number} [freq] Set the frequency
+     * * @example
+     * <div>
+     * <code>
+     * function setup() {
+     *   describe("a sketch that creates an oscillator with a sawtooth wave shape");
+     *   createCanvas(100, 100);
+     *   textAlign(CENTER);
+     *   textWrap(WORD);
+     *   textSize(10);
+     *   osc = new p5.SinOsc;
+     * }
+     * 
+     * function mousePressed() {
+     *   osc.start();
+     * }
+     * 
+     * function draw(){
+     *   background(220);
+     *   text('click to hear a sawtooth wave shape', 0, 10, 100);
+     * }
+     * </code>
+     * </div>
      */  var Oscillator$1 = Oscillator;
   /**
      * Assert that the number is in the given range.
@@ -11888,6 +12093,48 @@
        * Trigger the envelope and release it after the sustain time.
        * @method play
        * @for Envelope
+       * @example
+       * <div>
+       * <code>
+       * let fft, noise, envelope;
+       * 
+       * function setup() {
+       *   createCanvas(100,100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       *   fill(255, 0, 255);
+       * 
+       *   envelope = new p5.Envelope();
+       *   noise = new p5.Noise();
+       *   noise.disconnect();
+       *   noise.connect(envelope);
+       * 
+       *   fft = new p5.FFT(128);
+       *   envelope.connect(fft);
+       * }
+       * 
+       * function draw() {
+       *   background(220);
+       * 
+       *   // draw the audio spectrum
+       *   let spectrum = fft.analyze();
+       *   noStroke();
+       *   fill(0, 0, 0);
+       *   for (let i = 0; i < spectrum.length; i++) {
+       *     let x = map(i, 0, spectrum.length, 0, width);     
+       *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+       *     rect(x, height, width / spectrum.length, h )
+       *   }
+       *   text('click to play an enveloped noise burst', 10, 20, width - 20);
+       * }
+       * 
+       * function mousePressed() {
+       *   noise.start();
+       *   envelope.play();
+       * }
+       * </code>
+       * </div>
        */    play() {
       this.node.triggerAttackRelease(this.sustain);
     }
@@ -11981,13 +12228,6 @@
       this.node.triggerRelease();
     }
     /**
-       * @method setInput
-       * @for Envelope
-       * @param {Object} unit A p5.sound Object 
-       */    setInput(input) {
-      input.getNode().connect(this.node);
-    }
-    /**
        * Sets the attack, decay, sustain, and release times of the envelope.
        * @method setADSR
        * @for Envelope
@@ -11995,6 +12235,50 @@
        * @param {Number} decay how quickly the envelope reaches the sustain level
        * @param {Number} sustain how long the envelope stays at the decay level
        * @param {Number} release how quickly the envelope fades out after the sustain level
+       * @example
+       * <div>
+       * <code>
+       * let fft, noise, envelope;
+       *
+       * function setup() {
+       *   createCanvas(100,100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       *   fill(255, 0, 255);
+       * 
+       *   envelope = new p5.Envelope();
+       *   noise = new p5.Noise();
+       *   noise.disconnect();
+       *   noise.connect(envelope);
+       * 
+       *   fft = new p5.FFT(128);
+       *   envelope.connect(fft);
+       *   //adjust the envelop parameters to create unique sounds
+       *   envelope.setADSR(0.1, 2.1, 1, 3);
+       * }
+       * 
+       * function draw() {
+       *   background(220);
+       * 
+       *   // draw the audio spectrum
+       *   let spectrum = fft.analyze();
+       *   noStroke();
+       *   fill(0, 0, 0);
+       *   for (let i = 0; i < spectrum.length; i++) {
+       *     let x = map(i, 0, spectrum.length, 0, width);     
+       *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+       *     rect(x, height, width / spectrum.length, h )
+       *   }
+       *   text('click to play an enveloped noise burst', 10, 20, width - 20);
+       * }
+       * 
+       * function mousePressed() {
+       *   noise.start();
+       *   envelope.play();
+       * }
+       * </code>
+       * </div>
        */    setADSR(a, d, s, r) {
       this.node.attack = a, this.node.decay = d, this.node.sustain = s, this.node.release = r;
     }
@@ -12002,7 +12286,53 @@
        * Sets the release time of the envelope.
        * @method releaseTime
        * @for Envelope
-       * @param {Number} releaseTime the release time in seconds 
+       * @param {Number} releaseTime the release time of the envelope in seconds 
+       * @example
+       * <div>
+       * <code>
+       * let fft, noise, envelope;
+       *
+       * function setup() {
+       *   createCanvas(100,100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       *   fill(255, 0, 255);
+       * 
+       *   envelope = new p5.Envelope();
+       *   noise = new p5.Noise();
+       *   noise.disconnect();
+       *   noise.connect(envelope);
+       * 
+       *   fft = new p5.FFT(128);
+       *   envelope.connect(fft);
+       * }
+       * 
+       * function draw() {
+       *   background(220);
+       * 
+       *   // draw the audio spectrum
+       *   let spectrum = fft.analyze();
+       * 
+       *   //move the mouse to change the envelope's release time
+       *   let releaseTime = round(map(mouseX, 0, width, 0.1, 5));
+       *   envelope.releaseTime(releaseTime);
+       * 
+       *   noStroke();
+       *   fill(0, 0, 0);
+       *   for (let i = 0; i < spectrum.length; i++) {
+       *     let x = map(i, 0, spectrum.length, 0, width);     
+       *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+       *     rect(x, height, width / spectrum.length, h )
+       *   }
+       *   text('click to play noise and move mouse to change release time', 10, 10, width - 20);
+       *   text('Release Time: ' + releaseTime, 0, 65, width);
+       * }
+       * 
+       * function mousePressed() {
+       *   noise.start();
+       *   envelope.play();
+       * }
        */    releaseTime(value) {
       this.node.release = value;
     }
@@ -12010,7 +12340,55 @@
        * Sets the attack time of the envelope.
        * @method attackTime
        * @for Envelope
-       * @param {Number} attackTime the attack time in seconds 
+       * @param {Number} attackTime the attack time of the envelope in seconds 
+       * @example
+       * <div>
+       * <code>
+       * let fft, noise, envelope;
+       *
+       * function setup() {
+       *   createCanvas(100,100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       *   fill(255, 0, 255);
+       * 
+       *   envelope = new p5.Envelope();
+       *   noise = new p5.Noise();
+       *   noise.disconnect();
+       *   noise.connect(envelope);
+       * 
+       *   fft = new p5.FFT(128);
+       *   envelope.connect(fft);
+       * }
+       * 
+       * function draw() {
+       *   background(220);
+       * 
+       *   // draw the audio spectrum
+       *   let spectrum = fft.analyze();
+       * 
+       *   //move the mouse to change the envelope's attack time
+       *   let attackTime = round(map(mouseX, 0, width, 0.01, 0.4), 2);
+       *   envelope.attackTime(attackTime);
+       * 
+       *   noStroke();
+       *   fill(0, 0, 0);
+       *   for (let i = 0; i < spectrum.length; i++) {
+       *     let x = map(i, 0, spectrum.length, 0, width);     
+       *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+       *     rect(x, height, width / spectrum.length, h )
+       *   }
+       *   text('click to play noise and move mouse to change attack time', 10, 10, width - 20);
+       *   text('Attack Time: ' + attackTime, 0, 65, width);
+       * }
+       * 
+       * function mousePressed() {
+       *   noise.start();
+       *   envelope.play();
+       * }
+       * </div>
+       * <code>
        */    attackTime(value) {
       this.node.attack = value;
     }
@@ -12406,7 +12784,7 @@
       this.node.delayTime.rampTo(clamp(value, 0, 1), rampTime) : this.node.delayTime.value = clamp(value, 0, 1);
     }
     /**
-       * The amount of feedback in the delay line.
+       * The amount of feedback in the delay line. Adjusting the feedback amount creates more or less repetitions in the echo effect.
        * @method feedback
        * @for Delay
        * @param {number} feedbackAmount A number between 0 and 0.99.
@@ -12857,6 +13235,8 @@
      */
   /**
      * Add reverb to a sound.
+     * 
+     * Reverb is an effect that is used commonly in electronic sound production. It makes input sound like it is in an actual space. Large spaces have longer decay times
      * @class Reverb
      * @constructor
      * @extends p5soundMixEffect
@@ -12864,34 +13244,40 @@
      * @example
      * <div>
      * <code>
-     * let noise, osc, env, reverb;
-     * let randomTime = 0;
+     * let sample, reverb;
      * 
-     * function setup() {
+     * async function setup() {
+     *   sample = await loadSound("../../sounds/drums.mp3");
+     *   sample.loop(true);
      *   let cnv = createCanvas(100, 100);
+     *   describe("a sketch that plays processes an audio file with a reverb effect.");
      *   cnv.mousePressed(playSound);
-     *   noise = new p5.Noise();
-     *   env = new p5.Envelope();
-     *   reverb = new p5.Reverb();
-     *   noise.disconnect();
-     *   noise.connect(env);
-     *   env.disconnect();
-     *   env.connect(reverb);
-     *   noise.start();
+     *   
+     *   reverb = new p5.Reverb(3);
+     *   sample.disconnect();
+     *   sample.connect(reverb);
+     *   
      *   textAlign(CENTER);
+     *   textWrap(WORD);
+     *   textSize(10);
      * }
      * 
      * function playSound() {
-     *  randomTime = random(0.1, 3);
-     *  reverb.set(randomTime); 
-     *  env.play();
+     *   if (!sample.isPlaying()) {
+     *     sample.play();
+     *   }
+     *   else {
+     *     sample.stop();
+     *   }
      * }
      * 
      * function draw() {
      *   background(220);
-     *   text('click to play', width/2, 20);
-     *   text('decay ' + round(randomTime, 2), width/2, 40);
-     *   describe('Click to play a sound with a random decay time.');
+     *   text("click to play sound, move mouse to change wet/dry mix", 0, 20, width);
+     *   
+     *   let dryWet = map(mouseX, 0, width, 0, 1);
+     *   text("wet: " + (constrain(round(dryWet * 100), 0, 100)) + "%", width / 2, 80);
+     *   reverb.wet(dryWet);
      * }
      * </code>
      * </div>
@@ -12903,10 +13289,51 @@
       this.input.connect(toneInput), toneOutput.connect(this.output);
     }
     /**
-       * Set the decay time of the reverb.
+       * Set the decay time of the reverb. A longer decay time makes the input sound more cavernous.
        * @method set
        * @for Reverb
        * @param {Number} time Decay time of the reverb in seconds.
+       * @example
+       * <div>
+       * <code>
+       * let sample, reverb
+       * let randomTime = 0;
+       * 
+       * async function setup() {
+       *   sample = await loadSound("../../sounds/drums.mp3");
+       *   sample.loop(true);
+       *   let cnv = createCanvas(100, 100);
+       *   describe("a sketch that plays processes an audio file with a reverb effect.");
+       *   cnv.mousePressed(playSound);
+       *   
+       *   reverb = new p5.Reverb(3);
+       *   sample.disconnect();
+       *   sample.connect(reverb);
+       *   
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       * }
+       * 
+       * function playSound() {
+       *   if (!sample.isPlaying()) {
+       *     sample.play();
+       *     randomTime = random(0.1, 3);
+       *     reverb.set(randomTime);
+       *   }
+       *   else {
+       *     randomTime = random(0.1, 8);
+       *     reverb.set(randomTime);
+       *   }
+       * }
+       * 
+       * function draw() {
+       *   background(220);
+       *   text("click to play sound and change the decay time", 0, 20, width);
+       *   text("Decay Time: " + randomTime.toFixed(2), width / 2, 80);
+       * }
+       * </code>
+       * </div>
        */    set(t) {
       this.node.decay = t;
     }
@@ -13004,51 +13431,56 @@
      * @example
      * <div>
      * <code>
-     * ///kind of Karplus-Strong string synthesis using p5.sound.js
-     * 
-     * let noise, lowPass, hiPass, delay, env, gain;
-     * 
+     * let fft, noise, filterEffect;
+     *
      * function setup() {
-     *   let cnv = createCanvas(100, 100);
-     *   background(220);
-     *   textAlign(CENTER);
-     *   textSize(9);
-     *   text('click and drag mouse', width/2, height/2);
-     *   
-     *   noise = new p5.Noise('white');
-     *   env = new p5.Envelope(0);
-     *   lowPass = new p5.Biquad(1200, 'lowpass');
-     *   hiPass = new p5.Biquad(55, 'highpass');
-     *   delay = new p5.Delay(0.0005, 0.97);
-     *   gain = new p5.Gain(0.5);
+     *   let cnv = createCanvas(100,100);
+     *   cnv.mousePressed(makeNoise);
+     *   fill(255, 0, 255);
+     * 
+     *   filterEffect = new p5.BandPass();
+     *   noise = new p5.Noise();
      *   noise.disconnect();
-     *   noise.connect(hiPass);
-     *   hiPass.disconnect();
-     *   hiPass.connect(env);
-     *   env.disconnect();
-     *   env.connect(lowPass);
-     *   lowPass.disconnect();
-     *   lowPass.connect(delay);
-     * 
-     *   cnv.mousePressed(pluckStart);
-     *   cnv.mouseReleased(pluckStop);
-     *   cnv.mouseOut(pluckStop);
-     *   describe('A sketch that synthesizes string sounds.');
+     *   noise.connect(filterEffect);
+     *   
+     *   fft = new p5.FFT(128);
+     *   filterEffect.connect(fft);
      * }
      * 
-     * function pluckStart() {
-     *   background(0, 255, 255);
-     *   text('release to trigger decay', width/2, height/2);
-     *   let dtime = map(mouseX, 0, width, 0.009, 0.001);
-     *   delay.delayTime(dtime, 0);
-     *   noise.start();
-     *   env.triggerAttack();
-     * }
-     * 
-     * function pluckStop() {
+     * function draw() {
      *   background(220);
-     *   text('click to pluck', width/2, height/2);
-     *   env.triggerRelease();
+     * 
+     *   // set the BandPass frequency based on mouseX
+     *   let freq = map(mouseX, 0, width, 20, 10000);
+     *   freq = constrain(freq, 0, 22050);
+     *   filterEffect.freq(freq);
+     *   // give the filter a narrow band (lower res = wider bandpass)
+     *   filterEffect.res(20);
+     * 
+     *   // draw filtered spectrum
+     *   let spectrum = fft.analyze();
+     *   
+     *   noStroke();
+     *   fill(0, 0, 0);
+     *   for (let i = 0; i < spectrum.length; i++) {
+     *     let x = map(i, 0, spectrum.length, 0, width);     
+     *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+     *     rect(x, height, width / spectrum.length, h )
+     *   }
+     *   if (!noise.started) {
+     *     text('click and drag to change filter\'s center frequency', 10, 20, width - 20);
+     *   } else {
+     *     text('Frequency: ' + round(freq)+'Hz', 20, 20, width - 20);
+     *   }
+     * }
+     * 
+     * function makeNoise() {
+     *   noise.start();
+     *   noise.amp(0.9, 0.1);
+     * }
+     * 
+     * function mouseReleased() {
+     *   noise.amp(0, 0.1);
      * }
      * </code>
      * </div>
@@ -13060,18 +13492,136 @@
       this.input.connect(toneInput), toneOutput.connect(this.output);
     }
     /**
-       * The filter's resonance factor.
+       * Controls either width of a bandpass frequency, or the resonance of a low/highpass cutoff frequency.
        * @method res
        * @for Biquad
        * @param {Number} resonance resonance of the filter. A number between 0 and 100. Values closer to 100 can cause the filter to self-oscillate and become loud!
+       * @example
+       * <div>
+       * <code>
+       * let fft, noise, filterEffect;
+       *
+       *  function setup() {
+       *    let cnv = createCanvas(100,100);
+       *    textAlign(CENTER);
+       *    textWrap(WORD);
+       *    textSize(10);
+       *    describe('a sketch to help to visualize and study the effects of different filter types.');
+       *    cnv.mousePressed(makeNoise);
+       *    fill(255, 0, 255);
+       *  
+       *    filterEffect = new p5.BandPass(8000);
+       *    noise = new p5.Noise();
+       *    noise.disconnect();
+       *    noise.connect(filterEffect);
+       *    
+       *    fft = new p5.FFT(128);
+       *    filterEffect.connect(fft);
+       *  }
+       *  
+       *  function draw() {
+       *    background(220);
+       *  
+       *    // set the BandPass resonance based on mouseX
+       *    let resAmt = map(mouseX, 0, width, 0, 99);
+       *    filterEffect.res(resAmt);
+       *  
+       *    // draw filtered spectrum
+       *    let spectrum = fft.analyze();
+       *    
+       *    noStroke();
+       *    fill(0, 0, 0);
+       *    for (let i = 0; i < spectrum.length; i++) {
+       *      let x = map(i, 0, spectrum.length, 0, width);     
+       *      let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+       *      rect(x, height, width / spectrum.length, h )
+       *    }
+       *    if (!noise.started) {
+       *      text('click and drag the mouse to change filter\'s resonance',0, 20, width);
+       *    } else {
+       *      text('Resonance: ' + round(resAmt), width/2, height/2);
+       *    }
+       *  }
+       *  
+       *  function makeNoise() {
+       *    noise.start();
+       *    noise.amp(0.9, 0.1);
+       *  }
+       *  
+       *  function mouseReleased() {
+       *    noise.amp(0, 0.1);
+       *  }
+       * </code>
+       * </div>
        */    res(r) {
       this.node.Q.value = r;
     }
     /**
-       * The gain of the filter in dB units.
+       * The gain of the filter in dB units. p5.Filter.gain() controls the gain parameter of a Biquad Filter node
        * @method gain
        * @for Biquad
        * @param {Number} gain gain value in dB units. The gain is only used for lowshelf, highshelf, and peaking filters.
+       * @example
+       * <div>
+       * <code>
+       * let fft, noise, filterEffect;
+       *
+       * function setup() {
+       *   let cnv = createCanvas(100,100);
+       *   cnv.mousePressed(makeNoise);
+       *   fill(255, 0, 255);
+       *   
+       *   filterEffect = new p5.Biquad(8000, "highshelf");
+       *   noise = new p5.Noise();
+       *   noise.disconnect();
+       *   noise.connect(filterEffect);
+       *   
+       *   fft = new p5.FFT(128);
+       *   filterEffect.connect(fft);
+       * }
+       * 
+       * function draw() {
+       *   background(220);
+       * 
+       *   // set the BandPass frequency based on mouseX
+       *   let freq = map(mouseX, 0, width, 20, 10000);
+       *   freq = constrain(freq, 0, 22050);
+       *   filterEffect.freq(freq);
+       * 
+       *   // set the gain amount of the highshelf filter in decibals
+       *   let gainAmt = map(mouseY, 0, height, -12, 12);
+       *   filterEffect.gain(gainAmt);
+       * 
+       *   // draw filtered spectrum
+       *   let spectrum = fft.analyze();
+       *   
+       *   noStroke();
+       *   fill(0, 0, 0);
+       *   for (let i = 0; i < spectrum.length; i++) {
+       *     let x = map(i, 0, spectrum.length, 0, width);     
+       *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+       *     rect(x, height, width / spectrum.length, h )
+       *   }
+       *   
+       *   if (!noise.started) {
+       *     text('click and drag to change filter\'s center frequency', 10, 20, width - 20);
+       *   } else {
+       *     fill(255);
+       *     text('Frequency: ' + round(freq)+'Hz', 20, 20, width - 20);
+       *     text('Gain: ' + round(gainAmt)+'dB', 20, 50, width);
+       *   }
+       * }
+       * 
+       * function makeNoise() {
+       *   noise.start();
+       *   noise.amp(0.9, 0.1);
+       * }
+       * 
+       * function mouseReleased() {
+       *   noise.amp(0, 0.1);
+       * }
+       * </code>
+       * </div>
        */    gain(g) {
       this.node.gain.value = g;
     }
@@ -13080,6 +13630,62 @@
        * @method setType
        * @for Biquad
        * @param {String} type type of the filter. Options: "lowpass", "highpass", "bandpass", "lowshelf", "highshelf", "notch", "allpass", and "peaking." 
+       * @example
+       * <div>
+       * <code>
+       * let types = ['lowpass', 'bandpass', 'highpass', 'allpass'];
+       * let currentType = 'lowpass';
+       * let typeIndex = 0;
+       * let filterText = 'Filter Type: ' + currentType;;
+       * 
+       * function setup(){
+       *   createCanvas(400,400);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       *   describe('a sketch to help to visualize and study the effects of different filter types.');
+       *   //for analyzing the sound 
+       *   fft = new p5.FFT(256);
+       * 
+       *   noiseSrc = new p5.Noise('white');
+       *   //filter type defaults to 'lowpass'
+       *   audioFilter = new p5.Biquad();
+       *   noiseSrc.disconnect();
+       *   noiseSrc.connect(audioFilter);
+       *   audioFilter.connect(fft);
+       * }
+       * 
+       * function draw(){
+       *   background(220);
+       *   let spectrum = fft.analyze();
+       *   
+       *   noStroke();
+       *   fill(0, 0, 0);
+       *   for (let i = 0; i < spectrum.length; i++) {
+       *     let x = map(i, 0, spectrum.length, 0, width);     
+       *     let h = -height + map(spectrum[i], 0, 0.025, height, 0);
+       *     rect(x, height, width / spectrum.length, h )
+       *   }
+       * 
+       *   //change the center frequency of the filter
+       *   centerFreq = map(mouseX, 0, width, 0, 18000)
+       *   audioFilter.freq(centerFreq);
+       *   
+       *   text('click to play', 0, 20, width, 20);
+       *   text('Frequency: ' + centerFreq.toFixed(0), 0, 30, width, 20);
+       *   text(filterText, 0, 40, width, 20);
+       * }
+       * 
+       * function mousePressed() {
+       *   noiseSrc.start();
+       *   typeIndex = (typeIndex + 1) % types.length;
+       *   currentType = types[typeIndex];
+       *   //change the type of the filter
+       *   audioFilter.setType(currentType);
+       *   filterText = 'Filter Type: ' + currentType;
+       * }
+       * </code>
+       * </div>
        */    setType(t) {
       this.node.type = t;
     }
@@ -13088,16 +13694,128 @@
        * @method freq
        * @for Biquad
        * @param {Number} cutoffFrequency the cutoff frequency of the filter.
+       * @example
+       * <div>
+       * <code>
+       * let fft, noise, filterEffect;
+       * 
+       *  function setup() {
+       *    let cnv = createCanvas(100,100);
+       *    cnv.mousePressed(makeNoise);
+       *    fill(255, 0, 255);
+       *  
+       *    filterEffect = new p5.BandPass();
+       *    noise = new p5.Noise();
+       *    noise.disconnect();
+       *    noise.connect(filterEffect);
+       *    
+       *    fft = new p5.FFT(128);
+       *    filterEffect.connect(fft);
+       *  }
+       *  
+       *  function draw() {
+       *    background(220);
+       *  
+       *    // set the BandPass frequency based on mouseX
+       *    let freq = map(mouseX, 0, width, 20, 10000);
+       *    freq = constrain(freq, 0, 22050);
+       *    filterEffect.freq(freq);
+       *    // give the filter a narrow band (lower res = wider bandpass)
+       *    filterEffect.res(50);
+       *  
+       *    // draw filtered spectrum
+       *    let spectrum = fft.analyze();
+       *    
+       *    noStroke();
+       *    fill(0, 0, 0);
+       *    for (let i = 0; i < spectrum.length; i++) {
+       *      let x = map(i, 0, spectrum.length, 0, width);     
+       *      let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+       *      rect(x, height, width / spectrum.length, h )
+       *    }
+       *    if (!noise.started) {
+       *      text('click and drag to change filter\'s center frequency', 10, 20, width - 20);
+       *    } else {
+       *      text('Frequency: ' + round(freq)+'Hz', 20, 20, width - 20);
+       *    }
+       *  }
+       *  
+       *  function makeNoise() {
+       *    noise.start();
+       *    noise.amp(0.9, 0.1);
+       *  }
+       *  
+       *  function mouseReleased() {
+       *    noise.amp(0, 0.1);
+       *  }
+       * </code>
+       * </div>
        */    freq(f) {
       this.node.frequency.value = clamp(f, 0, 22050);
     }
   }
   /**
-     * Creates a Lowpass Biquad filter.
+     * Creates a Lowpass Biquad filter. A shorthand or explicit way of defining a lowpass audio filter.
      * @class LowPass
      * @constructor
      * @extends Biquad
      * @param {Number} [freq] Set the cutoff frequency of the filter
+     * @example
+     * <div>
+     * <code>
+     * let fft, noise, filterEffect;
+     *
+     * function setup() {
+     *   let cnv = createCanvas(100,100);
+     *   cnv.mousePressed(makeNoise);
+     *   fill(255, 0, 255);
+     * 
+     *   //creates a LowPass filter
+     *   filterEffect = new p5.LowPass();
+     *   noise = new p5.Noise();
+     *   noise.disconnect();
+     *   noise.connect(filterEffect);
+     *   
+     *   fft = new p5.FFT(128);
+     *   filterEffect.connect(fft);
+     * }
+     * 
+     * function draw() {
+     *   background(220);
+     * 
+     *   // set the BandPass frequency based on mouseX
+     *   let freq = map(mouseX, 0, width, 20, 10000);
+     *   freq = constrain(freq, 0, 22050);
+     *   filterEffect.freq(freq);
+     * 
+     *   // draw filtered spectrum
+     *   let spectrum = fft.analyze();
+     *   
+     *   noStroke();
+     *   fill(0, 0, 0);
+     *   for (let i = 0; i < spectrum.length; i++) {
+     *     let x = map(i, 0, spectrum.length, 0, width);     
+     *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+     *     rect(x, height, width / spectrum.length, h )
+     *   }
+     *   if (!noise.started) {
+     *     text('click and drag to change filter\'s center frequency', 10, 20, width - 20);
+     *   } else {
+     *     fill(255);
+     *     text('Frequency: ' + round(freq)+'Hz', 20, 20, width - 20);
+     *   }
+     * }
+     * 
+     * function makeNoise() {
+     *   noise.start();
+     *   noise.amp(0.9, 0.1);
+     * }
+     * 
+     * function mouseReleased() {
+     *   noise.amp(0, 0.1);
+     * }
+     * </code>
+     * </div>
      */  var Biquad$1 = Biquad;
   /**
      * AudioToGain converts an input in AudioRange [-1,1] to NormalRange [0,1].
@@ -13573,35 +14291,24 @@
      * @example
      * <div>
      * <code>
-     *  let cnv, soundFile, pitchShifter;
+     * let cnv, pitchShifter;
      *  
-     * function preload() {
-     *   soundFile = loadSound('/assets/beatbox.mp3');
-     * }
-     *  
-     * function setup() {
-     *   cnv = createCanvas(100, 100);
-     *   cnv.mousePressed(startSound);
+     * async function setup() {
+     *   describe('a sketch that pitches the microphone input up an octave');
+     *   createCanvas(100, 100);
      *   background(220);
      *   textAlign(CENTER);
      *   textSize(9);
+     *   textWrap(WORD)
      *   text('click to play sound', width/2, height/2);
-     *   pitchShifter = new p5.PitchShifter();
-     *   
-     *   soundFile.disconnect();
-     *   soundFile.connect(pitchShifter);
-     *   //change the pitch and retrigger sample when done playing
-     *   soundFile.onended(changePitch);
+     *   mic = new p5.AudioIn();
+     *   pitchShifter = new p5.PitchShifter(12);
+     *   mic.disconnect();
+     *   mic.connect(pitchShifter);
      * }
      * 
-     * function startSound () {
-     *   soundFile.play();
-     * }
-     *  
-     * function changePitch () {
-     *   let pitchValue = random(-12, 12);
-     *   pitchShifter.shift(pitchValue);
-     *   soundFile.play();
+     * function mousePressed () {
+     *   mic.start();
      * }
      * </code>
      * </div>
@@ -13617,6 +14324,32 @@
          * @method shift
          * @for PitchShifter
          * @param {Number} pitchValue amount of semitones to shift the pitch
+         * @example
+         * <div>
+         * <code>
+         * let cnv, pitchShifter;
+         *
+         * async function setup() {
+         *   describe('a sketch that pitches the microphone input up an octave');
+         *   createCanvas(100, 100);
+         *   background(220);
+         *   textAlign(CENTER);
+         *   textSize(9);
+         *   textWrap(WORD)
+         *   text('click to play sound', width/2, height/2);
+         *   mic = new p5.AudioIn();
+         *   pitchShifter = new p5.PitchShifter(12);
+         *   mic.disconnect();
+         *   mic.connect(pitchShifter);
+         * }
+         * 
+         * function mousePressed () {
+         *   mic.start();
+         *   //shift the input audio up a random number of semitones
+         *   pitchShifter.shift(round(random(1, 12)));
+         * }
+         * </code>
+         * </div>
          */    shift(value) {
       void 0 !== value && (this.node.pitch = value);
     }
@@ -13926,6 +14659,50 @@
        * @method setInput
        * @for Amplitude
        * @param {Object} input - An object that has audio output.
+       * @example
+       * <div>
+       * <code>
+       * let amplitude = 0;
+       * 
+       * async function setup() {
+       *   sample = await loadSound("assets/drums.mp3");
+       *   sample.loop(true);
+       * 
+       *   createCanvas(100, 100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(8);
+       *   describe("a sketch that demonstrates setting the input for amplitude analysis");
+       * 
+       *   analyze = new p5.Amplitude();
+       *   //sample.connect(analyze);
+       *   analyze.setInput(sample);
+       * }
+       * 
+       * function draw() {
+       *   background(amplitude * 512, 0, 0);
+       *   
+       *   amplitude = analyze.getLevel();
+       *   
+       *   fill(255);
+       *   if (!sample.isPlaying()) {
+       *     text("click to play the sound, move your mouse to adjust smoothing", 0, 20, width);
+       *   }
+       *   else {
+       *     text("Amplitude: " + amplitude.toFixed(2), 0, 20, width);
+       *   }
+       * }
+       * 
+       * function mousePressed() {
+       *   if(!sample.isPlaying()) {
+       *     sample.play();
+       *   }
+       *   else {
+       *     sample.stop();
+       *   }
+       * }
+       * </code>
+       * </div>
        */    setInput(input) {
       input.getNode().connect(this.node);
     }
@@ -13934,6 +14711,47 @@
        * @method getLevel
        * @for Amplitude
        * @return {Number} Amplitude level (volume) of a sound.
+       * @example
+       * <div>
+       * <code>
+       * let amplitude = 0;
+       * 
+       * async function setup() {
+       *   sample = await loadSound("assets/drums.mp3");
+       *   sample.loop(true);
+       * 
+       *   createCanvas(100, 100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(8);
+       *   describe("a sketch that visualizes the loudness of a soundfile");
+       * 
+       *   analyze = new p5.Amplitude();
+       *   sample.connect(analyze);
+       * }
+       * 
+       * function draw() {
+       *   background(amplitude * 512, 0, 0);
+       *   amplitude = analyze.getLevel();
+       *   fill(255);
+       *   if (!sample.isPlaying()) {
+       *     text("click to play the sound", 0, 20, width);
+       *   }
+       *   else {
+       *     text("Amplitude: " + amplitude.toFixed(2), 0, 20, width);
+       *   }
+       * }
+       * 
+       * function mousePressed() {
+       *   if(!sample.isPlaying()) {
+       *     sample.play();
+       *   }
+       *   else {
+       *     sample.stop();
+       *   }
+       * }
+       * </code>
+       * </div>
        */    getLevel() {
       return this.node.getValue();
     }
@@ -13942,6 +14760,52 @@
        * @method smooth
        * @for Amplitude
        * @param {Number} Smooth Amplitude analysis by averaging with the last analysis frame. Off by default.
+       * @example
+       * <div>
+       * <code>
+       * let amplitude = 0;
+       * 
+       * async function setup() {
+       *   sample = await loadSound("assets/drums.mp3");
+       *   sample.loop(true);
+       * 
+       *   createCanvas(100, 100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(8);
+       *   describe("a sketch that visualizes the loudness of a soundfile with smoothing control");
+       * 
+       *   analyze = new p5.Amplitude();
+       *   sample.connect(analyze);
+       * }
+       * 
+       * function draw() {
+       *   background(amplitude * 512, 0, 0);
+       *   
+       *   amplitude = analyze.getLevel();
+       *   
+       *   fill(255);
+       *   if (!sample.isPlaying()) {
+       *     text("click to play the sound, move your mouse to adjust smoothing", 0, 20, width);
+       *   }
+       *   else {
+       *     text("Amplitude: " + amplitude.toFixed(2), 0, 20, width);
+       *   }
+       *   smoothing = map(mouseX, 0, width, 0, 1);
+       *   analyze.smooth(smoothing);
+       *   text("Smoothing: " + smoothing.toFixed(2), 0, 60, width);
+       * }
+       * 
+       * function mousePressed() {
+       *   if(!sample.isPlaying()) {
+       *     sample.play();
+       *   }
+       *   else {
+       *     sample.stop();
+       *   }
+       * }
+       * </code>
+       * </div>
        */    smooth(s) {
       this.node.smoothing = s;
     }
@@ -14244,61 +15108,86 @@
     }
   }
   /**
-     *  @module p5.sound
-     *  @submodule p5.sound
-     *  @for p5.sound
-     */
+       *  @module p5.sound
+       *  @submodule p5.sound
+       *  @for p5.sound
+       */
   /**
-     * A panning effect.
-     * @class Panner
-     * @constructor
-     * @extends p5soundNode
-     * @example
-     * <div>
-     * <code>
-     * let panner, lfo, soundfile, cnv;
-     * 
-     * function preload() {
-     *   soundfile = loadSound('/assets/beat.mp3');
-     * }
-     * 
-     * function setup() {
-     *   cnv = createCanvas(100, 100);
-     *   background(220);
-     *   cnv.mousePressed(startSound);
-     *   
-     *   panner = new p5.Panner();
-     *   lfo = new p5.Oscillator(1);
-     *   //disconnect lfo from speakers because we don't want to hear it!
-     *   lfo.disconnect();
-     *   panner.pan(lfo);
-     * 
-     *   soundfile.loop();
-     *   soundfile.disconnect();
-     *   soundfile.connect(panner);
-     *   
-     * }
-     * 
-     * function startSound() {
-     *   lfo.start();
-     *   soundfile.start();
-     * }
-     * </code>
-     * </div>
-     */  var Panner$1 = class extends p5soundNode {
-    constructor() {
-      super(), this.node = new Panner$2(0);
+       * A panning effect. Moves the sound from left to right using a value between -1 and 1.
+       * @class Panner
+       * @constructor
+       * @extends p5soundNode
+       * @param {Number} [panAmount] defaults to 0, accepts values between -1 and 1 representing the pan position of the sound source between the left and right speaker channels.
+       * @example
+       * <div>
+       * <code>
+       * let panner, lfo, soundfile, cnv;
+       * 
+       * function preload() {
+       *   soundfile = loadSound('/assets/beat.mp3');
+       * }
+       * 
+       * function setup() {
+       *   createCanvas(100, 100);
+       *   describe("a sketch that pans a sound source to the left speaker channel")
+       *   background(220);
+       *   panner = new p5.Panner(-1);
+       *   soundfile.loop();
+       *   soundfile.disconnect();
+       *   soundfile.connect(panner);
+       * }
+       * 
+       * function mousePressed() {
+       *   soundfile.start();
+       * }
+       * </code>
+       * </div>
+       */  var Panner$1 = class extends p5soundNode {
+    constructor(amount = 0) {
+      super(), this.node = new Panner$2(amount);
       const toneInput = this.node.input.input ?? this.node.input;
       const toneOutput = this.node.output.output ?? this.node.output;
       this.input.connect(toneInput), toneOutput.connect(this.output);
     }
     /**
-       * Pan a sound source left or right.
-       * @method pan
-       * @for Panner
-       * @param {Number, Object} panAmount Sets the pan position of the sound source. Can be a value between -1 and 1 or an audio rate signal such as an LFO.
-       */    pan(amount) {
-      "object" != typeof amount ? this.node.pan.rampTo(clamp(amount, -1, 1), .01) : amount.getNode().connect(this.node.pan);
+         * Pan a sound source left or right with a value or signal.
+         * @method pan
+         * @for Panner
+         * @param {Number, Object} panAmount Sets the pan position of the sound source. Can be a value between -1 and 1 or an audio rate signal such as an LFO.
+         * @example
+         * <div>
+         * <code>
+         * let panner, lfo, soundfile, cnv;
+         * 
+         * function preload() {
+         *   soundfile = loadSound('/assets/beat.mp3');
+         * }
+         * 
+         * function setup() {
+         *   createCanvas(100, 100);
+         *   describe("a sketch that pans a sound source between the left and right speaker channels");
+         *   background(220);
+         *   panner = new p5.Panner();
+         *   lfo = new p5.Oscillator(1);
+         *   //disconnect lfo from speakers because we don't want to hear it!
+         *   lfo.disconnect();
+         * 
+         *   //connect the panner to an LFO to control the panning effect
+         *   panner.pan(lfo);
+         * 
+         *   soundfile.loop();
+         *   soundfile.disconnect();
+         *   soundfile.connect(panner);
+         * }
+         * 
+         * function mousePressed() {
+         *   lfo.start();
+         *   soundfile.start();
+         * }
+         * </code>
+         * </div>
+         */    pan(amount) {
+      "object" != typeof amount ? this.node.pan.rampTo(clamp(amount, -1, 1), .01) : amount.output.connect(this.node.pan.input);
     }
   };
   /**
@@ -15017,20 +15906,94 @@
        * Start the soundfile.
        * @method start
        * @for SoundFile 
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/chime.mp3");
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that plays a soundfile");
+       * }
+       *
+       * function draw() {
+       *   background(220);
+       *   text("click to play the sound, demonstrating the start() method", 0, 20, width);
+       * }
+       *
+       * function mousePressed() {
+       *   sample.start();
+       * }
+       * </code>
+       * </div>
        */    start() {
       this.node.playbackRate = this.speed, this.playing = !0, this.paused || this.node.start();
     }
     /**
-       * Start the soundfile.
+       * Start the soundfile. Same as the start() method.
        * @method play
        * @for SoundFile
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/chime.mp3");
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that plays a soundfile");
+       * }
+       *
+       * function draw() {
+       *   background(220);
+       *   text("click to play the sound, demonstrating the start() method", 0, 20, width);
+       * }
+       *
+       * function mousePressed() {
+       *   sample.start();
+       * }
+       * </code>
+       * </div>
        */    play() {
       this.node.playbackRate = this.speed, this.playing = !0, this.paused || this.node.start();
     }
     /**
        * Stop the soundfile.
        * @method stop
-       * @for SoundFile 
+       * @for SoundFile
+       * @example
+       * async function setup() {
+       *  sample = await loadSound("assets/chime.mp3");
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that plays a soundfile");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  if (!sample.playing) {
+       *    text("click to play the sound, demonstrating the start() method", 0, 20, width);
+       *  }
+       *  else {
+       *    text("click to stop the sound, demonstrating the stop() method", 0, 20, width);
+       *  }
+       * }
+       *
+       * function mousePressed() {
+       *  if (!sample.playing) {
+       *    sample.start();
+       *  }
+       *  else {
+       *    sample.stop();
+       *  }
+       * }
+       * </code>
+       * </div>
        */    stop() {
       this.node.stop(), this.playing = !1;
     }
@@ -15041,37 +16004,32 @@
        * @example
        * <div>
        * <code>
-       * let player;
+       * async function setup() {
+       *  sample = await loadSound("assets/chime.mp3");
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that pauses and resumes a soundfile");
+       * }
        *
-       * function preload() {
-       *   player = loadSound('/assets/Damscray_DancingTiger.mp3');
+       * function draw() {
+       *  background(220);
+       *  if (!sample.playing) {
+       *    text("click to play the sound, demonstrating the start() method", 0, 20, width);
+       *  }
+       *  else {
+       *    text("click to pause the sound, demonstrating the pause() method", 0, 20, width);
+       *  }
        * }
-       * 
-       * function setup() {
-       *   describe('A sketch that pauses and resumes sound file playback.');
-       *   let cnv = createCanvas(100, 100);
-       *   cnv.mousePressed(playSound);
-       *   background(220);
-       *   textAlign(CENTER);
-       *   textWrap(WORD);
-       *   textSize(10);
-       *   background(220);
-       *   text('click to play', 0, 20, 100);
-       *   
-       *   player.loop();
-       * }
-       * 
-       * function playSound() {
-       *   if (!player.isPlaying()) {
-       *     player.play();
-       *     background(220);
-       *     text('click to pause', 0, 20, 100);
-       *   }
-       *   else {
-       *     player.pause();
-       *     background(220);
-       *     text('click to play', 0, 20, 100);
-       *   }
+       *
+       * function mousePressed() {
+       *  if (!sample.playing) {
+       *    sample.start();
+       *  }
+       *  else {
+       *    sample.pause();
+       *  }
        * }
        * </code>
        * </div>
@@ -15084,6 +16042,49 @@
        * @method loop
        * @for SoundFile
        * @param {Boolean} loopState Set to True or False in order to set the loop state.
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/drums.mp3");
+       *
+       *  //set the sample to loop
+       *  sample.loop(true);
+       *  //call a function when the sound ends
+       *  sample.onended(stopSound);
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that plays and pauses a soundfile");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  if (!sample.playing) {
+       *    text("click to play the sound and it will loop", 0, 20, width);
+       *  }
+       *  else {
+       *    text("click to stop the looping", 0, 20, width);
+       *  }
+       * }
+       *
+       * function mousePressed() {
+       *  if (!sample.playing) {
+       *    sample.start();
+       *  }
+       *  else {
+       *    //stop the sample by disabling looping
+       *    sample.loop(false);
+       *  }
+       * }
+       *
+       * function stopSound() {
+       *  //stop the sound when the loop ends
+       *  sample.stop();
+       * }
+       * </code>
+       * </div>
        */    loop(value = !0) {
       this.node.loop = value;
     }
@@ -15093,6 +16094,39 @@
        * @for SoundFile
        * @param {Number} [startTime] The start time of the loop point in seconds.
        * @param {Number} [duration] The duration of the loop point in seconds.
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/drums.mp3");
+       *
+       *  //set the sample to loop, must be on for loopPoints to work
+       *  sample.loop(true);
+       *
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that loops short segments of a soundfile");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  if (!sample.playing) {
+       *    text("click to play the sound and it will loop", 0, 20, width);
+       *  }
+       *  else {
+       *    text("click to stop the looping", 0, 20, width);
+       *  }
+       * }
+       *
+       * function mousePressed() {
+       *  sample.start();
+       *  //set the loop points to a random range in the soundfile, making sure not to choose looppoints that exceed the duration fo the soundfile.
+       *  sample.loopPoints(random(0, sample.duration() - 0.3), random(0, 0.3))
+       * }
+       * </code>
+       * </div>
        */    loopPoints(startTime = 0, duration = this.node.buffer.duration) {
       this.node.loopStart = startTime, this.node.loopEnd = startTime + duration;
     }
@@ -15148,7 +16182,42 @@
        * Set the playback rate of the soundfile.
        * @method rate
        * @for SoundFile
-       * @param {Number} rate 1 is normal speed, 2 is double speed. Negative values plays the soundfile backwards.  
+       * @param {Number} rate 1 is normal speed, 2 is double speed. Negative values plays the soundfile backwards.
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/drums.mp3");
+       *  sample.loop(true);
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(10);
+       *  describe("a sketch that changes the playback rate of a soundfile");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  rate = map(mouseX, 0, width, 0.5, 2);
+       *  sample.rate(rate);
+       *  if (!sample.isPlaying()) {
+       *    text("click to play the sound, move your mouse to change the playback rate", 0, 20, width);
+       *  }
+       *  else {
+       *    text("Playback Rate: " + rate.toFixed(2), 0, 20, width);
+       *  }
+       * }
+       *
+       * function mousePressed() {
+       *  if(!sample.isPlaying()) {
+       *    sample.play();
+       *  }
+       *  else {
+       *    sample.stop();
+       *  }
+       * }
+       * </code>
+       * </div>
        */    rate(value = 1) {
       value < 0 && (value = 0), this.node.playbackRate = value, this.speed = value;
     }
@@ -15157,6 +16226,25 @@
        * @method duration
        * @for SoundFile 
        * @return {Number} duration
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/drums.mp3");
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that reports the duration of a soundfile");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  duration = sample.duration();
+       *  text("Duration: " + duration + " seconds", 0, 20, width);
+       * }
+       * </code>
+       * </div>
        */    duration() {
       return this.node.buffer.duration;
     }
@@ -15165,6 +16253,25 @@
        * @method sampleRate
        * @for SoundFile
        * @return {Number} sampleRate
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/drums.mp3");
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that reports the sample rate of a soundfile");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  sampleRate = sample.sampleRate();
+       *  text("Sample Rate: " + sampleRate + " Hz", 0, 20, width);
+       * }
+       * </code>
+       * </div>
        */    sampleRate() {
       if (this.node.buffer) return this.node.buffer.sampleRate;
     }
@@ -15173,6 +16280,38 @@
        * @method jump
        * @for SoundFile 
        * @param {Number} timePoint Time to jump to in seconds.
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/drums.mp3");
+       *  duration = sample.duration();
+       *  sample.loop(true);
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(10);
+       *  describe("a sketch that jumps to a specific point in a soundfile");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  text("Duration: " + duration + " s", 0, 20, width);
+       *  if (sample.isPlaying()) {
+       *    text("jump to: " + (mouseX / width * duration).toFixed(2) + " s on next click", 0, 40, width);
+       *  }
+       * }
+       *
+       * function mousePressed() {
+       *  if(!sample.isPlaying()) {
+       *    sample.play();
+       *  }
+       *  else {
+       *    sample.jump(mouseX / width * duration);
+       *  }
+       * }
+       * </code>
+       * </div>
        */    jump(value) {
       this.node.seek(value);
     }
@@ -15181,6 +16320,38 @@
        * @method isPlaying
        * @for SoundFile 
        * @return {Boolean} Playback state, true or false.
+       * @example
+       * async function setup() {
+       *  sample = await loadSound("assets/chime.mp3");
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(8);
+       *  describe("a sketch that plays a soundfile");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  //check if sample is playing or not
+       *  if (!sample.playing) {
+       *    text("click to play the sound, demonstrating the start() method", 0, 20, width);
+       *  }
+       *  else {
+       *    text("click to stop the sound, demonstrating the stop() method", 0, 20, width);
+       *  }
+       * }
+       *
+       * function mousePressed() {
+       *  //check if sample is playing or not
+       *  if (!sample.playing) {
+       *    sample.start();
+       *  }
+       *  else {
+       *    sample.stop();
+       *  }
+       * }
+       * </code>
+       * </div>
        */    isPlaying() {
       return this.playing;
     }
@@ -15189,6 +16360,27 @@
        * @method isLooping
        * @for SoundFile 
        * @return {Boolean} Looping State, true or false.
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *  sample = await loadSound("assets/drums.mp3");
+       *  //uncomment the line below to see the text update
+       *  //sample.loop(true);
+       *  looping = sample.isLooping();
+       *  createCanvas(100, 100);
+       *  textAlign(CENTER);
+       *  textWrap(WORD);
+       *  textSize(10);
+       *  describe("a sketch that checks whether a soundfile is looping");
+       * }
+       *
+       * function draw() {
+       *  background(220);
+       *  text("Looping: " + looping, 0, 20, width);
+       * }
+       * </code>
+       * </div>
        */    isLooping() {
       return this.node.loop;
     }
@@ -15270,6 +16462,25 @@
        * @method channels
        * @for SoundFile
        * @return Returns the number of channels in the sound file.
+       * @example
+       * <div>
+       * <code>
+       * async function setup() {
+       *   sample = await loadSound("assets/chime.mp3");
+       *   createCanvas(100, 100);
+       *   textAlign(CENTER);
+       *   textWrap(WORD);
+       *   textSize(10);
+       *   describe("a sketch that reports how many channels an audio file has");
+       * }
+       * 
+       * function draw() {
+       *   background(220);
+       *   numberOfChannels = sample.channels();
+       *   text("sample has " + numberOfChannels + " channels", 10, 10, width);
+       * }
+       * </code>
+       * </div>
        */    channels() {
       if (this.node.buffer) return this.node.buffer.numberOfChannels;
     }
@@ -15596,12 +16807,78 @@
   /**
      *  starts audio processing in the window when called from a user interaction (such as mousePressed()). Only necessary when not starting p5.sound nodes with the start() method.
      *  @function userStartAudio
+     *  @example
+     *  <div>
+     *  <code>
+     *  let started = false;
+     *  
+     *  function setup() {
+     *    createCanvas(400, 400)
+     *    sound = new p5.Oscillator();
+     *    noiseSrc = new p5.Noise('pink');
+     *    //"starts" sound sources though they will not be audible because they weren't started from a user interaction,
+     *    noiseSrc.start();
+     *    sound.start();
+     *  }
+     *  
+     *  function draw() {
+     *    background(220)
+     *    text("click to start and stop audio with ge", width/2, height/2)
+     *  }
+     *  
+     *  function mousePressed() {
+     *    if (!started) {
+     *      //resumes playback of all previously 'started' nodes
+     *      userStartAudio();
+     *      started = true;
+     *    }
+     *    else {
+     *      //pauses audio processing, sort of like a global mute 
+     *      userStopAudio();
+     *      started = false;
+     *    }
+     *  }
+     *  </code>
+     *  </div>
      */ , p5.prototype.userStartAudio = function() {
     globalContext.resume();
   }
   /**
      *  stops audio processing in the browser window.
      *  @function userStopAudio
+     *  @example
+     *  <div>
+     *  <code>
+     *  let started = false;
+     *  
+     *  function setup() {
+     *    createCanvas(400, 400)
+     *    sound = new p5.Oscillator();
+     *    noiseSrc = new p5.Noise('pink');
+     *    //"starts" sound sources though they will not be audible because they weren't started from a user interaction,
+     *    noiseSrc.start();
+     *    sound.start();
+     *  }
+     *  
+     *  function draw() {
+     *    background(220)
+     *    text("click to start and stop audio with ge", width/2, height/2)
+     *  }
+     *  
+     *  function mousePressed() {
+     *    if (!started) {
+     *      //resumes playback of all previously 'started' nodes
+     *      userStartAudio();
+     *      started = true;
+     *    }
+     *    else {
+     *      //pauses audio processing, sort of like a global mute 
+     *      userStopAudio();
+     *      started = false;
+     *    }
+     *  }
+     *  </code>
+     *  </div>
      */ , p5.prototype.userStopAudio = function() {
     (audioContext || getContext()).suspend();
   }, p5.p5soundMixEffect = p5soundMixEffect, p5.p5soundNode = p5soundNode, p5.p5soundSource = p5soundSource, 
@@ -15616,6 +16893,28 @@
      * @constructor
      * @extends Oscillator
      * @param {Number} [freq] Set the frequency
+     * * @example
+     * <div>
+     * <code>
+     * function setup() {
+     *   describe("a sketch that creates an oscillator with a square wave shape");
+     *   createCanvas(100, 100);
+     *   textAlign(CENTER);
+     *   textWrap(WORD);
+     *   textSize(10);
+     *   osc = new p5.SqrOsc(440);
+     * }
+     * 
+     * function mousePressed() {
+     *   osc.start();
+     * }
+     * 
+     * function draw(){
+     *   background(220);
+     *   text('click to hear a square wave shape', 0, 10, 100);
+     * }
+     * </code>
+     * </div>
      */ , p5.SinOsc = 
   /**
      * Creates a sine oscillator.
@@ -15623,6 +16922,28 @@
      * @constructor
      * @extends Oscillator
      * @param {Number} [freq] Set the frequency
+     * @example
+     * <div>
+     * <code>
+     * function setup() {
+     *   describe("a sketch that creates an oscillator with a sine wave shape");
+     *   createCanvas(100, 100);
+     *   textAlign(CENTER);
+     *   textWrap(WORD);
+     *   textSize(10);
+     *   osc = new p5.SinOsc;
+     * }
+     * 
+     * function mousePressed() {
+     *   osc.start();
+     * }
+     * 
+     * function draw(){
+     *   background(220);
+     *   text('click to hear a sinusoidal wave shape', 0, 10, 100);
+     * }
+     * </code>
+     * </div>
      */
   class extends Oscillator {
     constructor(frequency) {
@@ -15635,6 +16956,28 @@
      * @constructor
      * @extends Oscillator
      * @param {Number} [freq] Set the frequency
+     * * @example
+     * <div>
+     * <code>
+     * function setup() {
+     *   describe("a sketch that creates an oscillator with a triangle wave shape");
+     *   createCanvas(100, 100);
+     *   textAlign(CENTER);
+     *   textWrap(WORD);
+     *   textSize(10);
+     *   osc = new p5.TriOsc(440);
+     * }
+     * 
+     * function mousePressed() {
+     *   osc.start();
+     * }
+     * 
+     * function draw(){
+     *   background(220);
+     *   text('click to hear a triangle wave shape', 0, 10, 100);
+     * }
+     * </code>
+     * </div>
      */
   class extends Oscillator {
     constructor(frequency) {
@@ -15651,22 +16994,134 @@
     }
   }
   /**
-     * Creates a Highpass Biquad filter.
+     * Creates a Highpass Biquad filter. A shorthand or explicit way of defining a highpass audio filter.
      * @class HighPass
      * @constructor
      * @extends Biquad
      * @param {Number} [freq] Set the cutoff frequency of the filter
+     * @example
+     * <div>
+     * <code>
+     * let fft, noise, filterEffect;
+     *
+     * function setup() {
+     *   let cnv = createCanvas(100,100);
+     *   cnv.mousePressed(makeNoise);
+     *   fill(255, 0, 255);
+     * 
+     *   //creates a HighPass filter
+     *   filterEffect = new p5.HighPass();
+     *   noise = new p5.Noise();
+     *   noise.disconnect();
+     *   noise.connect(filterEffect);
+     *   
+     *   fft = new p5.FFT(128);
+     *   filterEffect.connect(fft);
+     * }
+     * 
+     * function draw() {
+     *   background(220);
+     * 
+     *   // set the BandPass frequency based on mouseX
+     *   let freq = map(mouseX, 0, width, 20, 10000);
+     *   freq = constrain(freq, 0, 22050);
+     *   filterEffect.freq(freq);
+     * 
+     *   // draw filtered spectrum
+     *   let spectrum = fft.analyze();
+     *   
+     *   noStroke();
+     *   fill(0, 0, 0);
+     *   for (let i = 0; i < spectrum.length; i++) {
+     *     let x = map(i, 0, spectrum.length, 0, width);     
+     *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+     *     rect(x, height, width / spectrum.length, h )
+     *   }
+     *   if (!noise.started) {
+     *     text('click and drag to change filter\'s center frequency', 10, 20, width - 20);
+     *   } else {
+     *     fill(255);
+     *     text('Frequency: ' + round(freq)+'Hz', 20, 20, width - 20);
+     *   }
+     * }
+     * 
+     * function makeNoise() {
+     *   noise.start();
+     *   noise.amp(0.9, 0.1);
+     * }
+     * 
+     * function mouseReleased() {
+     *   noise.amp(0, 0.1);
+     * }
+     * </code>
+     * </div>
      */ , p5.HighPass = class extends Biquad {
     constructor(frequency) {
       super(frequency), this.node.type = "highpass";
     }
   }
   /**
-     * Creates a Bandpass Biquad filter.
+     * Creates a Bandpass Biquad filter. A shorthand or explicit way of defining a bandpass audio filter.
      * @class BandPass
      * @constructor
      * @extends Biquad
      * @param {Number} [freq] Set the cutoff frequency of the filter
+     * @example
+     * <div>
+     * <code>
+     * let fft, noise, filterEffect;
+     *
+     * function setup() {
+     *   let cnv = createCanvas(100,100);
+     *   cnv.mousePressed(makeNoise);
+     *   fill(255, 0, 255);
+     * 
+     *   //creates a BandPass filter
+     *   filterEffect = new p5.BandPass();
+     *   noise = new p5.Noise();
+     *   noise.disconnect();
+     *   noise.connect(filterEffect);
+     *   
+     *   fft = new p5.FFT(128);
+     *   filterEffect.connect(fft);
+     * }
+     * 
+     * function draw() {
+     *   background(220);
+     * 
+     *   // set the BandPass frequency based on mouseX
+     *   let freq = map(mouseX, 0, width, 20, 10000);
+     *   freq = constrain(freq, 0, 22050);
+     *   filterEffect.freq(freq);
+     * 
+     *   // draw filtered spectrum
+     *   let spectrum = fft.analyze();
+     *   
+     *   noStroke();
+     *   fill(0, 0, 0);
+     *   for (let i = 0; i < spectrum.length; i++) {
+     *     let x = map(i, 0, spectrum.length, 0, width);     
+     *     let h = -height + map(spectrum[i], 0, 0.02, height, 0);
+     *     rect(x, height, width / spectrum.length, h )
+     *   }
+     *   if (!noise.started) {
+     *     text('click and drag to change filter\'s center frequency', 10, 20, width - 20);
+     *   } else {
+     *     fill(255);
+     *     text('Frequency: ' + round(freq)+'Hz', 20, 20, width - 20);
+     *   }
+     * }
+     * 
+     * function makeNoise() {
+     *   noise.start();
+     *   noise.amp(0.9, 0.1);
+     * }
+     * 
+     * function mouseReleased() {
+     *   noise.amp(0, 0.1);
+     * }
+     * </code>
+     * </div>
      */ , p5.BandPass = class extends Biquad {
     constructor(frequency) {
       super(frequency), this.node.type = "bandpass";
@@ -15719,7 +17174,7 @@
      *  </code></div>
      */
   function(path) {
-    if (self._incrementPreload && self._decrementPreload) {
+    if ("string" == typeof path && (path = encodeURI(path)), self._incrementPreload && self._decrementPreload) {
       return self._incrementPreload(), new p5.SoundFile(path, (function() {
         self._decrementPreload();
       }));
