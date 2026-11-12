@@ -2,6 +2,16 @@
 
 All notable changes to the "p5.js 2.x Project Generator" extension will be documented in this file.
 
+## [1.1.4]
+
+- Fixed autocomplete, hover documentation and parameter hints for `createVector()` ([#3](https://github.com/IrtizaNasar/p5-2.vscode/issues/3))
+- Added autocomplete for commonly used functions that were missing: `push()`, `pop()`, `sin()`, `cos()`, `tan()`, `asin()`, `acos()`, `atan()`, `atan2()`, `degrees()`, `radians()`, `angleMode()`, `frameRate()`, `print()`, `cursor()`, `noCursor()`, `rotateX()`, `rotateY()`, `rotateZ()`, `randomGaussian()`, `noiseDetail()`, `lerpColor()`, `red()`, `green()`, `blue()`, `hue()`, `saturation()`, `brightness()`, `loadPixels()`, `updatePixels()`, `doubleClicked()`, `createA()`, `createCapture()`, `createColorPicker()`
+- Added autocomplete for loading and saving functions: `loadJSON()`, `loadStrings()`, `loadTable()`, `loadXML()`, `loadBytes()`, `loadBlob()`, `httpGet()`, `httpPost()`, `httpDo()`, `save()`, `saveJSON()`, `saveStrings()`, `saveTable()`, `createWriter()`
+- Added autocomplete for 3D lights and camera functions: `lights()`, `noLights()`, `ambientLight()`, `directionalLight()`, `pointLight()`, `spotLight()`, `imageLight()`, `panorama()`, `camera()`, `perspective()`, `ortho()`, `frustum()`, `createCamera()`, `setCamera()`, `orbitControl()`, `debugMode()`
+- Added autocomplete for p5.js 2.x shader and compute functions: `buildMaterialShader()`, `buildColorShader()`, `buildNormalShader()`, `buildStrokeShader()`, `buildFilterShader()`, `buildComputeShader()`, `loadMaterialShader()`, `loadColorShader()`, `loadNormalShader()`, `loadStrokeShader()`, `compute()`, `createStorage()`, `uniformStorage()`, `getTexture()`, `smoothstep()`, `mix()`
+- Added autocomplete for `worldToScreen()`, `screenToWorld()`, `createFramebuffer()`, `describe()`, `describeElement()`, `textOutput()`, `gridOutput()`, `requestPointerLock()` and `exitPointerLock()`
+- Updated function categories in hover documentation to match the p5.js reference (e.g. Rendering, IO, Lights, Camera)
+
 ## [1.1.3]
 
 - Updated p5.js library to version **2.3.4** for both CDN (online) and local library files (offline, minified and full)

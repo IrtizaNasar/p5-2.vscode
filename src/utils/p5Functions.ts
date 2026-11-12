@@ -34,6 +34,50 @@ export const p5Functions: P5Function[] = [
         category: 'Structure'
     },
     {
+        name: 'disableFriendlyErrors',
+        description: 'Turns off the parts of the Friendly Error System (FES) that impact performance',
+        signature: 'disableFriendlyErrors()',
+        parameters: [],
+        category: 'Structure'
+    },
+    {
+        name: 'isLooping',
+        description: 'Returns true if the draw loop is running and false if not',
+        signature: 'isLooping()',
+        parameters: [],
+        returnType: 'boolean',
+        category: 'Structure'
+    },
+    {
+        name: 'loop',
+        description: 'Resumes the draw loop after noLoop() has been called',
+        signature: 'loop()',
+        parameters: [],
+        category: 'Structure'
+    },
+    {
+        name: 'noLoop',
+        description: 'Stops the code in draw() from running repeatedly',
+        signature: 'noLoop()',
+        parameters: [],
+        category: 'Structure'
+    },
+    {
+        name: 'redraw',
+        description: 'Runs the code in draw() once',
+        signature: 'redraw()',
+        parameters: [],
+        category: 'Structure'
+    },
+    {
+        name: 'remove',
+        description: 'Removes the sketch from the web page',
+        signature: 'remove()',
+        parameters: [],
+        category: 'Structure'
+    },
+    // Rendering
+    {
         name: 'createCanvas',
         description: 'Creates a canvas element in the document',
         signature: 'createCanvas(width, height, [renderer])',
@@ -43,7 +87,7 @@ export const p5Functions: P5Function[] = [
             { name: 'renderer', type: 'string', description: 'Either P2D or WEBGL', optional: true }
         ],
         returnType: 'p5.Renderer',
-        category: 'Structure'
+        category: 'Rendering'
     },
     {
         name: 'resizeCanvas',
@@ -54,14 +98,14 @@ export const p5Functions: P5Function[] = [
             { name: 'height', type: 'number', description: 'Height of the canvas' },
             { name: 'noRedraw', type: 'boolean', description: 'If true, does not redraw the canvas', optional: true }
         ],
-        category: 'Structure'
+        category: 'Rendering'
     },
     {
         name: 'noCanvas',
         description: 'Removes the default canvas',
         signature: 'noCanvas()',
         parameters: [],
-        category: 'Structure'
+        category: 'Rendering'
     },
     {
         name: 'createGraphics',
@@ -73,8 +117,239 @@ export const p5Functions: P5Function[] = [
             { name: 'renderer', type: 'string', description: 'Either P2D or WEBGL', optional: true }
         ],
         returnType: 'p5.Graphics',
-        category: 'Structure'
+        category: 'Rendering'
     },
+    {
+        name: 'createFramebuffer',
+        description: 'Creates a new p5.Framebuffer object',
+        signature: 'createFramebuffer([options])',
+        parameters: [
+            { name: 'options', type: 'object', description: 'Configuration options', optional: true }
+        ],
+        returnType: 'p5.Framebuffer',
+        category: 'Rendering'
+    },
+    {
+        name: 'setAttributes',
+        description: 'Set attributes for the WebGL Drawing context',
+        signature: 'setAttributes(key, value)',
+        parameters: [
+            { name: 'key', type: 'string', description: 'Name of attribute' },
+            { name: 'value', type: 'boolean', description: 'New value of named attribute' }
+        ],
+        category: 'Rendering'
+    },
+    {
+        name: 'clearDepth',
+        description: 'Clears the depth buffer in WebGL mode',
+        signature: 'clearDepth([depth])',
+        parameters: [
+            { name: 'depth', type: 'number', description: 'Amount of the depth buffer to clear between 0 (none) and 1 (far clipping plane)', optional: true }
+        ],
+        category: 'Rendering'
+    },
+    // Environment
+    {
+        name: 'width',
+        description: 'System variable that stores the width of the display window',
+        signature: 'width',
+        parameters: [],
+        returnType: 'number',
+        category: 'Environment'
+    },
+    {
+        name: 'height',
+        description: 'System variable that stores the height of the display window',
+        signature: 'height',
+        parameters: [],
+        returnType: 'number',
+        category: 'Environment'
+    },
+    {
+        name: 'windowWidth',
+        description: 'System variable that stores the width of the inner window',
+        signature: 'windowWidth',
+        parameters: [],
+        returnType: 'number',
+        category: 'Environment'
+    },
+    {
+        name: 'windowHeight',
+        description: 'System variable that stores the height of the inner window',
+        signature: 'windowHeight',
+        parameters: [],
+        returnType: 'number',
+        category: 'Environment'
+    },
+    {
+        name: 'windowResized',
+        description: 'The windowResized() function is called once every time the browser window is resized',
+        signature: 'windowResized([event])',
+        parameters: [
+            { name: 'event', type: 'object', description: 'Optional Event callback argument', optional: true }
+        ],
+        category: 'Environment'
+    },
+    {
+        name: 'fullscreen',
+        description: 'Toggles fullscreen mode',
+        signature: 'fullscreen([val])',
+        parameters: [
+            { name: 'val', type: 'boolean', description: 'Whether to enter fullscreen', optional: true }
+        ],
+        returnType: 'boolean',
+        category: 'Environment'
+    },
+    {
+        name: 'pixelDensity',
+        description: 'Sets the pixel scaling for high pixel density displays',
+        signature: 'pixelDensity([val])',
+        parameters: [
+            { name: 'val', type: 'number', description: 'Either 1 or 2', optional: true }
+        ],
+        returnType: 'number',
+        category: 'Environment'
+    },
+    {
+        name: 'displayDensity',
+        description: 'Returns the pixel density of the current display the sketch is running on',
+        signature: 'displayDensity()',
+        parameters: [],
+        returnType: 'number',
+        category: 'Environment'
+    },
+    {
+        name: 'getURL',
+        description: 'Returns the current URL',
+        signature: 'getURL()',
+        parameters: [],
+        returnType: 'string',
+        category: 'Environment'
+    },
+    {
+        name: 'getURLPath',
+        description: 'Returns the current URL path',
+        signature: 'getURLPath()',
+        parameters: [],
+        returnType: 'string',
+        category: 'Environment'
+    },
+    {
+        name: 'getURLParams',
+        description: 'Returns the current URL parameters as an object',
+        signature: 'getURLParams()',
+        parameters: [],
+        returnType: 'object',
+        category: 'Environment'
+    },
+    {
+        name: 'frameRate',
+        description: 'Sets the number of frames to draw per second',
+        signature: 'frameRate(fps)',
+        parameters: [
+            { name: 'fps', type: 'number', description: 'Number of frames to draw per second' }
+        ],
+        category: 'Environment'
+    },
+    {
+        name: 'getTargetFrameRate',
+        description: 'Returns the target frame rate',
+        signature: 'getTargetFrameRate()',
+        parameters: [],
+        returnType: 'number',
+        category: 'Environment'
+    },
+    {
+        name: 'cursor',
+        description: 'Changes the cursor\'s appearance',
+        signature: 'cursor(type, [x], [y])',
+        parameters: [
+            { name: 'type', type: 'string', description: 'Either ARROW, CROSS, HAND, MOVE, TEXT, WAIT, or a path to an image' },
+            { name: 'x', type: 'number', description: 'Horizontal active spot of the cursor', optional: true },
+            { name: 'y', type: 'number', description: 'Vertical active spot of the cursor', optional: true }
+        ],
+        category: 'Environment'
+    },
+    {
+        name: 'noCursor',
+        description: 'Hides the cursor from view',
+        signature: 'noCursor()',
+        parameters: [],
+        category: 'Environment'
+    },
+    {
+        name: 'print',
+        description: 'Displays text in the web browser\'s console',
+        signature: 'print(contents)',
+        parameters: [
+            { name: 'contents', type: 'any', description: 'Content to print to the console' }
+        ],
+        category: 'Environment'
+    },
+    {
+        name: 'describe',
+        description: 'Creates a screen reader-accessible description of the canvas',
+        signature: 'describe(text, [display])',
+        parameters: [
+            { name: 'text', type: 'string', description: 'Description of the canvas' },
+            { name: 'display', type: 'string', description: 'Either FALLBACK or LABEL', optional: true }
+        ],
+        category: 'Environment'
+    },
+    {
+        name: 'describeElement',
+        description: 'Creates a screen reader-accessible description of elements in the canvas',
+        signature: 'describeElement(name, text, [display])',
+        parameters: [
+            { name: 'name', type: 'string', description: 'Name of the element' },
+            { name: 'text', type: 'string', description: 'Description of the element' },
+            { name: 'display', type: 'string', description: 'Either FALLBACK or LABEL', optional: true }
+        ],
+        category: 'Environment'
+    },
+    {
+        name: 'textOutput',
+        description: 'Creates a screen reader-accessible description of shapes on the canvas',
+        signature: 'textOutput([display])',
+        parameters: [
+            { name: 'display', type: 'string', description: 'Either FALLBACK or LABEL', optional: true }
+        ],
+        category: 'Environment'
+    },
+    {
+        name: 'gridOutput',
+        description: 'Creates a screen reader-accessible description of shapes on the canvas',
+        signature: 'gridOutput([display])',
+        parameters: [
+            { name: 'display', type: 'string', description: 'Either FALLBACK or LABEL', optional: true }
+        ],
+        category: 'Environment'
+    },
+    {
+        name: 'worldToScreen',
+        description: 'Converts 3D world coordinates to 2D screen coordinates',
+        signature: 'worldToScreen(x, y, [z])',
+        parameters: [
+            { name: 'x', type: 'number|p5.Vector', description: 'The x coordinate in world space' },
+            { name: 'y', type: 'number', description: 'The y coordinate in world space' },
+            { name: 'z', type: 'number', description: 'The z coordinate in world space', optional: true }
+        ],
+        returnType: 'p5.Vector',
+        category: 'Environment'
+    },
+    {
+        name: 'screenToWorld',
+        description: 'Converts 2D screen coordinates to 3D world coordinates',
+        signature: 'screenToWorld(x, y, [z])',
+        parameters: [
+            { name: 'x', type: 'number|p5.Vector', description: 'The x coordinate in screen space' },
+            { name: 'y', type: 'number', description: 'The y coordinate in screen space' },
+            { name: 'z', type: 'number', description: 'The z coordinate in screen space', optional: true }
+        ],
+        returnType: 'p5.Vector',
+        category: 'Environment'
+    },
+    // Color - Setting
     {
         name: 'blendMode',
         description: 'Sets the way colors blend when added to the canvas',
@@ -160,6 +435,121 @@ export const p5Functions: P5Function[] = [
         description: 'Ends erasing that was started with erase()',
         signature: 'noErase()',
         parameters: [],
+        category: 'Color'
+    },
+    {
+        name: 'beginClip',
+        description: 'Starts defining a shape that will mask any shapes drawn afterward',
+        signature: 'beginClip()',
+        parameters: [],
+        category: 'Color'
+    },
+    {
+        name: 'clip',
+        description: 'Defines a shape that will mask any shapes drawn afterward',
+        signature: 'clip()',
+        parameters: [],
+        category: 'Color'
+    },
+    {
+        name: 'endClip',
+        description: 'Ends defining a mask that was started with beginClip()',
+        signature: 'endClip()',
+        parameters: [],
+        category: 'Color'
+    },
+    // Color - Creating & Reading
+    {
+        name: 'red',
+        description: 'Gets the red value of a color',
+        signature: 'red(color)',
+        parameters: [
+            { name: 'color', type: 'p5.Color|number[]|string', description: 'P5.Color object, array of color components, or CSS color string' }
+        ],
+        returnType: 'number',
+        category: 'Color'
+    },
+    {
+        name: 'green',
+        description: 'Gets the green value of a color',
+        signature: 'green(color)',
+        parameters: [
+            { name: 'color', type: 'p5.Color|number[]|string', description: 'P5.Color object, array of color components, or CSS color string' }
+        ],
+        returnType: 'number',
+        category: 'Color'
+    },
+    {
+        name: 'blue',
+        description: 'Gets the blue value of a color',
+        signature: 'blue(color)',
+        parameters: [
+            { name: 'color', type: 'p5.Color|number[]|string', description: 'P5.Color object, array of color components, or CSS color string' }
+        ],
+        returnType: 'number',
+        category: 'Color'
+    },
+    {
+        name: 'hue',
+        description: 'Gets the hue value of a color',
+        signature: 'hue(color)',
+        parameters: [
+            { name: 'color', type: 'p5.Color|number[]|string', description: 'P5.Color object, array of color components, or CSS color string' }
+        ],
+        returnType: 'number',
+        category: 'Color'
+    },
+    {
+        name: 'saturation',
+        description: 'Gets the saturation value of a color',
+        signature: 'saturation(color)',
+        parameters: [
+            { name: 'color', type: 'p5.Color|number[]|string', description: 'P5.Color object, array of color components, or CSS color string' }
+        ],
+        returnType: 'number',
+        category: 'Color'
+    },
+    {
+        name: 'brightness',
+        description: 'Gets the brightness value of a color',
+        signature: 'brightness(color)',
+        parameters: [
+            { name: 'color', type: 'p5.Color|number[]|string', description: 'P5.Color object, array of color components, or CSS color string' }
+        ],
+        returnType: 'number',
+        category: 'Color'
+    },
+    {
+        name: 'lightness',
+        description: 'Gets the lightness value of a color',
+        signature: 'lightness(color)',
+        parameters: [
+            { name: 'color', type: 'p5.Color|number[]|string', description: 'P5.Color object, array of color components, or CSS color string' }
+        ],
+        returnType: 'number',
+        category: 'Color'
+    },
+    {
+        name: 'lerpColor',
+        description: 'Blends two colors to find a third color between them',
+        signature: 'lerpColor(c1, c2, amt)',
+        parameters: [
+            { name: 'c1', type: 'p5.Color', description: 'Interpolate from this color' },
+            { name: 'c2', type: 'p5.Color', description: 'Interpolate to this color' },
+            { name: 'amt', type: 'number', description: 'Number between 0 and 1' }
+        ],
+        returnType: 'p5.Color',
+        category: 'Color'
+    },
+    {
+        name: 'paletteLerp',
+        description: 'Blends multiple colors to find a color between them',
+        signature: 'paletteLerp(colors_stops, amt)',
+        parameters: [
+            { name: 'colors_stops', type: 'array', description: 'Color stops to interpolate from' },
+            { name: 'amt', type: 'number', description: 'Number to use to interpolate relative to color stops' }
+        ],
+        returnType: 'p5.Color',
         category: 'Color'
     },
     // Shape - 2D Primitives
@@ -285,6 +675,454 @@ export const p5Functions: P5Function[] = [
         ],
         category: 'Shape'
     },
+    // Shape - 3D Primitives
+    {
+        name: 'box',
+        description: 'Draws a box (rectangular prism)',
+        signature: 'box([width], [height], [depth], [detailX], [detailY])',
+        parameters: [
+            { name: 'width', type: 'number', description: 'Width of the box', optional: true },
+            { name: 'height', type: 'number', description: 'Height of the box', optional: true },
+            { name: 'depth', type: 'number', description: 'Depth of the box', optional: true },
+            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
+            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'sphere',
+        description: 'Draws a sphere',
+        signature: 'sphere([radius], [detailX], [detailY])',
+        parameters: [
+            { name: 'radius', type: 'number', description: 'Radius of the sphere', optional: true },
+            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
+            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'cone',
+        description: 'Draws a cone',
+        signature: 'cone([radius], [height], [detailX], [detailY], [cap])',
+        parameters: [
+            { name: 'radius', type: 'number', description: 'Radius of the bottom', optional: true },
+            { name: 'height', type: 'number', description: 'Height of the cone', optional: true },
+            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
+            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true },
+            { name: 'cap', type: 'boolean', description: 'Whether to draw the base of the cone', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'cylinder',
+        description: 'Draws a cylinder',
+        signature: 'cylinder([radius], [height], [detailX], [detailY], [bottomCap], [topCap])',
+        parameters: [
+            { name: 'radius', type: 'number', description: 'Radius of the cylinder', optional: true },
+            { name: 'height', type: 'number', description: 'Height of the cylinder', optional: true },
+            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
+            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true },
+            { name: 'bottomCap', type: 'boolean', description: 'Whether to draw the bottom cap', optional: true },
+            { name: 'topCap', type: 'boolean', description: 'Whether to draw the top cap', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'plane',
+        description: 'Draws a plane',
+        signature: 'plane([width], [height], [detailX], [detailY])',
+        parameters: [
+            { name: 'width', type: 'number', description: 'Width of the plane', optional: true },
+            { name: 'height', type: 'number', description: 'Height of the plane', optional: true },
+            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
+            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'torus',
+        description: 'Draws a torus',
+        signature: 'torus([radius], [tubeRadius], [detailX], [detailY])',
+        parameters: [
+            { name: 'radius', type: 'number', description: 'Radius of the torus', optional: true },
+            { name: 'tubeRadius', type: 'number', description: 'Radius of the tube', optional: true },
+            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
+            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'ellipsoid',
+        description: 'Draws an ellipsoid',
+        signature: 'ellipsoid([radiusX], [radiusY], [radiusZ], [detailX], [detailY])',
+        parameters: [
+            { name: 'radiusX', type: 'number', description: 'Radius in x-dimension', optional: true },
+            { name: 'radiusY', type: 'number', description: 'Radius in y-dimension', optional: true },
+            { name: 'radiusZ', type: 'number', description: 'Radius in z-dimension', optional: true },
+            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
+            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'buildGeometry',
+        description: 'Creates a custom p5.Geometry object from simpler 3D shapes',
+        signature: 'buildGeometry(primitives)',
+        parameters: [
+            { name: 'primitives', type: 'p5.Geometry[]', description: 'Array of p5.Geometry objects to combine' }
+        ],
+        returnType: 'p5.Geometry',
+        category: 'Shape'
+    },
+    {
+        name: 'curveDetail',
+        description: 'Sets the number of segments used to draw spline curves in WebGL mode',
+        signature: 'curveDetail(detail)',
+        parameters: [
+            { name: 'detail', type: 'number', description: 'Number of curve segments' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'freeGeometry',
+        description: 'Clears a p5.Geometry object from the graphics processing unit (GPU) memory',
+        signature: 'freeGeometry(geometry)',
+        parameters: [
+            { name: 'geometry', type: 'p5.Geometry', description: 'The geometry object to free from GPU memory' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'saveObj',
+        description: 'Exports p5.Geometry objects as 3D models in the Wavefront .obj file format',
+        signature: 'saveObj(geometry, filename)',
+        parameters: [
+            { name: 'geometry', type: 'p5.Geometry', description: 'The geometry object to export' },
+            { name: 'filename', type: 'string', description: 'Filename for the exported .obj file' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'saveStl',
+        description: 'Exports p5.Geometry objects as 3D models in the STL stereolithography file format',
+        signature: 'saveStl(geometry, filename)',
+        parameters: [
+            { name: 'geometry', type: 'p5.Geometry', description: 'The geometry object to export' },
+            { name: 'filename', type: 'string', description: 'Filename for the exported .stl file' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'strokeMode',
+        description: 'Sets the stroke rendering mode to balance performance and visual features when drawing lines',
+        signature: 'strokeMode(mode)',
+        parameters: [
+            { name: 'mode', type: 'string', description: 'Stroke rendering mode' }
+        ],
+        category: 'Shape'
+    },
+    // Shape - 3D Models
+    {
+        name: 'loadModel',
+        description: 'Loads a 3D model to create a p5.Geometry object',
+        signature: 'loadModel(path, [normalize], [successCallback], [failureCallback])',
+        parameters: [
+            { name: 'path', type: 'string', description: 'Path of the model to be loaded' },
+            { name: 'normalize', type: 'boolean', description: 'If true, scale the model to a standardized size', optional: true },
+            { name: 'successCallback', type: 'function', description: 'Function to be called once the model is loaded', optional: true },
+            { name: 'failureCallback', type: 'function', description: 'Function to be called in case of an error', optional: true }
+        ],
+        returnType: 'p5.Geometry',
+        category: 'Shape'
+    },
+    {
+        name: 'model',
+        description: 'Draws a p5.Geometry object to the canvas',
+        signature: 'model(geometry)',
+        parameters: [
+            { name: 'geometry', type: 'p5.Geometry', description: 'The p5.Geometry object to render' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'createModel',
+        description: 'Load a 3d model from an OBJ or STL string',
+        signature: 'createModel(objString)',
+        parameters: [
+            { name: 'objString', type: 'string', description: 'OBJ or STL file content as a string' }
+        ],
+        returnType: 'p5.Geometry',
+        category: 'Shape'
+    },
+    // Shape - Curves
+    {
+        name: 'bezier',
+        description: 'Draws a Bézier curve',
+        signature: 'bezier(x1, y1, x2, y2, x3, y3, x4, y4)',
+        parameters: [
+            { name: 'x1', type: 'number', description: 'x-coordinate of the first point' },
+            { name: 'y1', type: 'number', description: 'y-coordinate of the first point' },
+            { name: 'x2', type: 'number', description: 'x-coordinate of the first control point' },
+            { name: 'y2', type: 'number', description: 'y-coordinate of the first control point' },
+            { name: 'x3', type: 'number', description: 'x-coordinate of the second control point' },
+            { name: 'y3', type: 'number', description: 'y-coordinate of the second control point' },
+            { name: 'x4', type: 'number', description: 'x-coordinate of the second point' },
+            { name: 'y4', type: 'number', description: 'y-coordinate of the second point' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'spline',
+        description: 'Draws a curve using a Catmull-Rom spline',
+        signature: 'spline(x1, y1, x2, y2, x3, y3, x4, y4)',
+        parameters: [
+            { name: 'x1', type: 'number', description: 'x-coordinate of the first point' },
+            { name: 'y1', type: 'number', description: 'y-coordinate of the first point' },
+            { name: 'x2', type: 'number', description: 'x-coordinate of the second point' },
+            { name: 'y2', type: 'number', description: 'y-coordinate of the second point' },
+            { name: 'x3', type: 'number', description: 'x-coordinate of the third point' },
+            { name: 'y3', type: 'number', description: 'y-coordinate of the third point' },
+            { name: 'x4', type: 'number', description: 'x-coordinate of the fourth point' },
+            { name: 'y4', type: 'number', description: 'y-coordinate of the fourth point' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'bezierPoint',
+        description: 'Calculates coordinates along a Bézier curve using interpolation',
+        signature: 'bezierPoint(a, b, c, d, t)',
+        parameters: [
+            { name: 'a', type: 'number', description: 'First point coordinate' },
+            { name: 'b', type: 'number', description: 'First control point coordinate' },
+            { name: 'c', type: 'number', description: 'Second control point coordinate' },
+            { name: 'd', type: 'number', description: 'Second point coordinate' },
+            { name: 't', type: 'number', description: 'Value between 0 and 1' }
+        ],
+        returnType: 'number',
+        category: 'Shape'
+    },
+    {
+        name: 'bezierTangent',
+        description: 'Calculates coordinates along a line that\'s tangent to a Bézier curve',
+        signature: 'bezierTangent(a, b, c, d, t)',
+        parameters: [
+            { name: 'a', type: 'number', description: 'First point coordinate' },
+            { name: 'b', type: 'number', description: 'First control point coordinate' },
+            { name: 'c', type: 'number', description: 'Second control point coordinate' },
+            { name: 'd', type: 'number', description: 'Second point coordinate' },
+            { name: 't', type: 'number', description: 'Value between 0 and 1' }
+        ],
+        returnType: 'number',
+        category: 'Shape'
+    },
+    {
+        name: 'splinePoint',
+        description: 'Calculates coordinates along a spline curve using interpolation',
+        signature: 'splinePoint(a, b, c, d, t)',
+        parameters: [
+            { name: 'a', type: 'number', description: 'First point coordinate' },
+            { name: 'b', type: 'number', description: 'Second point coordinate' },
+            { name: 'c', type: 'number', description: 'Third point coordinate' },
+            { name: 'd', type: 'number', description: 'Fourth point coordinate' },
+            { name: 't', type: 'number', description: 'Value between 0 and 1' }
+        ],
+        returnType: 'number',
+        category: 'Shape'
+    },
+    {
+        name: 'splineTangent',
+        description: 'Calculates coordinates along a line that\'s tangent to a spline curve',
+        signature: 'splineTangent(a, b, c, d, t)',
+        parameters: [
+            { name: 'a', type: 'number', description: 'First point coordinate' },
+            { name: 'b', type: 'number', description: 'Second point coordinate' },
+            { name: 'c', type: 'number', description: 'Third point coordinate' },
+            { name: 'd', type: 'number', description: 'Fourth point coordinate' },
+            { name: 't', type: 'number', description: 'Value between 0 and 1' }
+        ],
+        returnType: 'number',
+        category: 'Shape'
+    },
+    // Shape - Custom Shapes
+    {
+        name: 'beginShape',
+        description: 'Begins adding vertices to a custom shape',
+        signature: 'beginShape([kind])',
+        parameters: [
+            { name: 'kind', type: 'string', description: 'Either POINTS, LINES, TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, QUADS, QUAD_STRIP', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'endShape',
+        description: 'Concludes the vertices of a custom shape',
+        signature: 'endShape([mode])',
+        parameters: [
+            { name: 'mode', type: 'string', description: 'Use CLOSE to close the shape', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'vertex',
+        description: 'Adds a vertex to a custom shape',
+        signature: 'vertex(x, y, [z])',
+        parameters: [
+            { name: 'x', type: 'number', description: 'x-coordinate of the vertex' },
+            { name: 'y', type: 'number', description: 'y-coordinate of the vertex' },
+            { name: 'z', type: 'number', description: 'z-coordinate of the vertex (for WebGL mode)', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'bezierVertex',
+        description: 'Adds a Bézier curve segment to a custom shape',
+        signature: 'bezierVertex(x2, y2, x3, y3, x4, y4)',
+        parameters: [
+            { name: 'x2', type: 'number', description: 'x-coordinate of the first control point' },
+            { name: 'y2', type: 'number', description: 'y-coordinate of the first control point' },
+            { name: 'x3', type: 'number', description: 'x-coordinate of the second control point' },
+            { name: 'y3', type: 'number', description: 'y-coordinate of the second control point' },
+            { name: 'x4', type: 'number', description: 'x-coordinate of the anchor point' },
+            { name: 'y4', type: 'number', description: 'y-coordinate of the anchor point' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'splineVertex',
+        description: 'Connects points with a smooth curve (a spline)',
+        signature: 'splineVertex(x, y, [z])',
+        parameters: [
+            { name: 'x', type: 'number', description: 'x-coordinate of the vertex' },
+            { name: 'y', type: 'number', description: 'y-coordinate of the vertex' },
+            { name: 'z', type: 'number', description: 'z-coordinate of the vertex (for WebGL mode)', optional: true }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'beginContour',
+        description: 'Begins creating a hole within a flat shape',
+        signature: 'beginContour()',
+        parameters: [],
+        category: 'Shape'
+    },
+    {
+        name: 'bezierOrder',
+        description: 'Influences the shape of the Bézier curve segment in a custom shape',
+        signature: 'bezierOrder(order)',
+        parameters: [
+            { name: 'order', type: 'number', description: 'Order of the Bézier curve' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'endContour',
+        description: 'Stops creating a hole within a flat shape',
+        signature: 'endContour()',
+        parameters: [],
+        category: 'Shape'
+    },
+    {
+        name: 'normal',
+        description: 'Sets the normal vector for vertices in a custom 3D shape',
+        signature: 'normal(x, y, z)',
+        parameters: [
+            { name: 'x', type: 'number', description: 'x-component of the normal vector' },
+            { name: 'y', type: 'number', description: 'y-component of the normal vector' },
+            { name: 'z', type: 'number', description: 'z-component of the normal vector' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'splineProperties',
+        description: 'Get or set multiple spline properties at once',
+        signature: 'splineProperties(properties)',
+        parameters: [
+            { name: 'properties', type: 'object', description: 'Object containing spline properties' }
+        ],
+        returnType: 'object',
+        category: 'Shape'
+    },
+    {
+        name: 'splineProperty',
+        description: 'Gets or sets a given spline property',
+        signature: 'splineProperty(property, [value])',
+        parameters: [
+            { name: 'property', type: 'string', description: 'Name of the property' },
+            { name: 'value', type: 'any', description: 'Value to set (optional for get)', optional: true }
+        ],
+        returnType: 'any',
+        category: 'Shape'
+    },
+    {
+        name: 'vertexProperty',
+        description: 'Sets the shader\'s vertex property or attribute variables',
+        signature: 'vertexProperty(name, value)',
+        parameters: [
+            { name: 'name', type: 'string', description: 'Name of the vertex property' },
+            { name: 'value', type: 'number|number[]', description: 'Value or array of values' }
+        ],
+        category: 'Shape'
+    },
+    // Shape - Attributes
+    {
+        name: 'ellipseMode',
+        description: 'Changes where ellipses, circles, and arcs are drawn',
+        signature: 'ellipseMode(mode)',
+        parameters: [
+            { name: 'mode', type: 'string', description: 'Either CENTER, RADIUS, CORNER, or CORNERS' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'rectMode',
+        description: 'Changes where rectangles and squares are drawn',
+        signature: 'rectMode(mode)',
+        parameters: [
+            { name: 'mode', type: 'string', description: 'Either CENTER, RADIUS, CORNER, or CORNERS' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'strokeWeight',
+        description: 'Sets the width of the stroke used for points, lines, and the outlines of shapes',
+        signature: 'strokeWeight(weight)',
+        parameters: [
+            { name: 'weight', type: 'number', description: 'The weight (in pixels) of the stroke' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'strokeCap',
+        description: 'Sets the style for rendering the ends of lines',
+        signature: 'strokeCap(cap)',
+        parameters: [
+            { name: 'cap', type: 'string', description: 'Either SQUARE, PROJECT, or ROUND' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'strokeJoin',
+        description: 'Sets the style of the joints that connect line segments',
+        signature: 'strokeJoin(join)',
+        parameters: [
+            { name: 'join', type: 'string', description: 'Either MITER, BEVEL, or ROUND' }
+        ],
+        category: 'Shape'
+    },
+    {
+        name: 'noSmooth',
+        description: 'Draws certain features with jagged (aliased) edges',
+        signature: 'noSmooth()',
+        parameters: [],
+        category: 'Shape'
+    },
+    {
+        name: 'smooth',
+        description: 'Draws certain features with smooth (antialiased) edges',
+        signature: 'smooth()',
+        parameters: [],
+        category: 'Shape'
+    },
     // Typography
     {
         name: 'text',
@@ -325,6 +1163,164 @@ export const p5Functions: P5Function[] = [
         parameters: [
             { name: 'horizAlign', type: 'string', description: 'Horizontal alignment, either LEFT, CENTER, or RIGHT' },
             { name: 'vertAlign', type: 'string', description: 'Vertical alignment, either TOP, BOTTOM, CENTER, or BASELINE', optional: true }
+        ],
+        category: 'Typography'
+    },
+    {
+        name: 'loadFont',
+        description: 'Loads a font and creates a p5.Font object',
+        signature: 'loadFont(path, [successCallback], [failureCallback])',
+        parameters: [
+            { name: 'path', type: 'string', description: 'Path of the font file' },
+            { name: 'successCallback', type: 'function', description: 'Function to be called once the font is loaded', optional: true },
+            { name: 'failureCallback', type: 'function', description: 'Function to be called in case of an error', optional: true }
+        ],
+        returnType: 'p5.Font',
+        category: 'Typography'
+    },
+    {
+        name: 'textLeading',
+        description: 'Sets the spacing between lines of text when text() is called',
+        signature: 'textLeading(leading)',
+        parameters: [
+            { name: 'leading', type: 'number', description: 'The size in pixels for spacing between lines' }
+        ],
+        category: 'Typography'
+    },
+    {
+        name: 'textStyle',
+        description: 'Sets the style for system fonts when text() is called',
+        signature: 'textStyle(style)',
+        parameters: [
+            { name: 'style', type: 'string', description: 'Either NORMAL, ITALIC, or BOLD' }
+        ],
+        category: 'Typography'
+    },
+    {
+        name: 'textWeight',
+        description: 'Sets or gets the current font weight',
+        signature: 'textWeight(weight)',
+        parameters: [
+            { name: 'weight', type: 'number|string', description: 'Font weight (100-900) or string (normal, bold)' }
+        ],
+        returnType: 'number|string',
+        category: 'Typography'
+    },
+    {
+        name: 'textWidth',
+        description: 'Calculates the width of the given text string in pixels',
+        signature: 'textWidth(text)',
+        parameters: [
+            { name: 'text', type: 'string', description: 'Text to measure' }
+        ],
+        returnType: 'number',
+        category: 'Typography'
+    },
+    {
+        name: 'fontAscent',
+        description: 'Returns the loose ascent of the text based on the font\'s intrinsic metrics',
+        signature: 'fontAscent()',
+        parameters: [],
+        returnType: 'number',
+        category: 'Typography'
+    },
+    {
+        name: 'fontBounds',
+        description: 'Computes a generic (non-tight) bounding box for a block of text',
+        signature: 'fontBounds(text, x, y, [fontSize])',
+        parameters: [
+            { name: 'text', type: 'string', description: 'Text to measure' },
+            { name: 'x', type: 'number', description: 'x-coordinate' },
+            { name: 'y', type: 'number', description: 'y-coordinate' },
+            { name: 'fontSize', type: 'number', description: 'Font size', optional: true }
+        ],
+        returnType: 'object',
+        category: 'Typography'
+    },
+    {
+        name: 'fontDescent',
+        description: 'Returns the loose descent of the text based on the font\'s intrinsic metrics',
+        signature: 'fontDescent()',
+        parameters: [],
+        returnType: 'number',
+        category: 'Typography'
+    },
+    {
+        name: 'fontWidth',
+        description: 'Returns the loose width of a text string based on the current font',
+        signature: 'fontWidth(text)',
+        parameters: [
+            { name: 'text', type: 'string', description: 'Text to measure' }
+        ],
+        returnType: 'number',
+        category: 'Typography'
+    },
+    {
+        name: 'textAscent',
+        description: 'Returns the ascent of the text',
+        signature: 'textAscent()',
+        parameters: [],
+        returnType: 'number',
+        category: 'Typography'
+    },
+    {
+        name: 'textBounds',
+        description: 'Computes the tight bounding box for a block of text',
+        signature: 'textBounds(text, x, y, [fontSize])',
+        parameters: [
+            { name: 'text', type: 'string', description: 'Text to measure' },
+            { name: 'x', type: 'number', description: 'x-coordinate' },
+            { name: 'y', type: 'number', description: 'y-coordinate' },
+            { name: 'fontSize', type: 'number', description: 'Font size', optional: true }
+        ],
+        returnType: 'object',
+        category: 'Typography'
+    },
+    {
+        name: 'textDescent',
+        description: 'Returns the descent of the text',
+        signature: 'textDescent()',
+        parameters: [],
+        returnType: 'number',
+        category: 'Typography'
+    },
+    {
+        name: 'textDirection',
+        description: 'Sets or gets the text drawing direction',
+        signature: 'textDirection([direction])',
+        parameters: [
+            { name: 'direction', type: 'string', description: 'Either LTR (left-to-right) or RTL (right-to-left)', optional: true }
+        ],
+        returnType: 'string',
+        category: 'Typography'
+    },
+    {
+        name: 'textProperties',
+        description: 'Gets or sets text properties in batch, similar to calling textProperty() multiple times',
+        signature: 'textProperties([properties])',
+        parameters: [
+            { name: 'properties', type: 'object', description: 'Object containing text properties', optional: true }
+        ],
+        returnType: 'object',
+        category: 'Typography'
+    },
+    {
+        name: 'textProperty',
+        description: 'Sets or gets a single text property for the renderer',
+        signature: 'textProperty(property, [value])',
+        parameters: [
+            { name: 'property', type: 'string', description: 'Name of the property' },
+            { name: 'value', type: 'any', description: 'Value to set (optional for get)', optional: true }
+        ],
+        returnType: 'any',
+        category: 'Typography'
+    },
+    {
+        name: 'textWrap',
+        description: 'Sets the style for wrapping text when text() is called',
+        signature: 'textWrap(wrap)',
+        parameters: [
+            { name: 'wrap', type: 'string', description: 'Either WORD, CHAR, or NONE' }
         ],
         category: 'Typography'
     },
@@ -399,7 +1395,48 @@ export const p5Functions: P5Function[] = [
         ],
         category: 'Transform'
     },
-    // Input - Mouse
+    {
+        name: 'push',
+        description: 'Begins a drawing group that contains its own styles and transformations',
+        signature: 'push()',
+        parameters: [],
+        category: 'Transform'
+    },
+    {
+        name: 'pop',
+        description: 'Ends a drawing group that contains its own styles and transformations',
+        signature: 'pop()',
+        parameters: [],
+        category: 'Transform'
+    },
+    {
+        name: 'rotateX',
+        description: 'Rotates the coordinate system about the x-axis in WebGL mode',
+        signature: 'rotateX(angle)',
+        parameters: [
+            { name: 'angle', type: 'number', description: 'Angle of rotation in the current angleMode()' }
+        ],
+        category: 'Transform'
+    },
+    {
+        name: 'rotateY',
+        description: 'Rotates the coordinate system about the y-axis in WebGL mode',
+        signature: 'rotateY(angle)',
+        parameters: [
+            { name: 'angle', type: 'number', description: 'Angle of rotation in the current angleMode()' }
+        ],
+        category: 'Transform'
+    },
+    {
+        name: 'rotateZ',
+        description: 'Rotates the coordinate system about the z-axis in WebGL mode',
+        signature: 'rotateZ(angle)',
+        parameters: [
+            { name: 'angle', type: 'number', description: 'Angle of rotation in the current angleMode()' }
+        ],
+        category: 'Transform'
+    },
+    // Input - Pointer
     {
         name: 'mouseX',
         description: 'The system variable mouseX always contains the current horizontal position of the mouse',
@@ -518,6 +1555,29 @@ export const p5Functions: P5Function[] = [
         ],
         category: 'Input'
     },
+    {
+        name: 'requestPointerLock',
+        description: 'Locks the mouse pointer to its current position and makes it invisible',
+        signature: 'requestPointerLock()',
+        parameters: [],
+        category: 'Input'
+    },
+    {
+        name: 'exitPointerLock',
+        description: 'Exits a pointer lock started with requestPointerLock',
+        signature: 'exitPointerLock()',
+        parameters: [],
+        category: 'Input'
+    },
+    {
+        name: 'doubleClicked',
+        description: 'A function that\'s called once when a mouse button is clicked twice quickly',
+        signature: 'doubleClicked([event])',
+        parameters: [
+            { name: 'event', type: 'MouseEvent', description: 'Optional MouseEvent argument', optional: true }
+        ],
+        category: 'Input'
+    },
     // Input - Keyboard
     {
         name: 'key',
@@ -580,7 +1640,47 @@ export const p5Functions: P5Function[] = [
         returnType: 'boolean',
         category: 'Input'
     },
-    // Math
+    // Input - Acceleration
+    {
+        name: 'deviceMoved',
+        description: 'The deviceMoved() function is called when the device is moved by more than the threshold value along X, Y or Z axis',
+        signature: 'deviceMoved()',
+        parameters: [],
+        category: 'Input'
+    },
+    {
+        name: 'deviceTurned',
+        description: 'The deviceTurned() function is called when the device rotates by more than 90 degrees continuously',
+        signature: 'deviceTurned()',
+        parameters: [],
+        category: 'Input'
+    },
+    {
+        name: 'deviceShaken',
+        description: 'The deviceShaken() function is called when the device total acceleration changes of accelerationX and accelerationY values is more than the threshold value',
+        signature: 'deviceShaken()',
+        parameters: [],
+        category: 'Input'
+    },
+    {
+        name: 'setMoveThreshold',
+        description: 'The setMoveThreshold() function is used to set the movement threshold for the deviceMoved() function',
+        signature: 'setMoveThreshold(value)',
+        parameters: [
+            { name: 'value', type: 'number', description: 'The threshold value' }
+        ],
+        category: 'Input'
+    },
+    {
+        name: 'setShakeThreshold',
+        description: 'The setShakeThreshold() function is used to set the movement threshold for the deviceShaken() function',
+        signature: 'setShakeThreshold(value)',
+        parameters: [
+            { name: 'value', type: 'number', description: 'The threshold value' }
+        ],
+        category: 'Input'
+    },
+    // Math - Calculation
     {
         name: 'abs',
         description: 'Calculates the absolute value (magnitude) of a number',
@@ -770,6 +1870,118 @@ export const p5Functions: P5Function[] = [
         category: 'Math'
     },
     {
+        name: 'fract',
+        description: 'Calculates the fractional part of a number',
+        signature: 'fract(n)',
+        parameters: [
+            { name: 'n', type: 'number', description: 'Number whose fractional part will be found' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    // Math - Trigonometry
+    {
+        name: 'sin',
+        description: 'Calculates the sine of an angle',
+        signature: 'sin(angle)',
+        parameters: [
+            { name: 'angle', type: 'number', description: 'The angle, in radians by default, or according to if angleMode() setting (RADIANS or DEGREES)' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'cos',
+        description: 'Calculates the cosine of an angle',
+        signature: 'cos(angle)',
+        parameters: [
+            { name: 'angle', type: 'number', description: 'The angle, in radians by default, or according to if angleMode() setting (RADIANS or DEGREES)' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'tan',
+        description: 'Calculates the tangent of an angle',
+        signature: 'tan(angle)',
+        parameters: [
+            { name: 'angle', type: 'number', description: 'The angle, in radians by default, or according to if angleMode() setting (RADIANS or DEGREES)' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'asin',
+        description: 'Calculates the arc sine of a number',
+        signature: 'asin(value)',
+        parameters: [
+            { name: 'value', type: 'number', description: 'Value whose arc sine is to be returned' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'acos',
+        description: 'Calculates the arc cosine of a number',
+        signature: 'acos(value)',
+        parameters: [
+            { name: 'value', type: 'number', description: 'Value whose arc cosine is to be returned' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'atan',
+        description: 'Calculates the arc tangent of a number',
+        signature: 'atan(value)',
+        parameters: [
+            { name: 'value', type: 'number', description: 'Value whose arc tangent is to be returned' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'atan2',
+        description: 'Calculates the angle formed by a point, the origin, and the positive x-axis',
+        signature: 'atan2(y, x)',
+        parameters: [
+            { name: 'y', type: 'number', description: 'Y-coordinate of the point' },
+            { name: 'x', type: 'number', description: 'X-coordinate of the point' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'degrees',
+        description: 'Converts an angle measured in radians to its value in degrees',
+        signature: 'degrees(radians)',
+        parameters: [
+            { name: 'radians', type: 'number', description: 'Radians value to convert to degrees' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'radians',
+        description: 'Converts an angle measured in degrees to its value in radians',
+        signature: 'radians(degrees)',
+        parameters: [
+            { name: 'degrees', type: 'number', description: 'Degree value to convert to radians' }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    {
+        name: 'angleMode',
+        description: 'Changes the unit system used to measure angles',
+        signature: 'angleMode(mode)',
+        parameters: [
+            { name: 'mode', type: 'string', description: 'Either RADIANS or DEGREES' }
+        ],
+        category: 'Math'
+    },
+    // Math - Random
+    {
         name: 'random',
         description: 'Generates random numbers',
         signature: 'random([min], [max])',
@@ -789,6 +2001,18 @@ export const p5Functions: P5Function[] = [
         ],
         category: 'Math'
     },
+    {
+        name: 'randomGaussian',
+        description: 'Returns a random number fitting a Gaussian, or normal, distribution',
+        signature: 'randomGaussian([mean], [sd])',
+        parameters: [
+            { name: 'mean', type: 'number', description: 'Mean', optional: true },
+            { name: 'sd', type: 'number', description: 'Standard deviation', optional: true }
+        ],
+        returnType: 'number',
+        category: 'Math'
+    },
+    // Math - Noise
     {
         name: 'noise',
         description: 'Returns the Perlin noise value at specified coordinates',
@@ -810,7 +2034,65 @@ export const p5Functions: P5Function[] = [
         ],
         category: 'Math'
     },
+    {
+        name: 'noiseDetail',
+        description: 'Adjusts the character of the noise produced by the noise() function',
+        signature: 'noiseDetail(lod, [falloff])',
+        parameters: [
+            { name: 'lod', type: 'number', description: 'Number of octaves to be used by the noise' },
+            { name: 'falloff', type: 'number', description: 'Falloff factor for each octave', optional: true }
+        ],
+        category: 'Math'
+    },
+    // Math - Vector
+    {
+        name: 'createVector',
+        description: 'Creates a new p5.Vector object',
+        signature: 'createVector([x], [y], [z])',
+        parameters: [
+            { name: 'x', type: 'number', description: 'X component of the vector', optional: true },
+            { name: 'y', type: 'number', description: 'Y component of the vector', optional: true },
+            { name: 'z', type: 'number', description: 'Z component of the vector', optional: true }
+        ],
+        returnType: 'p5.Vector',
+        category: 'Math'
+    },
     // Image
+    {
+        name: 'saveCanvas',
+        description: 'Saves the current canvas as an image',
+        signature: 'saveCanvas([filename], [extension])',
+        parameters: [
+            { name: 'filename', type: 'string', description: 'Filename for the image', optional: true },
+            { name: 'extension', type: 'string', description: 'File extension (png, jpg, etc.)', optional: true }
+        ],
+        category: 'Image'
+    },
+    {
+        name: 'saveFrames',
+        description: 'Captures a sequence of frames from the canvas that can be saved as images',
+        signature: 'saveFrames(filename, extension, duration, framerate, [callback])',
+        parameters: [
+            { name: 'filename', type: 'string', description: 'Base filename for the frames' },
+            { name: 'extension', type: 'string', description: 'File extension (png, jpg, etc.)' },
+            { name: 'duration', type: 'number', description: 'Duration in seconds' },
+            { name: 'framerate', type: 'number', description: 'Frames per second' },
+            { name: 'callback', type: 'function', description: 'Callback function when complete', optional: true }
+        ],
+        category: 'Image'
+    },
+    {
+        name: 'createImage',
+        description: 'Creates a new p5.Image object',
+        signature: 'createImage(width, height)',
+        parameters: [
+            { name: 'width', type: 'number', description: 'Width of the image' },
+            { name: 'height', type: 'number', description: 'Height of the image' }
+        ],
+        returnType: 'p5.Image',
+        category: 'Image'
+    },
+    // Image - Loading & Displaying
     {
         name: 'loadImage',
         description: 'Loads an image to create a p5.Image object',
@@ -864,7 +2146,281 @@ export const p5Functions: P5Function[] = [
         ],
         category: 'Image'
     },
-    // Time & Date
+    {
+        name: 'saveGif',
+        description: 'Generates a gif from a sketch and saves it to a file',
+        signature: 'saveGif(filename, duration, [options])',
+        parameters: [
+            { name: 'filename', type: 'string', description: 'Filename for the GIF' },
+            { name: 'duration', type: 'number', description: 'Duration in seconds' },
+            { name: 'options', type: 'object', description: 'Optional settings for the GIF', optional: true }
+        ],
+        category: 'Image'
+    },
+    // Image - Pixels
+    {
+        name: 'get',
+        description: 'Gets a pixel or a region of pixels from the canvas',
+        signature: 'get([x], [y], [w], [h])',
+        parameters: [
+            { name: 'x', type: 'number', description: 'x-coordinate of the pixel', optional: true },
+            { name: 'y', type: 'number', description: 'y-coordinate of the pixel', optional: true },
+            { name: 'w', type: 'number', description: 'Width of the region', optional: true },
+            { name: 'h', type: 'number', description: 'Height of the region', optional: true }
+        ],
+        returnType: 'p5.Image|p5.Color|number[]',
+        category: 'Image'
+    },
+    {
+        name: 'set',
+        description: 'Sets the color of a pixel or writes an image into the canvas',
+        signature: 'set(x, y, c)',
+        parameters: [
+            { name: 'x', type: 'number', description: 'x-coordinate of the pixel' },
+            { name: 'y', type: 'number', description: 'y-coordinate of the pixel' },
+            { name: 'c', type: 'p5.Color|number[]|p5.Image', description: 'Color or image to set' }
+        ],
+        category: 'Image'
+    },
+    {
+        name: 'filter',
+        description: 'Applies an image filter to the canvas',
+        signature: 'filter(filterType, [filterParam])',
+        parameters: [
+            { name: 'filterType', type: 'string', description: 'Either THRESHOLD, GRAY, OPAQUE, INVERT, POSTERIZE, BLUR, ERODE, DILATE, or BLUR' },
+            { name: 'filterParam', type: 'number', description: 'Optional parameter for certain filters', optional: true }
+        ],
+        category: 'Image'
+    },
+    {
+        name: 'copy',
+        description: 'Copies pixels from a source image to a region of the canvas',
+        signature: 'copy(srcImage, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)',
+        parameters: [
+            { name: 'srcImage', type: 'p5.Image', description: 'Source image' },
+            { name: 'sx', type: 'number', description: 'Source x-coordinate' },
+            { name: 'sy', type: 'number', description: 'Source y-coordinate' },
+            { name: 'sWidth', type: 'number', description: 'Source width' },
+            { name: 'sHeight', type: 'number', description: 'Source height' },
+            { name: 'dx', type: 'number', description: 'Destination x-coordinate' },
+            { name: 'dy', type: 'number', description: 'Destination y-coordinate' },
+            { name: 'dWidth', type: 'number', description: 'Destination width' },
+            { name: 'dHeight', type: 'number', description: 'Destination height' }
+        ],
+        category: 'Image'
+    },
+    {
+        name: 'blend',
+        description: 'Copies a region of pixels from one image to another',
+        signature: 'blend(srcImage, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight, [blendMode])',
+        parameters: [
+            { name: 'srcImage', type: 'p5.Image', description: 'Source image' },
+            { name: 'sx', type: 'number', description: 'Source x-coordinate' },
+            { name: 'sy', type: 'number', description: 'Source y-coordinate' },
+            { name: 'sWidth', type: 'number', description: 'Source width' },
+            { name: 'sHeight', type: 'number', description: 'Source height' },
+            { name: 'dx', type: 'number', description: 'Destination x-coordinate' },
+            { name: 'dy', type: 'number', description: 'Destination y-coordinate' },
+            { name: 'dWidth', type: 'number', description: 'Destination width' },
+            { name: 'dHeight', type: 'number', description: 'Destination height' },
+            { name: 'blendMode', type: 'string', description: 'Blend mode to use', optional: true }
+        ],
+        category: 'Image'
+    },
+    {
+        name: 'loadPixels',
+        description: 'Loads the current value of each pixel on the canvas into the pixels array',
+        signature: 'loadPixels()',
+        parameters: [],
+        category: 'Image'
+    },
+    {
+        name: 'updatePixels',
+        description: 'Updates the canvas with the RGBA values in the pixels array',
+        signature: 'updatePixels([x], [y], [w], [h])',
+        parameters: [
+            { name: 'x', type: 'number', description: 'X-coordinate of the upper-left corner of region to update', optional: true },
+            { name: 'y', type: 'number', description: 'Y-coordinate of the upper-left corner of region to update', optional: true },
+            { name: 'w', type: 'number', description: 'Width of region to update', optional: true },
+            { name: 'h', type: 'number', description: 'Height of region to update', optional: true }
+        ],
+        category: 'Image'
+    },
+    // IO - Input
+    {
+        name: 'loadJSON',
+        description: 'Loads a JSON file to create an Object',
+        signature: 'loadJSON(path, [successCallback], [errorCallback])',
+        parameters: [
+            { name: 'path', type: 'string|Request', description: 'Path of the JSON file to be loaded' },
+            { name: 'successCallback', type: 'function', description: 'Function to call once the data is loaded', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Function to call if the data fails to load', optional: true }
+        ],
+        returnType: 'Promise<object>',
+        category: 'IO'
+    },
+    {
+        name: 'loadStrings',
+        description: 'Loads a text file to create an Array',
+        signature: 'loadStrings(path, [successCallback], [errorCallback])',
+        parameters: [
+            { name: 'path', type: 'string|Request', description: 'Path of the text file to be loaded' },
+            { name: 'successCallback', type: 'function', description: 'Function to call once the data is loaded', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Function to call if the data fails to load', optional: true }
+        ],
+        returnType: 'Promise<string[]>',
+        category: 'IO'
+    },
+    {
+        name: 'loadTable',
+        description: 'Reads the contents of a file or URL and creates a p5.Table object with its values',
+        signature: 'loadTable(filename, [separator], [header], [callback], [errorCallback])',
+        parameters: [
+            { name: 'filename', type: 'string|Request', description: 'Name of the file or URL to load' },
+            { name: 'separator', type: 'string', description: 'The separator character used by the file, defaults to \',\'', optional: true },
+            { name: 'header', type: 'string', description: '"header" to indicate table has header row', optional: true },
+            { name: 'callback', type: 'function', description: 'Function to be executed after loadTable() completes', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Function to be executed if there is an error, response is passed in as first argument', optional: true }
+        ],
+        returnType: 'Promise<object>',
+        category: 'IO'
+    },
+    {
+        name: 'loadXML',
+        description: 'Loads an XML file to create a p5.XML object',
+        signature: 'loadXML(path, [successCallback], [errorCallback])',
+        parameters: [
+            { name: 'path', type: 'string|Request', description: 'Path of the XML file to be loaded' },
+            { name: 'successCallback', type: 'function', description: 'Function to call once the data is loaded', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Function to call if the data fails to load', optional: true }
+        ],
+        returnType: 'Promise<p5.XML>',
+        category: 'IO'
+    },
+    {
+        name: 'loadBytes',
+        description: 'Loads a file at the given path as raw bytes (suitable for files up to 64MB)',
+        signature: 'loadBytes(file, [callback], [errorCallback])',
+        parameters: [
+            { name: 'file', type: 'string|Request', description: 'Name of the file or URL to load' },
+            { name: 'callback', type: 'function', description: 'Function to be executed after loadBytes() completes', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Function to be executed if there is an error', optional: true }
+        ],
+        returnType: 'Promise<Uint8Array>',
+        category: 'IO'
+    },
+    {
+        name: 'loadBlob',
+        description: 'Loads a file at the given path as a Blob, then returns the resulting data or passes it to a success callback function, if provided',
+        signature: 'loadBlob(path, [successCallback], [errorCallback])',
+        parameters: [
+            { name: 'path', type: 'string|Request', description: '- The path or Request object pointing to the file you want to load' },
+            { name: 'successCallback', type: 'function', description: '- Optional', optional: true },
+            { name: 'errorCallback', type: 'function', description: '- Optional', optional: true }
+        ],
+        returnType: 'Promise<Blob>',
+        category: 'IO'
+    },
+    {
+        name: 'httpGet',
+        description: 'Method for executing an HTTP GET request',
+        signature: 'httpGet(path, [datatype], [callback], [errorCallback])',
+        parameters: [
+            { name: 'path', type: 'string|Request', description: 'Name of the file or url to load' },
+            { name: 'datatype', type: 'string', description: '"json", "jsonp", "binary", "arrayBuffer", "xml", or "text"', optional: true },
+            { name: 'callback', type: 'function', description: 'Function to be executed after httpGet() completes, data is passed in as first argument', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Function to be executed if there is an error, response is passed in as first argument', optional: true }
+        ],
+        returnType: 'Promise',
+        category: 'IO'
+    },
+    {
+        name: 'httpPost',
+        description: 'Method for executing an HTTP POST request',
+        signature: 'httpPost(path, [data], [datatype], [callback], [errorCallback])',
+        parameters: [
+            { name: 'path', type: 'string|Request', description: 'Name of the file or url to load' },
+            { name: 'data', type: 'object|boolean', description: 'Param data passed sent with request', optional: true },
+            { name: 'datatype', type: 'string', description: '"json", "jsonp", "xml", or "text"', optional: true },
+            { name: 'callback', type: 'function', description: 'Function to be executed after httpPost() completes, data is passed in as first argument', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Function to be executed if there is an error, response is passed in as first argument', optional: true }
+        ],
+        returnType: 'Promise',
+        category: 'IO'
+    },
+    {
+        name: 'httpDo',
+        description: 'Method for executing an HTTP request',
+        signature: 'httpDo(path, [method], [datatype], [data], [callback], [errorCallback])',
+        parameters: [
+            { name: 'path', type: 'string|Request', description: 'Name of the file or url to load' },
+            { name: 'method', type: 'string', description: 'Either "GET", "POST", "PUT", "DELETE", or other HTTP request methods', optional: true },
+            { name: 'datatype', type: 'string', description: '"json", "jsonp", "xml", or "text"', optional: true },
+            { name: 'data', type: 'object', description: 'Param data passed sent with request', optional: true },
+            { name: 'callback', type: 'function', description: 'Function to be executed after httpGet() completes, data is passed in as first argument', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Function to be executed if there is an error, response is passed in as first argument', optional: true }
+        ],
+        returnType: 'Promise',
+        category: 'IO'
+    },
+    // IO - Output
+    {
+        name: 'save',
+        description: 'Saves a given element(image, text, json, csv, wav, or html) to the client\'s computer',
+        signature: 'save([objectOrFilename], [filename], [options])',
+        parameters: [
+            { name: 'objectOrFilename', type: 'object|string', description: 'If filename is provided, will save canvas as an image with either png or jpg extension depending on the filename', optional: true },
+            { name: 'filename', type: 'string', description: 'If an object is provided as the first parameter, then the second parameter indicates the filename, and should include an appropriate file extension (see examples above)', optional: true },
+            { name: 'options', type: 'boolean|string', description: 'Additional options depend on filetype', optional: true }
+        ],
+        category: 'IO'
+    },
+    {
+        name: 'saveJSON',
+        description: 'Saves an Object or Array to a JSON file',
+        signature: 'saveJSON(json, filename, [optimize])',
+        parameters: [
+            { name: 'json', type: 'array|object', description: 'Data to save' },
+            { name: 'filename', type: 'string', description: 'Name of the file to be saved' },
+            { name: 'optimize', type: 'boolean', description: 'Whether to trim unneeded whitespace', optional: true }
+        ],
+        category: 'IO'
+    },
+    {
+        name: 'saveStrings',
+        description: 'Saves an Array of Strings to a file, one per line',
+        signature: 'saveStrings(list, filename, [extension], [isCRLF])',
+        parameters: [
+            { name: 'list', type: 'string[]', description: 'Data to save' },
+            { name: 'filename', type: 'string', description: 'Name of file to be saved' },
+            { name: 'extension', type: 'string', description: 'Format to use for the file', optional: true },
+            { name: 'isCRLF', type: 'boolean', description: 'Whether to add \\r\\n to the end of each string', optional: true }
+        ],
+        category: 'IO'
+    },
+    {
+        name: 'saveTable',
+        description: 'Writes the contents of a Table object to a file',
+        signature: 'saveTable(table, filename, [options])',
+        parameters: [
+            { name: 'table', type: 'p5.Table', description: 'The Table object to save to a file' },
+            { name: 'filename', type: 'string', description: 'The filename to which the Table should be saved' },
+            { name: 'options', type: 'string', description: 'Can be one of "tsv", "csv", or "html"', optional: true }
+        ],
+        category: 'IO'
+    },
+    {
+        name: 'createWriter',
+        description: 'Creates a new p5.PrintWriter object',
+        signature: 'createWriter(name, [extension])',
+        parameters: [
+            { name: 'name', type: 'string', description: 'Name of the file to create' },
+            { name: 'extension', type: 'string', description: 'Format to use for the file', optional: true }
+        ],
+        returnType: 'p5.PrintWriter',
+        category: 'IO'
+    },
+    // Time
     {
         name: 'millis',
         description: 'Returns the number of milliseconds (thousandths of a second) since starting the sketch',
@@ -921,291 +2477,203 @@ export const p5Functions: P5Function[] = [
         returnType: 'number',
         category: 'Time'
     },
-    // Constants
+    // Data - Conversion
     {
-        name: 'PI',
-        description: 'PI is a mathematical constant with the value 3.14159265358979323846',
-        signature: 'PI',
-        parameters: [],
+        name: 'boolean',
+        description: 'Converts a String or Number to a Boolean',
+        signature: 'boolean(value)',
+        parameters: [
+            { name: 'value', type: 'string|number', description: 'Value to convert' }
+        ],
+        returnType: 'boolean',
+        category: 'Data'
+    },
+    {
+        name: 'byte',
+        description: 'Converts a Boolean, String, or Number to its byte value',
+        signature: 'byte(value)',
+        parameters: [
+            { name: 'value', type: 'boolean|string|number', description: 'Value to convert' }
+        ],
         returnType: 'number',
-        category: 'Constants'
+        category: 'Data'
     },
     {
-        name: 'TWO_PI',
-        description: 'TWO_PI is a mathematical constant with the value 6.28318530717958647693',
-        signature: 'TWO_PI',
-        parameters: [],
+        name: 'char',
+        description: 'Converts a Number or String to a single-character String',
+        signature: 'char(value)',
+        parameters: [
+            { name: 'value', type: 'number|string', description: 'Value to convert' }
+        ],
+        returnType: 'string',
+        category: 'Data'
+    },
+    {
+        name: 'float',
+        description: 'Converts a String to a floating point (decimal) Number',
+        signature: 'float(str)',
+        parameters: [
+            { name: 'str', type: 'string', description: 'String to convert' }
+        ],
         returnType: 'number',
-        category: 'Constants'
+        category: 'Data'
     },
     {
-        name: 'TAU',
-        description: 'TAU is a mathematical constant with the value 6.28318530717958647693',
-        signature: 'TAU',
-        parameters: [],
+        name: 'int',
+        description: 'Converts a Boolean, String, or decimal Number to an integer',
+        signature: 'int(value)',
+        parameters: [
+            { name: 'value', type: 'boolean|string|number', description: 'Value to convert' }
+        ],
         returnType: 'number',
-        category: 'Constants'
+        category: 'Data'
     },
     {
-        name: 'HALF_PI',
-        description: 'HALF_PI is a mathematical constant with the value 1.57079632679489661923',
-        signature: 'HALF_PI',
-        parameters: [],
+        name: 'str',
+        description: 'Converts a Boolean or Number to String',
+        signature: 'str(value)',
+        parameters: [
+            { name: 'value', type: 'boolean|number', description: 'Value to convert' }
+        ],
+        returnType: 'string',
+        category: 'Data'
+    },
+    {
+        name: 'hex',
+        description: 'Converts a Number to a String with its hexadecimal value',
+        signature: 'hex(value)',
+        parameters: [
+            { name: 'value', type: 'number', description: 'Value to convert' }
+        ],
+        returnType: 'string',
+        category: 'Data'
+    },
+    {
+        name: 'unhex',
+        description: 'Converts a String with a hexadecimal value to a Number',
+        signature: 'unhex(str)',
+        parameters: [
+            { name: 'str', type: 'string', description: 'Hexadecimal string to convert' }
+        ],
         returnType: 'number',
-        category: 'Constants'
+        category: 'Data'
     },
     {
-        name: 'QUARTER_PI',
-        description: 'QUARTER_PI is a mathematical constant with the value 0.78539816339744830962',
-        signature: 'QUARTER_PI',
-        parameters: [],
+        name: 'unchar',
+        description: 'Converts a single-character String to a Number',
+        signature: 'unchar(n)',
+        parameters: [
+            { name: 'n', type: 'string', description: 'Single character string' }
+        ],
         returnType: 'number',
-        category: 'Constants'
+        category: 'Data'
     },
-    // 3D Primitives
+    // Data - LocalStorage
     {
-        name: 'box',
-        description: 'Draws a box (rectangular prism)',
-        signature: 'box([width], [height], [depth], [detailX], [detailY])',
+        name: 'storeItem',
+        description: 'Stores a value in the web browser\'s local storage',
+        signature: 'storeItem(key, value)',
         parameters: [
-            { name: 'width', type: 'number', description: 'Width of the box', optional: true },
-            { name: 'height', type: 'number', description: 'Height of the box', optional: true },
-            { name: 'depth', type: 'number', description: 'Depth of the box', optional: true },
-            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
-            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+            { name: 'key', type: 'string', description: 'Key to store the value under' },
+            { name: 'value', type: 'string|number|boolean|object', description: 'Value to store' }
         ],
-        category: 'Shape'
+        category: 'Data'
     },
     {
-        name: 'sphere',
-        description: 'Draws a sphere',
-        signature: 'sphere([radius], [detailX], [detailY])',
+        name: 'getItem',
+        description: 'Returns a value in the web browser\'s local storage',
+        signature: 'getItem(key)',
         parameters: [
-            { name: 'radius', type: 'number', description: 'Radius of the sphere', optional: true },
-            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
-            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+            { name: 'key', type: 'string', description: 'Key to retrieve' }
         ],
-        category: 'Shape'
+        returnType: 'string|number|boolean|object',
+        category: 'Data'
     },
     {
-        name: 'cone',
-        description: 'Draws a cone',
-        signature: 'cone([radius], [height], [detailX], [detailY], [cap])',
+        name: 'removeItem',
+        description: 'Removes an item from the web browser\'s local storage',
+        signature: 'removeItem(key)',
         parameters: [
-            { name: 'radius', type: 'number', description: 'Radius of the bottom', optional: true },
-            { name: 'height', type: 'number', description: 'Height of the cone', optional: true },
-            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
-            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true },
-            { name: 'cap', type: 'boolean', description: 'Whether to draw the base of the cone', optional: true }
+            { name: 'key', type: 'string', description: 'Key to remove' }
         ],
-        category: 'Shape'
+        category: 'Data'
     },
     {
-        name: 'cylinder',
-        description: 'Draws a cylinder',
-        signature: 'cylinder([radius], [height], [detailX], [detailY], [bottomCap], [topCap])',
+        name: 'clearStorage',
+        description: 'Removes all items in the web browser\'s local storage',
+        signature: 'clearStorage()',
+        parameters: [],
+        category: 'Data'
+    },
+    // Data - Utility Functions
+    {
+        name: 'nf',
+        description: 'Converts a Number into a String with a given number of digits',
+        signature: 'nf(num, [left], [right])',
         parameters: [
-            { name: 'radius', type: 'number', description: 'Radius of the cylinder', optional: true },
-            { name: 'height', type: 'number', description: 'Height of the cylinder', optional: true },
-            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
-            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true },
-            { name: 'bottomCap', type: 'boolean', description: 'Whether to draw the bottom cap', optional: true },
-            { name: 'topCap', type: 'boolean', description: 'Whether to draw the top cap', optional: true }
+            { name: 'num', type: 'number', description: 'Number to format' },
+            { name: 'left', type: 'number', description: 'Number of digits to the left of the decimal point', optional: true },
+            { name: 'right', type: 'number', description: 'Number of digits to the right of the decimal point', optional: true }
         ],
-        category: 'Shape'
+        returnType: 'string',
+        category: 'Data'
     },
     {
-        name: 'plane',
-        description: 'Draws a plane',
-        signature: 'plane([width], [height], [detailX], [detailY])',
+        name: 'nfc',
+        description: 'Converts a Number into a String with commas to mark units of 1,000',
+        signature: 'nfc(num, [right])',
         parameters: [
-            { name: 'width', type: 'number', description: 'Width of the plane', optional: true },
-            { name: 'height', type: 'number', description: 'Height of the plane', optional: true },
-            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
-            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+            { name: 'num', type: 'number', description: 'Number to format' },
+            { name: 'right', type: 'number', description: 'Number of digits to the right of the decimal point', optional: true }
         ],
-        category: 'Shape'
+        returnType: 'string',
+        category: 'Data'
     },
     {
-        name: 'torus',
-        description: 'Draws a torus',
-        signature: 'torus([radius], [tubeRadius], [detailX], [detailY])',
+        name: 'shuffle',
+        description: 'Shuffles the elements of an array',
+        signature: 'shuffle(array, [modify])',
         parameters: [
-            { name: 'radius', type: 'number', description: 'Radius of the torus', optional: true },
-            { name: 'tubeRadius', type: 'number', description: 'Radius of the tube', optional: true },
-            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
-            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+            { name: 'array', type: 'any[]', description: 'Array to shuffle' },
+            { name: 'modify', type: 'boolean', description: 'If true, modifies the original array', optional: true }
         ],
-        category: 'Shape'
+        returnType: 'any[]',
+        category: 'Data'
     },
     {
-        name: 'ellipsoid',
-        description: 'Draws an ellipsoid',
-        signature: 'ellipsoid([radiusX], [radiusY], [radiusZ], [detailX], [detailY])',
+        name: 'splitTokens',
+        description: 'Splits a String into pieces and returns an array containing the pieces',
+        signature: 'splitTokens(str, [delimiter])',
         parameters: [
-            { name: 'radiusX', type: 'number', description: 'Radius in x-dimension', optional: true },
-            { name: 'radiusY', type: 'number', description: 'Radius in y-dimension', optional: true },
-            { name: 'radiusZ', type: 'number', description: 'Radius in z-dimension', optional: true },
-            { name: 'detailX', type: 'number', description: 'Number of segments in x-dimension', optional: true },
-            { name: 'detailY', type: 'number', description: 'Number of segments in y-dimension', optional: true }
+            { name: 'str', type: 'string', description: 'String to split' },
+            { name: 'delimiter', type: 'string', description: 'Delimiter character(s)', optional: true }
         ],
-        category: 'Shape'
-    },
-    // 3D Models
-    {
-        name: 'loadModel',
-        description: 'Loads a 3D model to create a p5.Geometry object',
-        signature: 'loadModel(path, [normalize], [successCallback], [failureCallback])',
-        parameters: [
-            { name: 'path', type: 'string', description: 'Path of the model to be loaded' },
-            { name: 'normalize', type: 'boolean', description: 'If true, scale the model to a standardized size', optional: true },
-            { name: 'successCallback', type: 'function', description: 'Function to be called once the model is loaded', optional: true },
-            { name: 'failureCallback', type: 'function', description: 'Function to be called in case of an error', optional: true }
-        ],
-        returnType: 'p5.Geometry',
-        category: 'Shape'
+        returnType: 'string[]',
+        category: 'Data'
     },
     {
-        name: 'model',
-        description: 'Draws a p5.Geometry object to the canvas',
-        signature: 'model(geometry)',
+        name: 'nfp',
+        description: 'Converts a Number into a String with a plus or minus sign',
+        signature: 'nfp(num, [left], [right])',
         parameters: [
-            { name: 'geometry', type: 'p5.Geometry', description: 'The p5.Geometry object to render' }
+            { name: 'num', type: 'number', description: 'Number to format' },
+            { name: 'left', type: 'number', description: 'Number of digits to the left of the decimal point', optional: true },
+            { name: 'right', type: 'number', description: 'Number of digits to the right of the decimal point', optional: true }
         ],
-        category: 'Shape'
-    },
-    // Curves
-    {
-        name: 'bezier',
-        description: 'Draws a Bézier curve',
-        signature: 'bezier(x1, y1, x2, y2, x3, y3, x4, y4)',
-        parameters: [
-            { name: 'x1', type: 'number', description: 'x-coordinate of the first point' },
-            { name: 'y1', type: 'number', description: 'y-coordinate of the first point' },
-            { name: 'x2', type: 'number', description: 'x-coordinate of the first control point' },
-            { name: 'y2', type: 'number', description: 'y-coordinate of the first control point' },
-            { name: 'x3', type: 'number', description: 'x-coordinate of the second control point' },
-            { name: 'y3', type: 'number', description: 'y-coordinate of the second control point' },
-            { name: 'x4', type: 'number', description: 'x-coordinate of the second point' },
-            { name: 'y4', type: 'number', description: 'y-coordinate of the second point' }
-        ],
-        category: 'Shape'
+        returnType: 'string',
+        category: 'Data'
     },
     {
-        name: 'spline',
-        description: 'Draws a curve using a Catmull-Rom spline',
-        signature: 'spline(x1, y1, x2, y2, x3, y3, x4, y4)',
+        name: 'nfs',
+        description: 'Converts a positive Number into a String with an extra space in front',
+        signature: 'nfs(num, [left], [right])',
         parameters: [
-            { name: 'x1', type: 'number', description: 'x-coordinate of the first point' },
-            { name: 'y1', type: 'number', description: 'y-coordinate of the first point' },
-            { name: 'x2', type: 'number', description: 'x-coordinate of the second point' },
-            { name: 'y2', type: 'number', description: 'y-coordinate of the second point' },
-            { name: 'x3', type: 'number', description: 'x-coordinate of the third point' },
-            { name: 'y3', type: 'number', description: 'y-coordinate of the third point' },
-            { name: 'x4', type: 'number', description: 'x-coordinate of the fourth point' },
-            { name: 'y4', type: 'number', description: 'y-coordinate of the fourth point' }
+            { name: 'num', type: 'number', description: 'Number to format' },
+            { name: 'left', type: 'number', description: 'Number of digits to the left of the decimal point', optional: true },
+            { name: 'right', type: 'number', description: 'Number of digits to the right of the decimal point', optional: true }
         ],
-        category: 'Shape'
-    },
-    {
-        name: 'beginShape',
-        description: 'Begins adding vertices to a custom shape',
-        signature: 'beginShape([kind])',
-        parameters: [
-            { name: 'kind', type: 'string', description: 'Either POINTS, LINES, TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, QUADS, QUAD_STRIP', optional: true }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'endShape',
-        description: 'Concludes the vertices of a custom shape',
-        signature: 'endShape([mode])',
-        parameters: [
-            { name: 'mode', type: 'string', description: 'Use CLOSE to close the shape', optional: true }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'vertex',
-        description: 'Adds a vertex to a custom shape',
-        signature: 'vertex(x, y, [z])',
-        parameters: [
-            { name: 'x', type: 'number', description: 'x-coordinate of the vertex' },
-            { name: 'y', type: 'number', description: 'y-coordinate of the vertex' },
-            { name: 'z', type: 'number', description: 'z-coordinate of the vertex (for WebGL mode)', optional: true }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'bezierVertex',
-        description: 'Adds a Bézier curve segment to a custom shape',
-        signature: 'bezierVertex(x2, y2, x3, y3, x4, y4)',
-        parameters: [
-            { name: 'x2', type: 'number', description: 'x-coordinate of the first control point' },
-            { name: 'y2', type: 'number', description: 'y-coordinate of the first control point' },
-            { name: 'x3', type: 'number', description: 'x-coordinate of the second control point' },
-            { name: 'y3', type: 'number', description: 'y-coordinate of the second control point' },
-            { name: 'x4', type: 'number', description: 'x-coordinate of the anchor point' },
-            { name: 'y4', type: 'number', description: 'y-coordinate of the anchor point' }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'splineVertex',
-        description: 'Connects points with a smooth curve (a spline)',
-        signature: 'splineVertex(x, y, [z])',
-        parameters: [
-            { name: 'x', type: 'number', description: 'x-coordinate of the vertex' },
-            { name: 'y', type: 'number', description: 'y-coordinate of the vertex' },
-            { name: 'z', type: 'number', description: 'z-coordinate of the vertex (for WebGL mode)', optional: true }
-        ],
-        category: 'Shape'
-    },
-    // Attributes
-    {
-        name: 'ellipseMode',
-        description: 'Changes where ellipses, circles, and arcs are drawn',
-        signature: 'ellipseMode(mode)',
-        parameters: [
-            { name: 'mode', type: 'string', description: 'Either CENTER, RADIUS, CORNER, or CORNERS' }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'rectMode',
-        description: 'Changes where rectangles and squares are drawn',
-        signature: 'rectMode(mode)',
-        parameters: [
-            { name: 'mode', type: 'string', description: 'Either CENTER, RADIUS, CORNER, or CORNERS' }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'strokeWeight',
-        description: 'Sets the width of the stroke used for points, lines, and the outlines of shapes',
-        signature: 'strokeWeight(weight)',
-        parameters: [
-            { name: 'weight', type: 'number', description: 'The weight (in pixels) of the stroke' }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'strokeCap',
-        description: 'Sets the style for rendering the ends of lines',
-        signature: 'strokeCap(cap)',
-        parameters: [
-            { name: 'cap', type: 'string', description: 'Either SQUARE, PROJECT, or ROUND' }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'strokeJoin',
-        description: 'Sets the style of the joints that connect line segments',
-        signature: 'strokeJoin(join)',
-        parameters: [
-            { name: 'join', type: 'string', description: 'Either MITER, BEVEL, or ROUND' }
-        ],
-        category: 'Shape'
+        returnType: 'string',
+        category: 'Data'
     },
     // DOM
     {
@@ -1368,420 +2836,99 @@ export const p5Functions: P5Function[] = [
         returnType: 'p5.Element[]',
         category: 'DOM'
     },
-    // Data - Conversion
     {
-        name: 'boolean',
-        description: 'Converts a String or Number to a Boolean',
-        signature: 'boolean(value)',
-        parameters: [
-            { name: 'value', type: 'string|number', description: 'Value to convert' }
-        ],
-        returnType: 'boolean',
-        category: 'Data'
-    },
-    {
-        name: 'byte',
-        description: 'Converts a Boolean, String, or Number to its byte value',
-        signature: 'byte(value)',
-        parameters: [
-            { name: 'value', type: 'boolean|string|number', description: 'Value to convert' }
-        ],
-        returnType: 'number',
-        category: 'Data'
-    },
-    {
-        name: 'char',
-        description: 'Converts a Number or String to a single-character String',
-        signature: 'char(value)',
-        parameters: [
-            { name: 'value', type: 'number|string', description: 'Value to convert' }
-        ],
-        returnType: 'string',
-        category: 'Data'
-    },
-    {
-        name: 'float',
-        description: 'Converts a String to a floating point (decimal) Number',
-        signature: 'float(str)',
-        parameters: [
-            { name: 'str', type: 'string', description: 'String to convert' }
-        ],
-        returnType: 'number',
-        category: 'Data'
-    },
-    {
-        name: 'int',
-        description: 'Converts a Boolean, String, or decimal Number to an integer',
-        signature: 'int(value)',
-        parameters: [
-            { name: 'value', type: 'boolean|string|number', description: 'Value to convert' }
-        ],
-        returnType: 'number',
-        category: 'Data'
-    },
-    {
-        name: 'str',
-        description: 'Converts a Boolean or Number to String',
-        signature: 'str(value)',
-        parameters: [
-            { name: 'value', type: 'boolean|number', description: 'Value to convert' }
-        ],
-        returnType: 'string',
-        category: 'Data'
-    },
-    {
-        name: 'hex',
-        description: 'Converts a Number to a String with its hexadecimal value',
-        signature: 'hex(value)',
-        parameters: [
-            { name: 'value', type: 'number', description: 'Value to convert' }
-        ],
-        returnType: 'string',
-        category: 'Data'
-    },
-    {
-        name: 'unhex',
-        description: 'Converts a String with a hexadecimal value to a Number',
-        signature: 'unhex(str)',
-        parameters: [
-            { name: 'str', type: 'string', description: 'Hexadecimal string to convert' }
-        ],
-        returnType: 'number',
-        category: 'Data'
-    },
-    // Data - LocalStorage
-    {
-        name: 'storeItem',
-        description: 'Stores a value in the web browser\'s local storage',
-        signature: 'storeItem(key, value)',
-        parameters: [
-            { name: 'key', type: 'string', description: 'Key to store the value under' },
-            { name: 'value', type: 'string|number|boolean|object', description: 'Value to store' }
-        ],
-        category: 'Data'
-    },
-    {
-        name: 'getItem',
-        description: 'Returns a value in the web browser\'s local storage',
-        signature: 'getItem(key)',
-        parameters: [
-            { name: 'key', type: 'string', description: 'Key to retrieve' }
-        ],
-        returnType: 'string|number|boolean|object',
-        category: 'Data'
-    },
-    {
-        name: 'removeItem',
-        description: 'Removes an item from the web browser\'s local storage',
-        signature: 'removeItem(key)',
-        parameters: [
-            { name: 'key', type: 'string', description: 'Key to remove' }
-        ],
-        category: 'Data'
-    },
-    {
-        name: 'clearStorage',
-        description: 'Removes all items in the web browser\'s local storage',
-        signature: 'clearStorage()',
+        name: 'removeElements',
+        description: 'Removes all elements created by p5.js, including any event handlers',
+        signature: 'removeElements()',
         parameters: [],
-        category: 'Data'
+        category: 'DOM'
     },
-    // Data - Utility
     {
-        name: 'nf',
-        description: 'Converts a Number into a String with a given number of digits',
-        signature: 'nf(num, [left], [right])',
+        name: 'createElement',
+        description: 'Creates a new p5.Element object',
+        signature: 'createElement(tag, [content])',
         parameters: [
-            { name: 'num', type: 'number', description: 'Number to format' },
-            { name: 'left', type: 'number', description: 'Number of digits to the left of the decimal point', optional: true },
-            { name: 'right', type: 'number', description: 'Number of digits to the right of the decimal point', optional: true }
+            { name: 'tag', type: 'string', description: 'HTML tag name' },
+            { name: 'content', type: 'string', description: 'HTML content', optional: true }
         ],
-        returnType: 'string',
-        category: 'Data'
+        returnType: 'p5.Element',
+        category: 'DOM'
     },
     {
-        name: 'nfc',
-        description: 'Converts a Number into a String with commas to mark units of 1,000',
-        signature: 'nfc(num, [right])',
+        name: 'createA',
+        description: 'Creates an element that links to another web page',
+        signature: 'createA(href, html, [target])',
         parameters: [
-            { name: 'num', type: 'number', description: 'Number to format' },
-            { name: 'right', type: 'number', description: 'Number of digits to the right of the decimal point', optional: true }
+            { name: 'href', type: 'string', description: 'URL of linked page' },
+            { name: 'html', type: 'string', description: 'Inner HTML of link element to display' },
+            { name: 'target', type: 'string', description: 'Target where the new link should open, either \'_blank\', \'_self\', \'_parent\', or \'_top\'', optional: true }
         ],
-        returnType: 'string',
-        category: 'Data'
+        returnType: 'p5.Element',
+        category: 'DOM'
     },
     {
-        name: 'shuffle',
-        description: 'Shuffles the elements of an array',
-        signature: 'shuffle(array, [modify])',
+        name: 'createCapture',
+        description: 'Creates a <video> element that "captures" the audio/video stream from the webcam and microphone',
+        signature: 'createCapture([type], [flipped], [callback])',
         parameters: [
-            { name: 'array', type: 'any[]', description: 'Array to shuffle' },
-            { name: 'modify', type: 'boolean', description: 'If true, modifies the original array', optional: true }
+            { name: 'type', type: 'string|object', description: 'Either AUDIO, VIDEO, or a media constraints object', optional: true },
+            { name: 'flipped', type: 'object', description: 'Flip the capturing video and mirror the output with {flipped:true}', optional: true },
+            { name: 'callback', type: 'function', description: 'Function to call once the stream has loaded', optional: true }
         ],
-        returnType: 'any[]',
-        category: 'Data'
+        returnType: 'p5.MediaElement',
+        category: 'DOM'
     },
     {
-        name: 'splitTokens',
-        description: 'Splits a String into pieces and returns an array containing the pieces',
-        signature: 'splitTokens(str, [delimiter])',
+        name: 'createColorPicker',
+        description: 'Creates a color picker element',
+        signature: 'createColorPicker([value])',
         parameters: [
-            { name: 'str', type: 'string', description: 'String to split' },
-            { name: 'delimiter', type: 'string', description: 'Delimiter character(s)', optional: true }
+            { name: 'value', type: 'string|p5.Color', description: 'Default color as a CSS color string', optional: true }
         ],
-        returnType: 'string[]',
-        category: 'Data'
+        returnType: 'p5.Element',
+        category: 'DOM'
     },
-    // Image - Pixels
+    // Constants
     {
-        name: 'get',
-        description: 'Gets a pixel or a region of pixels from the canvas',
-        signature: 'get([x], [y], [w], [h])',
-        parameters: [
-            { name: 'x', type: 'number', description: 'x-coordinate of the pixel', optional: true },
-            { name: 'y', type: 'number', description: 'y-coordinate of the pixel', optional: true },
-            { name: 'w', type: 'number', description: 'Width of the region', optional: true },
-            { name: 'h', type: 'number', description: 'Height of the region', optional: true }
-        ],
-        returnType: 'p5.Image|p5.Color|number[]',
-        category: 'Image'
-    },
-    {
-        name: 'set',
-        description: 'Sets the color of a pixel or writes an image into the canvas',
-        signature: 'set(x, y, c)',
-        parameters: [
-            { name: 'x', type: 'number', description: 'x-coordinate of the pixel' },
-            { name: 'y', type: 'number', description: 'y-coordinate of the pixel' },
-            { name: 'c', type: 'p5.Color|number[]|p5.Image', description: 'Color or image to set' }
-        ],
-        category: 'Image'
-    },
-    {
-        name: 'filter',
-        description: 'Applies an image filter to the canvas',
-        signature: 'filter(filterType, [filterParam])',
-        parameters: [
-            { name: 'filterType', type: 'string', description: 'Either THRESHOLD, GRAY, OPAQUE, INVERT, POSTERIZE, BLUR, ERODE, DILATE, or BLUR' },
-            { name: 'filterParam', type: 'number', description: 'Optional parameter for certain filters', optional: true }
-        ],
-        category: 'Image'
-    },
-    {
-        name: 'copy',
-        description: 'Copies pixels from a source image to a region of the canvas',
-        signature: 'copy(srcImage, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)',
-        parameters: [
-            { name: 'srcImage', type: 'p5.Image', description: 'Source image' },
-            { name: 'sx', type: 'number', description: 'Source x-coordinate' },
-            { name: 'sy', type: 'number', description: 'Source y-coordinate' },
-            { name: 'sWidth', type: 'number', description: 'Source width' },
-            { name: 'sHeight', type: 'number', description: 'Source height' },
-            { name: 'dx', type: 'number', description: 'Destination x-coordinate' },
-            { name: 'dy', type: 'number', description: 'Destination y-coordinate' },
-            { name: 'dWidth', type: 'number', description: 'Destination width' },
-            { name: 'dHeight', type: 'number', description: 'Destination height' }
-        ],
-        category: 'Image'
-    },
-    {
-        name: 'blend',
-        description: 'Copies a region of pixels from one image to another',
-        signature: 'blend(srcImage, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight, [blendMode])',
-        parameters: [
-            { name: 'srcImage', type: 'p5.Image', description: 'Source image' },
-            { name: 'sx', type: 'number', description: 'Source x-coordinate' },
-            { name: 'sy', type: 'number', description: 'Source y-coordinate' },
-            { name: 'sWidth', type: 'number', description: 'Source width' },
-            { name: 'sHeight', type: 'number', description: 'Source height' },
-            { name: 'dx', type: 'number', description: 'Destination x-coordinate' },
-            { name: 'dy', type: 'number', description: 'Destination y-coordinate' },
-            { name: 'dWidth', type: 'number', description: 'Destination width' },
-            { name: 'dHeight', type: 'number', description: 'Destination height' },
-            { name: 'blendMode', type: 'string', description: 'Blend mode to use', optional: true }
-        ],
-        category: 'Image'
-    },
-    {
-        name: 'saveCanvas',
-        description: 'Saves the current canvas as an image',
-        signature: 'saveCanvas([filename], [extension])',
-        parameters: [
-            { name: 'filename', type: 'string', description: 'Filename for the image', optional: true },
-            { name: 'extension', type: 'string', description: 'File extension (png, jpg, etc.)', optional: true }
-        ],
-        category: 'Image'
-    },
-    {
-        name: 'saveFrames',
-        description: 'Captures a sequence of frames from the canvas that can be saved as images',
-        signature: 'saveFrames(filename, extension, duration, framerate, [callback])',
-        parameters: [
-            { name: 'filename', type: 'string', description: 'Base filename for the frames' },
-            { name: 'extension', type: 'string', description: 'File extension (png, jpg, etc.)' },
-            { name: 'duration', type: 'number', description: 'Duration in seconds' },
-            { name: 'framerate', type: 'number', description: 'Frames per second' },
-            { name: 'callback', type: 'function', description: 'Callback function when complete', optional: true }
-        ],
-        category: 'Image'
-    },
-    {
-        name: 'saveGif',
-        description: 'Generates a gif from a sketch and saves it to a file',
-        signature: 'saveGif(filename, duration, [options])',
-        parameters: [
-            { name: 'filename', type: 'string', description: 'Filename for the GIF' },
-            { name: 'duration', type: 'number', description: 'Duration in seconds' },
-            { name: 'options', type: 'object', description: 'Optional settings for the GIF', optional: true }
-        ],
-        category: 'Image'
-    },
-    // Environment
-    {
-        name: 'width',
-        description: 'System variable that stores the width of the display window',
-        signature: 'width',
+        name: 'PI',
+        description: 'PI is a mathematical constant with the value 3.14159265358979323846',
+        signature: 'PI',
         parameters: [],
         returnType: 'number',
-        category: 'Environment'
+        category: 'Constants'
     },
     {
-        name: 'height',
-        description: 'System variable that stores the height of the display window',
-        signature: 'height',
+        name: 'TWO_PI',
+        description: 'TWO_PI is a mathematical constant with the value 6.28318530717958647693',
+        signature: 'TWO_PI',
         parameters: [],
         returnType: 'number',
-        category: 'Environment'
+        category: 'Constants'
     },
     {
-        name: 'windowWidth',
-        description: 'System variable that stores the width of the inner window',
-        signature: 'windowWidth',
+        name: 'TAU',
+        description: 'TAU is a mathematical constant with the value 6.28318530717958647693',
+        signature: 'TAU',
         parameters: [],
         returnType: 'number',
-        category: 'Environment'
+        category: 'Constants'
     },
     {
-        name: 'windowHeight',
-        description: 'System variable that stores the height of the inner window',
-        signature: 'windowHeight',
+        name: 'HALF_PI',
+        description: 'HALF_PI is a mathematical constant with the value 1.57079632679489661923',
+        signature: 'HALF_PI',
         parameters: [],
         returnType: 'number',
-        category: 'Environment'
+        category: 'Constants'
     },
     {
-        name: 'windowResized',
-        description: 'The windowResized() function is called once every time the browser window is resized',
-        signature: 'windowResized([event])',
-        parameters: [
-            { name: 'event', type: 'object', description: 'Optional Event callback argument', optional: true }
-        ],
-        category: 'Environment'
-    },
-    {
-        name: 'fullscreen',
-        description: 'Toggles fullscreen mode',
-        signature: 'fullscreen([val])',
-        parameters: [
-            { name: 'val', type: 'boolean', description: 'Whether to enter fullscreen', optional: true }
-        ],
-        returnType: 'boolean',
-        category: 'Environment'
-    },
-    {
-        name: 'pixelDensity',
-        description: 'Sets the pixel scaling for high pixel density displays',
-        signature: 'pixelDensity([val])',
-        parameters: [
-            { name: 'val', type: 'number', description: 'Either 1 or 2', optional: true }
-        ],
-        returnType: 'number',
-        category: 'Environment'
-    },
-    {
-        name: 'displayDensity',
-        description: 'Returns the pixel density of the current display the sketch is running on',
-        signature: 'displayDensity()',
+        name: 'QUARTER_PI',
+        description: 'QUARTER_PI is a mathematical constant with the value 0.78539816339744830962',
+        signature: 'QUARTER_PI',
         parameters: [],
         returnType: 'number',
-        category: 'Environment'
+        category: 'Constants'
     },
-    {
-        name: 'getURL',
-        description: 'Returns the current URL',
-        signature: 'getURL()',
-        parameters: [],
-        returnType: 'string',
-        category: 'Environment'
-    },
-    {
-        name: 'getURLPath',
-        description: 'Returns the current URL path',
-        signature: 'getURLPath()',
-        parameters: [],
-        returnType: 'string',
-        category: 'Environment'
-    },
-    {
-        name: 'getURLParams',
-        description: 'Returns the current URL parameters as an object',
-        signature: 'getURLParams()',
-        parameters: [],
-        returnType: 'object',
-        category: 'Environment'
-    },
-    // Typography - Additional
-    {
-        name: 'loadFont',
-        description: 'Loads a font and creates a p5.Font object',
-        signature: 'loadFont(path, [successCallback], [failureCallback])',
-        parameters: [
-            { name: 'path', type: 'string', description: 'Path of the font file' },
-            { name: 'successCallback', type: 'function', description: 'Function to be called once the font is loaded', optional: true },
-            { name: 'failureCallback', type: 'function', description: 'Function to be called in case of an error', optional: true }
-        ],
-        returnType: 'p5.Font',
-        category: 'Typography'
-    },
-    {
-        name: 'textLeading',
-        description: 'Sets the spacing between lines of text when text() is called',
-        signature: 'textLeading(leading)',
-        parameters: [
-            { name: 'leading', type: 'number', description: 'The size in pixels for spacing between lines' }
-        ],
-        category: 'Typography'
-    },
-    {
-        name: 'textStyle',
-        description: 'Sets the style for system fonts when text() is called',
-        signature: 'textStyle(style)',
-        parameters: [
-            { name: 'style', type: 'string', description: 'Either NORMAL, ITALIC, or BOLD' }
-        ],
-        category: 'Typography'
-    },
-    {
-        name: 'textWeight',
-        description: 'Sets or gets the current font weight',
-        signature: 'textWeight(weight)',
-        parameters: [
-            { name: 'weight', type: 'number|string', description: 'Font weight (100-900) or string (normal, bold)' }
-        ],
-        returnType: 'number|string',
-        category: 'Typography'
-    },
-    {
-        name: 'textWidth',
-        description: 'Calculates the width of the given text string in pixels',
-        signature: 'textWidth(text)',
-        parameters: [
-            { name: 'text', type: 'string', description: 'Text to measure' }
-        ],
-        returnType: 'number',
-        category: 'Typography'
-    },
-    // Constants - Additional
     {
         name: 'WEBGL',
         description: 'One of the two render modes in p5.js, used for computationally intensive tasks like 3D rendering and shaders',
@@ -1806,494 +2953,234 @@ export const p5Functions: P5Function[] = [
         returnType: 'string',
         category: 'Constants'
     },
-    // Missing 3D Functions
+    // Camera
     {
-        name: 'createModel',
-        description: 'Load a 3d model from an OBJ or STL string',
-        signature: 'createModel(objString)',
+        name: 'camera',
+        description: 'Sets the position and orientation of the current camera in a 3D sketch',
+        signature: 'camera([x], [y], [z], [centerX], [centerY], [centerZ], [upX], [upY], [upZ])',
         parameters: [
-            { name: 'objString', type: 'string', description: 'OBJ or STL file content as a string' }
+            { name: 'x', type: 'number', description: 'X-coordinate of the camera', optional: true },
+            { name: 'y', type: 'number', description: 'Y-coordinate of the camera', optional: true },
+            { name: 'z', type: 'number', description: 'Z-coordinate of the camera', optional: true },
+            { name: 'centerX', type: 'number', description: 'X-coordinate of the point the camera faces', optional: true },
+            { name: 'centerY', type: 'number', description: 'Y-coordinate of the point the camera faces', optional: true },
+            { name: 'centerZ', type: 'number', description: 'Z-coordinate of the point the camera faces', optional: true },
+            { name: 'upX', type: 'number', description: 'X-component of the camera’s "up" vector', optional: true },
+            { name: 'upY', type: 'number', description: 'Y-component of the camera’s "up" vector', optional: true },
+            { name: 'upZ', type: 'number', description: 'Z-component of the camera’s "up" vector', optional: true }
         ],
-        returnType: 'p5.Geometry',
-        category: 'Shape'
+        category: 'Camera'
     },
     {
-        name: 'buildGeometry',
-        description: 'Creates a custom p5.Geometry object from simpler 3D shapes',
-        signature: 'buildGeometry(primitives)',
+        name: 'perspective',
+        description: 'Sets a perspective projection for the current camera in a 3D sketch',
+        signature: 'perspective([fovy], [aspect], [near], [far])',
         parameters: [
-            { name: 'primitives', type: 'p5.Geometry[]', description: 'Array of p5.Geometry objects to combine' }
+            { name: 'fovy', type: 'number', description: 'Camera frustum vertical field of view', optional: true },
+            { name: 'aspect', type: 'number', description: 'Camera frustum aspect ratio', optional: true },
+            { name: 'near', type: 'number', description: 'Distance from the camera to the near clipping plane', optional: true },
+            { name: 'far', type: 'number', description: 'Distance from the camera to the far clipping plane', optional: true }
         ],
-        returnType: 'p5.Geometry',
-        category: 'Shape'
+        category: 'Camera'
     },
     {
-        name: 'curveDetail',
-        description: 'Sets the number of segments used to draw spline curves in WebGL mode',
-        signature: 'curveDetail(detail)',
+        name: 'ortho',
+        description: 'Sets an orthographic projection for the current camera in a 3D sketch',
+        signature: 'ortho([left], [right], [bottom], [top], [near], [far])',
         parameters: [
-            { name: 'detail', type: 'number', description: 'Number of curve segments' }
+            { name: 'left', type: 'number', description: 'X-coordinate of the frustum’s left plane', optional: true },
+            { name: 'right', type: 'number', description: 'X-coordinate of the frustum’s right plane', optional: true },
+            { name: 'bottom', type: 'number', description: 'Y-coordinate of the frustum’s bottom plane', optional: true },
+            { name: 'top', type: 'number', description: 'Y-coordinate of the frustum’s top plane', optional: true },
+            { name: 'near', type: 'number', description: 'Z-coordinate of the frustum’s near plane', optional: true },
+            { name: 'far', type: 'number', description: 'Z-coordinate of the frustum’s far plane', optional: true }
         ],
-        category: 'Shape'
+        category: 'Camera'
     },
     {
-        name: 'freeGeometry',
-        description: 'Clears a p5.Geometry object from the graphics processing unit (GPU) memory',
-        signature: 'freeGeometry(geometry)',
+        name: 'frustum',
+        description: 'Sets the frustum of the current camera in a 3D sketch',
+        signature: 'frustum([left], [right], [bottom], [top], [near], [far])',
         parameters: [
-            { name: 'geometry', type: 'p5.Geometry', description: 'The geometry object to free from GPU memory' }
+            { name: 'left', type: 'number', description: 'X-coordinate of the frustum’s left plane', optional: true },
+            { name: 'right', type: 'number', description: 'X-coordinate of the frustum’s right plane', optional: true },
+            { name: 'bottom', type: 'number', description: 'Y-coordinate of the frustum’s bottom plane', optional: true },
+            { name: 'top', type: 'number', description: 'Y-coordinate of the frustum’s top plane', optional: true },
+            { name: 'near', type: 'number', description: 'Z-coordinate of the frustum’s near plane', optional: true },
+            { name: 'far', type: 'number', description: 'Z-coordinate of the frustum’s far plane', optional: true }
         ],
-        category: 'Shape'
+        category: 'Camera'
     },
     {
-        name: 'saveObj',
-        description: 'Exports p5.Geometry objects as 3D models in the Wavefront .obj file format',
-        signature: 'saveObj(geometry, filename)',
+        name: 'linePerspective',
+        description: 'Enables or disables perspective for lines in 3D sketches',
+        signature: 'linePerspective(enable)',
         parameters: [
-            { name: 'geometry', type: 'p5.Geometry', description: 'The geometry object to export' },
-            { name: 'filename', type: 'string', description: 'Filename for the exported .obj file' }
+            { name: 'enable', type: 'boolean', description: 'Whether to enable line perspective' }
         ],
-        category: 'Shape'
+        category: 'Camera'
     },
     {
-        name: 'saveStl',
-        description: 'Exports p5.Geometry objects as 3D models in the STL stereolithography file format',
-        signature: 'saveStl(geometry, filename)',
-        parameters: [
-            { name: 'geometry', type: 'p5.Geometry', description: 'The geometry object to export' },
-            { name: 'filename', type: 'string', description: 'Filename for the exported .stl file' }
-        ],
-        category: 'Shape'
-    },
-    {
-        name: 'strokeMode',
-        description: 'Sets the stroke rendering mode to balance performance and visual features when drawing lines',
-        signature: 'strokeMode(mode)',
-        parameters: [
-            { name: 'mode', type: 'string', description: 'Stroke rendering mode' }
-        ],
-        category: 'Shape'
-    },
-    // Missing Curve Functions
-    {
-        name: 'bezierPoint',
-        description: 'Calculates coordinates along a Bézier curve using interpolation',
-        signature: 'bezierPoint(a, b, c, d, t)',
-        parameters: [
-            { name: 'a', type: 'number', description: 'First point coordinate' },
-            { name: 'b', type: 'number', description: 'First control point coordinate' },
-            { name: 'c', type: 'number', description: 'Second control point coordinate' },
-            { name: 'd', type: 'number', description: 'Second point coordinate' },
-            { name: 't', type: 'number', description: 'Value between 0 and 1' }
-        ],
-        returnType: 'number',
-        category: 'Shape'
-    },
-    {
-        name: 'bezierTangent',
-        description: 'Calculates coordinates along a line that\'s tangent to a Bézier curve',
-        signature: 'bezierTangent(a, b, c, d, t)',
-        parameters: [
-            { name: 'a', type: 'number', description: 'First point coordinate' },
-            { name: 'b', type: 'number', description: 'First control point coordinate' },
-            { name: 'c', type: 'number', description: 'Second control point coordinate' },
-            { name: 'd', type: 'number', description: 'Second point coordinate' },
-            { name: 't', type: 'number', description: 'Value between 0 and 1' }
-        ],
-        returnType: 'number',
-        category: 'Shape'
-    },
-    {
-        name: 'splinePoint',
-        description: 'Calculates coordinates along a spline curve using interpolation',
-        signature: 'splinePoint(a, b, c, d, t)',
-        parameters: [
-            { name: 'a', type: 'number', description: 'First point coordinate' },
-            { name: 'b', type: 'number', description: 'Second point coordinate' },
-            { name: 'c', type: 'number', description: 'Third point coordinate' },
-            { name: 'd', type: 'number', description: 'Fourth point coordinate' },
-            { name: 't', type: 'number', description: 'Value between 0 and 1' }
-        ],
-        returnType: 'number',
-        category: 'Shape'
-    },
-    {
-        name: 'splineTangent',
-        description: 'Calculates coordinates along a line that\'s tangent to a spline curve',
-        signature: 'splineTangent(a, b, c, d, t)',
-        parameters: [
-            { name: 'a', type: 'number', description: 'First point coordinate' },
-            { name: 'b', type: 'number', description: 'Second point coordinate' },
-            { name: 'c', type: 'number', description: 'Third point coordinate' },
-            { name: 'd', type: 'number', description: 'Fourth point coordinate' },
-            { name: 't', type: 'number', description: 'Value between 0 and 1' }
-        ],
-        returnType: 'number',
-        category: 'Shape'
-    },
-    // Missing Custom Shape Functions
-    {
-        name: 'beginContour',
-        description: 'Begins creating a hole within a flat shape',
-        signature: 'beginContour()',
+        name: 'createCamera',
+        description: 'Creates a new p5.Camera object',
+        signature: 'createCamera()',
         parameters: [],
-        category: 'Shape'
+        returnType: 'p5.Camera',
+        category: 'Camera'
     },
     {
-        name: 'bezierOrder',
-        description: 'Influences the shape of the Bézier curve segment in a custom shape',
-        signature: 'bezierOrder(order)',
+        name: 'setCamera',
+        description: 'Sets the current (active) camera of a 3D sketch',
+        signature: 'setCamera(cam)',
         parameters: [
-            { name: 'order', type: 'number', description: 'Order of the Bézier curve' }
+            { name: 'cam', type: 'p5.Camera', description: 'Camera that should be made active' }
         ],
-        category: 'Shape'
+        category: 'Camera'
     },
+    // Interaction
     {
-        name: 'endContour',
-        description: 'Stops creating a hole within a flat shape',
-        signature: 'endContour()',
-        parameters: [],
-        category: 'Shape'
-    },
-    {
-        name: 'normal',
-        description: 'Sets the normal vector for vertices in a custom 3D shape',
-        signature: 'normal(x, y, z)',
+        name: 'orbitControl',
+        description: 'Allows the user to orbit around a 3D sketch using a mouse, trackpad, or touchscreen',
+        signature: 'orbitControl([sensitivityX], [sensitivityY], [sensitivityZ], [options])',
         parameters: [
-            { name: 'x', type: 'number', description: 'x-component of the normal vector' },
-            { name: 'y', type: 'number', description: 'y-component of the normal vector' },
-            { name: 'z', type: 'number', description: 'z-component of the normal vector' }
+            { name: 'sensitivityX', type: 'number', description: 'Sensitivity to movement along the x-axis', optional: true },
+            { name: 'sensitivityY', type: 'number', description: 'Sensitivity to movement along the y-axis', optional: true },
+            { name: 'sensitivityZ', type: 'number', description: 'Sensitivity to movement along the z-axis', optional: true },
+            { name: 'options', type: 'object', description: 'Settings for orbitControl, e.g. { freeRotation: true }', optional: true }
         ],
-        category: 'Shape'
+        category: 'Interaction'
     },
     {
-        name: 'splineProperties',
-        description: 'Get or set multiple spline properties at once',
-        signature: 'splineProperties(properties)',
+        name: 'debugMode',
+        description: 'Adds a grid and an axes icon to clarify orientation in 3D sketches',
+        signature: 'debugMode(mode)',
         parameters: [
-            { name: 'properties', type: 'object', description: 'Object containing spline properties' }
+            { name: 'mode', type: 'string', description: 'Either GRID or AXES' }
         ],
-        returnType: 'object',
-        category: 'Shape'
+        category: 'Interaction'
     },
     {
-        name: 'splineProperty',
-        description: 'Gets or sets a given spline property',
-        signature: 'splineProperty(property, [value])',
+        name: 'noDebugMode',
+        description: 'Turns off debugMode() in a 3D sketch',
+        signature: 'noDebugMode()',
+        parameters: [],
+        category: 'Interaction'
+    },
+    // Lights
+    {
+        name: 'lights',
+        description: 'Places an ambient and directional light in the scene',
+        signature: 'lights()',
+        parameters: [],
+        category: 'Lights'
+    },
+    {
+        name: 'noLights',
+        description: 'Removes all lights from the sketch',
+        signature: 'noLights()',
+        parameters: [],
+        category: 'Lights'
+    },
+    {
+        name: 'ambientLight',
+        description: 'Creates a light that shines from all directions',
+        signature: 'ambientLight(v1, v2, v3, [alpha])',
         parameters: [
-            { name: 'property', type: 'string', description: 'Name of the property' },
-            { name: 'value', type: 'any', description: 'Value to set (optional for get)', optional: true }
+            { name: 'v1', type: 'number', description: 'Red or hue value in the current colorMode()' },
+            { name: 'v2', type: 'number', description: 'Green or saturation value in the current colorMode()' },
+            { name: 'v3', type: 'number', description: 'Blue, brightness, or lightness value in the current colorMode()' },
+            { name: 'alpha', type: 'number', description: 'Alpha (transparency) value in the current colorMode()', optional: true }
         ],
-        returnType: 'any',
-        category: 'Shape'
+        category: 'Lights'
     },
     {
-        name: 'vertexProperty',
-        description: 'Sets the shader\'s vertex property or attribute variables',
-        signature: 'vertexProperty(name, value)',
+        name: 'directionalLight',
+        description: 'Creates a light that shines in one direction',
+        signature: 'directionalLight(v1, v2, v3, x, y, z)',
         parameters: [
-            { name: 'name', type: 'string', description: 'Name of the vertex property' },
-            { name: 'value', type: 'number|number[]', description: 'Value or array of values' }
+            { name: 'v1', type: 'number', description: 'Red or hue value in the current colorMode()' },
+            { name: 'v2', type: 'number', description: 'Green or saturation value in the current colorMode()' },
+            { name: 'v3', type: 'number', description: 'Blue, brightness, or lightness value in the current colorMode()' },
+            { name: 'x', type: 'number', description: 'X-component of the light\'s direction between -1 and 1' },
+            { name: 'y', type: 'number', description: 'Y-component of the light\'s direction between -1 and 1' },
+            { name: 'z', type: 'number', description: 'Z-component of the light\'s direction between -1 and 1' }
         ],
-        category: 'Shape'
-    },
-    // Missing Attributes
-    {
-        name: 'noSmooth',
-        description: 'Draws certain features with jagged (aliased) edges',
-        signature: 'noSmooth()',
-        parameters: [],
-        category: 'Shape'
+        category: 'Lights'
     },
     {
-        name: 'smooth',
-        description: 'Draws certain features with smooth (antialiased) edges',
-        signature: 'smooth()',
-        parameters: [],
-        category: 'Shape'
-    },
-    // Missing Color Functions
-    {
-        name: 'beginClip',
-        description: 'Starts defining a shape that will mask any shapes drawn afterward',
-        signature: 'beginClip()',
-        parameters: [],
-        category: 'Color'
-    },
-    {
-        name: 'clip',
-        description: 'Defines a shape that will mask any shapes drawn afterward',
-        signature: 'clip()',
-        parameters: [],
-        category: 'Color'
-    },
-    {
-        name: 'endClip',
-        description: 'Ends defining a mask that was started with beginClip()',
-        signature: 'endClip()',
-        parameters: [],
-        category: 'Color'
-    },
-    // Missing Typography Functions
-    {
-        name: 'fontAscent',
-        description: 'Returns the loose ascent of the text based on the font\'s intrinsic metrics',
-        signature: 'fontAscent()',
-        parameters: [],
-        returnType: 'number',
-        category: 'Typography'
-    },
-    {
-        name: 'fontBounds',
-        description: 'Computes a generic (non-tight) bounding box for a block of text',
-        signature: 'fontBounds(text, x, y, [fontSize])',
+        name: 'pointLight',
+        description: 'Creates a light that shines from a point in all directions',
+        signature: 'pointLight(v1, v2, v3, x, y, z)',
         parameters: [
-            { name: 'text', type: 'string', description: 'Text to measure' },
-            { name: 'x', type: 'number', description: 'x-coordinate' },
-            { name: 'y', type: 'number', description: 'y-coordinate' },
-            { name: 'fontSize', type: 'number', description: 'Font size', optional: true }
+            { name: 'v1', type: 'number', description: 'Red or hue value in the current colorMode()' },
+            { name: 'v2', type: 'number', description: 'Green or saturation value in the current colorMode()' },
+            { name: 'v3', type: 'number', description: 'Blue, brightness, or lightness value in the current colorMode()' },
+            { name: 'x', type: 'number', description: 'X-coordinate of the light' },
+            { name: 'y', type: 'number', description: 'Y-coordinate of the light' },
+            { name: 'z', type: 'number', description: 'Z-coordinate of the light' }
         ],
-        returnType: 'object',
-        category: 'Typography'
+        category: 'Lights'
     },
     {
-        name: 'fontDescent',
-        description: 'Returns the loose descent of the text based on the font\'s intrinsic metrics',
-        signature: 'fontDescent()',
-        parameters: [],
-        returnType: 'number',
-        category: 'Typography'
-    },
-    {
-        name: 'fontWidth',
-        description: 'Returns the loose width of a text string based on the current font',
-        signature: 'fontWidth(text)',
+        name: 'spotLight',
+        description: 'Creates a light that shines from a point in one direction',
+        signature: 'spotLight(v1, v2, v3, x, y, z, rx, ry, rz, [angle], [concentration])',
         parameters: [
-            { name: 'text', type: 'string', description: 'Text to measure' }
+            { name: 'v1', type: 'number', description: 'Red or hue value in the current colorMode()' },
+            { name: 'v2', type: 'number', description: 'Green or saturation value in the current colorMode()' },
+            { name: 'v3', type: 'number', description: 'Blue, brightness, or lightness value in the current colorMode()' },
+            { name: 'x', type: 'number', description: 'X-coordinate of the light' },
+            { name: 'y', type: 'number', description: 'Y-coordinate of the light' },
+            { name: 'z', type: 'number', description: 'Z-coordinate of the light' },
+            { name: 'rx', type: 'number', description: 'X-component of light direction between -1 and 1' },
+            { name: 'ry', type: 'number', description: 'Y-component of light direction between -1 and 1' },
+            { name: 'rz', type: 'number', description: 'Z-component of light direction between -1 and 1' },
+            { name: 'angle', type: 'number', description: 'Angle of the light cone', optional: true },
+            { name: 'concentration', type: 'number', description: 'Concentration of the light', optional: true }
         ],
-        returnType: 'number',
-        category: 'Typography'
+        category: 'Lights'
     },
     {
-        name: 'textAscent',
-        description: 'Returns the ascent of the text',
-        signature: 'textAscent()',
-        parameters: [],
-        returnType: 'number',
-        category: 'Typography'
-    },
-    {
-        name: 'textBounds',
-        description: 'Computes the tight bounding box for a block of text',
-        signature: 'textBounds(text, x, y, [fontSize])',
+        name: 'imageLight',
+        description: 'Creates an ambient light from an image',
+        signature: 'imageLight(img)',
         parameters: [
-            { name: 'text', type: 'string', description: 'Text to measure' },
-            { name: 'x', type: 'number', description: 'x-coordinate' },
-            { name: 'y', type: 'number', description: 'y-coordinate' },
-            { name: 'fontSize', type: 'number', description: 'Font size', optional: true }
+            { name: 'img', type: 'p5.Image', description: 'Image to use as the light source' }
         ],
-        returnType: 'object',
-        category: 'Typography'
+        category: 'Lights'
     },
     {
-        name: 'textDescent',
-        description: 'Returns the descent of the text',
-        signature: 'textDescent()',
-        parameters: [],
-        returnType: 'number',
-        category: 'Typography'
-    },
-    {
-        name: 'textDirection',
-        description: 'Sets or gets the text drawing direction',
-        signature: 'textDirection([direction])',
+        name: 'lightFalloff',
+        description: 'Sets the falloff rate for pointLight() and spotLight()',
+        signature: 'lightFalloff(constant, linear, quadratic)',
         parameters: [
-            { name: 'direction', type: 'string', description: 'Either LTR (left-to-right) or RTL (right-to-left)', optional: true }
+            { name: 'constant', type: 'number', description: 'Constant value for calculating falloff' },
+            { name: 'linear', type: 'number', description: 'Linear value for calculating falloff' },
+            { name: 'quadratic', type: 'number', description: 'Quadratic value for calculating falloff' }
         ],
-        returnType: 'string',
-        category: 'Typography'
+        category: 'Lights'
     },
     {
-        name: 'textProperties',
-        description: 'Gets or sets text properties in batch, similar to calling textProperty() multiple times',
-        signature: 'textProperties([properties])',
+        name: 'specularColor',
+        description: 'Sets the specular color for lights',
+        signature: 'specularColor(v1, v2, v3)',
         parameters: [
-            { name: 'properties', type: 'object', description: 'Object containing text properties', optional: true }
+            { name: 'v1', type: 'number', description: 'Red or hue value in the current colorMode()' },
+            { name: 'v2', type: 'number', description: 'Green or saturation value in the current colorMode()' },
+            { name: 'v3', type: 'number', description: 'Blue, brightness, or lightness value in the current colorMode()' }
         ],
-        returnType: 'object',
-        category: 'Typography'
+        category: 'Lights'
     },
     {
-        name: 'textProperty',
-        description: 'Sets or gets a single text property for the renderer',
-        signature: 'textProperty(property, [value])',
+        name: 'panorama',
+        description: 'Creates an immersive 3D background',
+        signature: 'panorama(img)',
         parameters: [
-            { name: 'property', type: 'string', description: 'Name of the property' },
-            { name: 'value', type: 'any', description: 'Value to set (optional for get)', optional: true }
+            { name: 'img', type: 'p5.Image', description: '360˚ image to use as the background' }
         ],
-        returnType: 'any',
-        category: 'Typography'
+        category: 'Lights'
     },
-    {
-        name: 'textWrap',
-        description: 'Sets the style for wrapping text when text() is called',
-        signature: 'textWrap(wrap)',
-        parameters: [
-            { name: 'wrap', type: 'string', description: 'Either WORD, CHAR, or NONE' }
-        ],
-        category: 'Typography'
-    },
-    // Missing Image Functions
-    {
-        name: 'createImage',
-        description: 'Creates a new p5.Image object',
-        signature: 'createImage(width, height)',
-        parameters: [
-            { name: 'width', type: 'number', description: 'Width of the image' },
-            { name: 'height', type: 'number', description: 'Height of the image' }
-        ],
-        returnType: 'p5.Image',
-        category: 'Image'
-    },
-    // Missing DOM Functions
-    {
-        name: 'removeElements',
-        description: 'Removes all elements created by p5.js, including any event handlers',
-        signature: 'removeElements()',
-        parameters: [],
-        category: 'DOM'
-    },
-    {
-        name: 'createElement',
-        description: 'Creates a new p5.Element object',
-        signature: 'createElement(tag, [content])',
-        parameters: [
-            { name: 'tag', type: 'string', description: 'HTML tag name' },
-            { name: 'content', type: 'string', description: 'HTML content', optional: true }
-        ],
-        returnType: 'p5.Element',
-        category: 'DOM'
-    },
-    // Missing Structure Functions
-    {
-        name: 'disableFriendlyErrors',
-        description: 'Turns off the parts of the Friendly Error System (FES) that impact performance',
-        signature: 'disableFriendlyErrors()',
-        parameters: [],
-        category: 'Structure'
-    },
-    {
-        name: 'isLooping',
-        description: 'Returns true if the draw loop is running and false if not',
-        signature: 'isLooping()',
-        parameters: [],
-        returnType: 'boolean',
-        category: 'Structure'
-    },
-    {
-        name: 'loop',
-        description: 'Resumes the draw loop after noLoop() has been called',
-        signature: 'loop()',
-        parameters: [],
-        category: 'Structure'
-    },
-    {
-        name: 'noLoop',
-        description: 'Stops the code in draw() from running repeatedly',
-        signature: 'noLoop()',
-        parameters: [],
-        category: 'Structure'
-    },
-    {
-        name: 'redraw',
-        description: 'Runs the code in draw() once',
-        signature: 'redraw()',
-        parameters: [],
-        category: 'Structure'
-    },
-    {
-        name: 'remove',
-        description: 'Removes the sketch from the web page',
-        signature: 'remove()',
-        parameters: [],
-        category: 'Structure'
-    },
-    // Missing Data Functions
-    {
-        name: 'unchar',
-        description: 'Converts a single-character String to a Number',
-        signature: 'unchar(n)',
-        parameters: [
-            { name: 'n', type: 'string', description: 'Single character string' }
-        ],
-        returnType: 'number',
-        category: 'Data'
-    },
-    {
-        name: 'nfp',
-        description: 'Converts a Number into a String with a plus or minus sign',
-        signature: 'nfp(num, [left], [right])',
-        parameters: [
-            { name: 'num', type: 'number', description: 'Number to format' },
-            { name: 'left', type: 'number', description: 'Number of digits to the left of the decimal point', optional: true },
-            { name: 'right', type: 'number', description: 'Number of digits to the right of the decimal point', optional: true }
-        ],
-        returnType: 'string',
-        category: 'Data'
-    },
-    {
-        name: 'nfs',
-        description: 'Converts a positive Number into a String with an extra space in front',
-        signature: 'nfs(num, [left], [right])',
-        parameters: [
-            { name: 'num', type: 'number', description: 'Number to format' },
-            { name: 'left', type: 'number', description: 'Number of digits to the left of the decimal point', optional: true },
-            { name: 'right', type: 'number', description: 'Number of digits to the right of the decimal point', optional: true }
-        ],
-        returnType: 'string',
-        category: 'Data'
-    },
-    // Base Shader Functions 
-    {
-        name: 'baseColorShader',
-        description: 'Get the shader used when no lights or materials are applied. Can be modified with .modify() to customize vertex and fragment hooks.',
-        signature: 'baseColorShader()',
-        parameters: [],
-        returnType: 'p5.Shader',
-        category: 'Material'
-    },
-    {
-        name: 'baseMaterialShader',
-        description: 'Get the default shader used with lights, materials, and textures. Can be modified with .modify() to customize rendering behavior through hooks.',
-        signature: 'baseMaterialShader()',
-        parameters: [],
-        returnType: 'p5.Shader',
-        category: 'Material'
-    },
-    {
-        name: 'baseNormalShader',
-        description: 'Get the shader used for rendering normal materials. Can be modified with .modify() to customize vertex and fragment hooks.',
-        signature: 'baseNormalShader()',
-        parameters: [],
-        returnType: 'p5.Shader',
-        category: 'Material'
-    },
-    {
-        name: 'baseStrokeShader',
-        description: 'Get the shader used for rendering strokes. Can be modified with .modify() to customize vertex and fragment hooks.',
-        signature: 'baseStrokeShader()',
-        parameters: [],
-        returnType: 'p5.Shader',
-        category: 'Material'
-    },
-    {
-        name: 'baseFilterShader',
-        description: 'Get the base shader used for image filters. Can be modified with .modify() to create custom filter effects.',
-        signature: 'baseFilterShader()',
-        parameters: [],
-        returnType: 'p5.Shader',
-        category: 'Material'
-    },
+    // Material
     {
         name: 'imageShader',
         description: 'Get the shader used for rendering images/textures. Can be modified with .modify() to customize rendering.',
@@ -2337,18 +3224,6 @@ export const p5Functions: P5Function[] = [
         category: 'Material'
     },
     {
-        name: 'loadFilterShader',
-        description: 'Loads a fragment shader from a file to create a filter shader',
-        signature: 'loadFilterShader(fragFilename, [callback], [errorCallback])',
-        parameters: [
-            { name: 'fragFilename', type: 'string', description: 'Path to the fragment shader file' },
-            { name: 'callback', type: 'function', description: 'Callback function called when shader is loaded', optional: true },
-            { name: 'errorCallback', type: 'function', description: 'Callback function called on error', optional: true }
-        ],
-        returnType: 'p5.Shader',
-        category: 'Material'
-    },
-    {
         name: 'shader',
         description: 'Sets the p5.Shader object to be used for subsequent shapes',
         signature: 'shader(s)',
@@ -2373,7 +3248,6 @@ export const p5Functions: P5Function[] = [
         ],
         category: 'Material'
     },
-    // p5.Shader methods (commonly used after baseShader().modify())
     {
         name: 'modify',
         description: 'Returns a new shader based on the original, but with custom snippets replacing default behavior. Used with baseColorShader(), baseMaterialShader(), etc.',
@@ -2412,126 +3286,6 @@ export const p5Functions: P5Function[] = [
         returnType: 'p5.Shader',
         category: 'Material'
     },
-    // Strands Hook Functions (used inside shader.modify())
-    {
-        name: 'getObjectInputs',
-        description: 'Registers a callback to modify vertex data before any positioning has been applied. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
-        signature: 'getObjectInputs(callback)',
-        parameters: [
-            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'getWorldInputs',
-        description: 'Registers a callback to modify vertex data after transforms like translate() and scale() but before camera. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
-        signature: 'getWorldInputs(callback)',
-        parameters: [
-            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'getCameraInputs',
-        description: 'Registers a callback to modify vertex data after camera transformation but before projection. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
-        signature: 'getCameraInputs(callback)',
-        parameters: [
-            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'getPixelInputs',
-        description: 'Registers a callback to modify per-pixel fragment inputs before final color calculation. Available in baseMaterialShader and baseStrokeShader.',
-        signature: 'getPixelInputs(callback)',
-        parameters: [
-            { name: 'callback', type: 'function', description: 'Receives Inputs object with normal, texCoord, color, shininess, metalness, materials. Must return modified inputs.' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'getFinalColor',
-        description: 'Registers a callback to change the final color of each pixel after all lighting and mixing is done in the fragment shader.',
-        signature: 'getFinalColor(callback)',
-        parameters: [
-            { name: 'callback', type: 'function', description: 'Receives vec4 color and must return modified vec4 color.' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'combineColors',
-        description: 'Registers a callback to customize how color components are combined in the fragment shader.',
-        signature: 'combineColors(callback)',
-        parameters: [
-            { name: 'callback', type: 'function', description: 'Receives ColorComponents struct with baseColor, opacity, ambientColor, specularColor, diffuse, ambient, specular, emissive. Must return combined vec4 color.' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'getColor',
-        description: 'Registers a callback to set the final color for each pixel in a filter shader.',
-        signature: 'getColor(callback)',
-        parameters: [
-            { name: 'callback', type: 'function', description: 'Callback that returns the final color for filter shaders.' }
-        ],
-        category: 'Strands'
-    },
-    // Uniform creation functions (used inside shader.modify())
-    {
-        name: 'uniformFloat',
-        description: 'Creates a float uniform variable for use in shader.modify(). The function returns the value each time the shader is applied.',
-        signature: 'uniformFloat(valueFunction)',
-        parameters: [
-            { name: 'valueFunction', type: 'function', description: 'Function that returns the float value for the uniform' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'uniformInt',
-        description: 'Creates an integer uniform variable for use in shader.modify().',
-        signature: 'uniformInt(valueFunction)',
-        parameters: [
-            { name: 'valueFunction', type: 'function', description: 'Function that returns the integer value for the uniform' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'uniformVector2',
-        description: 'Creates a vec2 uniform variable for use in shader.modify().',
-        signature: 'uniformVector2(valueFunction)',
-        parameters: [
-            { name: 'valueFunction', type: 'function', description: 'Function that returns a 2-component array for the uniform' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'uniformVector3',
-        description: 'Creates a vec3 uniform variable for use in shader.modify().',
-        signature: 'uniformVector3(valueFunction)',
-        parameters: [
-            { name: 'valueFunction', type: 'function', description: 'Function that returns a 3-component array for the uniform' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'uniformVector4',
-        description: 'Creates a vec4 uniform variable for use in shader.modify().',
-        signature: 'uniformVector4(valueFunction)',
-        parameters: [
-            { name: 'valueFunction', type: 'function', description: 'Function that returns a 4-component array for the uniform' }
-        ],
-        category: 'Strands'
-    },
-    {
-        name: 'uniformTexture',
-        description: 'Creates a texture/sampler2D uniform variable for use in shader.modify().',
-        signature: 'uniformTexture(valueFunction)',
-        parameters: [
-            { name: 'valueFunction', type: 'function', description: 'Function that returns a p5.Image, p5.Graphics, or p5.Texture for the uniform' }
-        ],
-        category: 'Strands'
-    },
-    // Additional Material Functions
     {
         name: 'ambientMaterial',
         description: 'Sets the ambient color of the surface material',
@@ -2611,6 +3365,365 @@ export const p5Functions: P5Function[] = [
             { name: 'wrapY', type: 'string', description: 'Either CLAMP, REPEAT, or MIRROR', optional: true }
         ],
         category: 'Material'
+    },
+    // Strands
+    {
+        name: 'baseColorShader',
+        description: 'Get the shader used when no lights or materials are applied. Can be modified with .modify() to customize vertex and fragment hooks.',
+        signature: 'baseColorShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'baseMaterialShader',
+        description: 'Get the default shader used with lights, materials, and textures. Can be modified with .modify() to customize rendering behavior through hooks.',
+        signature: 'baseMaterialShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'baseNormalShader',
+        description: 'Get the shader used for rendering normal materials. Can be modified with .modify() to customize vertex and fragment hooks.',
+        signature: 'baseNormalShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'baseStrokeShader',
+        description: 'Get the shader used for rendering strokes. Can be modified with .modify() to customize vertex and fragment hooks.',
+        signature: 'baseStrokeShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'baseFilterShader',
+        description: 'Get the base shader used for image filters. Can be modified with .modify() to create custom filter effects.',
+        signature: 'baseFilterShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'loadFilterShader',
+        description: 'Loads a fragment shader from a file to create a filter shader',
+        signature: 'loadFilterShader(fragFilename, [callback], [errorCallback])',
+        parameters: [
+            { name: 'fragFilename', type: 'string', description: 'Path to the fragment shader file' },
+            { name: 'callback', type: 'function', description: 'Callback function called when shader is loaded', optional: true },
+            { name: 'errorCallback', type: 'function', description: 'Callback function called on error', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'getObjectInputs',
+        description: 'Registers a callback to modify vertex data before any positioning has been applied. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
+        signature: 'getObjectInputs(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getWorldInputs',
+        description: 'Registers a callback to modify vertex data after transforms like translate() and scale() but before camera. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
+        signature: 'getWorldInputs(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getCameraInputs',
+        description: 'Registers a callback to modify vertex data after camera transformation but before projection. Available in baseMaterialShader, baseNormalShader, baseColorShader, baseStrokeShader.',
+        signature: 'getCameraInputs(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives vertex object with position (vec3), normal (vec3), texCoord (vec2), color (vec4). Must return modified vertex.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getPixelInputs',
+        description: 'Registers a callback to modify per-pixel fragment inputs before final color calculation. Available in baseMaterialShader and baseStrokeShader.',
+        signature: 'getPixelInputs(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives Inputs object with normal, texCoord, color, shininess, metalness, materials. Must return modified inputs.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getFinalColor',
+        description: 'Registers a callback to change the final color of each pixel after all lighting and mixing is done in the fragment shader.',
+        signature: 'getFinalColor(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives vec4 color and must return modified vec4 color.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'combineColors',
+        description: 'Registers a callback to customize how color components are combined in the fragment shader.',
+        signature: 'combineColors(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Receives ColorComponents struct with baseColor, opacity, ambientColor, specularColor, diffuse, ambient, specular, emissive. Must return combined vec4 color.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'getColor',
+        description: 'Registers a callback to set the final color for each pixel in a filter shader.',
+        signature: 'getColor(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'Callback that returns the final color for filter shaders.' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformFloat',
+        description: 'Creates a float uniform variable for use in shader.modify(). The function returns the value each time the shader is applied.',
+        signature: 'uniformFloat(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns the float value for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformInt',
+        description: 'Creates an integer uniform variable for use in shader.modify().',
+        signature: 'uniformInt(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns the integer value for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformVector2',
+        description: 'Creates a vec2 uniform variable for use in shader.modify().',
+        signature: 'uniformVector2(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns a 2-component array for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformVector3',
+        description: 'Creates a vec3 uniform variable for use in shader.modify().',
+        signature: 'uniformVector3(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns a 3-component array for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformVector4',
+        description: 'Creates a vec4 uniform variable for use in shader.modify().',
+        signature: 'uniformVector4(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns a 4-component array for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'uniformTexture',
+        description: 'Creates a texture/sampler2D uniform variable for use in shader.modify().',
+        signature: 'uniformTexture(valueFunction)',
+        parameters: [
+            { name: 'valueFunction', type: 'function', description: 'Function that returns a p5.Image, p5.Graphics, or p5.Texture for the uniform' }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'buildMaterialShader',
+        description: 'Create a new shader that can change how fills are drawn',
+        signature: 'buildMaterialShader(callback, [scope])',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'A function building a p5.strands shader' },
+            { name: 'scope', type: 'object', description: 'An optional scope object passed to .modify()', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'buildColorShader',
+        description: 'Create a new shader that can change how fills are drawn, based on the default shader used when no lights or textures are applied',
+        signature: 'buildColorShader(callback, [scope])',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'A function building a p5.strands shader' },
+            { name: 'scope', type: 'object', description: 'An optional scope object passed to .modify()', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'buildNormalShader',
+        description: 'Create a new shader that can change how fills are drawn, based on the material used when normalMaterial() is active',
+        signature: 'buildNormalShader(callback, [scope])',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'A function building a p5.strands shader' },
+            { name: 'scope', type: 'object', description: 'An optional scope object passed to .modify()', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'buildStrokeShader',
+        description: 'Create a new shader that can change how strokes are drawn, based on the default shader used for strokes',
+        signature: 'buildStrokeShader(callback, [scope])',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'A function building a p5.strands shader' },
+            { name: 'scope', type: 'object', description: 'An optional scope object passed to .modify()', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'buildFilterShader',
+        description: 'Creates a p5.Shader object to be used with the filter() function',
+        signature: 'buildFilterShader(callback, [scope])',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'A function building a p5.strands shader' },
+            { name: 'scope', type: 'object', description: 'An optional scope object passed to .modify()', optional: true }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'buildComputeShader',
+        description: 'Create a new compute shader using p5.strands',
+        signature: 'buildComputeShader(callback)',
+        parameters: [
+            { name: 'callback', type: 'function', description: 'A function building a p5.strands compute shader' }
+        ],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'baseComputeShader',
+        description: 'Returns the default shader used for compute operations',
+        signature: 'baseComputeShader()',
+        parameters: [],
+        returnType: 'p5.Shader',
+        category: 'Strands'
+    },
+    {
+        name: 'loadMaterialShader',
+        description: 'Loads a new shader from a file that can change how fills are drawn',
+        signature: 'loadMaterialShader(url, [onSuccess], [onFailure])',
+        parameters: [
+            { name: 'url', type: 'string', description: 'The URL of your p5.strands JavaScript file' },
+            { name: 'onSuccess', type: 'function', description: 'A callback function to run when loading completes', optional: true },
+            { name: 'onFailure', type: 'function', description: 'A callback function to run when loading fails', optional: true }
+        ],
+        returnType: 'Promise<p5.Shader>',
+        category: 'Strands'
+    },
+    {
+        name: 'loadColorShader',
+        description: 'Loads a new shader from a file that can change how fills are drawn, based on the material used when no lights or textures are active',
+        signature: 'loadColorShader(url, [onSuccess], [onFailure])',
+        parameters: [
+            { name: 'url', type: 'string', description: 'The URL of your p5.strands JavaScript file' },
+            { name: 'onSuccess', type: 'function', description: 'A callback function to run when loading completes', optional: true },
+            { name: 'onFailure', type: 'function', description: 'A callback function to run when loading fails', optional: true }
+        ],
+        returnType: 'Promise<p5.Shader>',
+        category: 'Strands'
+    },
+    {
+        name: 'loadNormalShader',
+        description: 'Loads a new shader from a file that can change how fills are drawn, based on the material used when normalMaterial() is active',
+        signature: 'loadNormalShader(url, [onSuccess], [onFailure])',
+        parameters: [
+            { name: 'url', type: 'string', description: 'The URL of your p5.strands JavaScript file' },
+            { name: 'onSuccess', type: 'function', description: 'A callback function to run when loading completes', optional: true },
+            { name: 'onFailure', type: 'function', description: 'A callback function to run when loading fails', optional: true }
+        ],
+        returnType: 'Promise<p5.Shader>',
+        category: 'Strands'
+    },
+    {
+        name: 'loadStrokeShader',
+        description: 'Loads a new shader from a file that can change how strokes are drawn',
+        signature: 'loadStrokeShader(url, [onSuccess], [onFailure])',
+        parameters: [
+            { name: 'url', type: 'string', description: 'The URL of your p5.strands JavaScript file' },
+            { name: 'onSuccess', type: 'function', description: 'A callback function to run when loading completes', optional: true },
+            { name: 'onFailure', type: 'function', description: 'A callback function to run when loading fails', optional: true }
+        ],
+        returnType: 'Promise<p5.Shader>',
+        category: 'Strands'
+    },
+    {
+        name: 'compute',
+        description: 'Dispatches a compute shader to run on the GPU',
+        signature: 'compute(shader, x, [y], [z])',
+        parameters: [
+            { name: 'shader', type: 'p5.Shader', description: 'The compute shader to run' },
+            { name: 'x', type: 'number', description: 'Number of invocations in the X dimension' },
+            { name: 'y', type: 'number', description: 'Number of invocations in the Y dimension', optional: true },
+            { name: 'z', type: 'number', description: 'Number of invocations in the Z dimension', optional: true }
+        ],
+        category: 'Strands'
+    },
+    {
+        name: 'createStorage',
+        description: 'Creates a p5.StorageBuffer, which is a block of data that shaders can read from, and compute shaders can also write to',
+        signature: 'createStorage(dataOrCount)',
+        parameters: [
+            { name: 'dataOrCount', type: 'number|array|Float32Array|object[]', description: 'Either a number specifying the count of floats, an array/Float32Array of floats, or an array of objects describing struct elements' }
+        ],
+        returnType: 'p5.StorageBuffer',
+        category: 'Strands'
+    },
+    {
+        name: 'uniformStorage',
+        description: 'Declares a storage buffer uniform inside a modify() callback, making a createStorage() buffer accessible in the shader',
+        signature: 'uniformStorage(name, [bufferOrSchema])',
+        parameters: [
+            { name: 'name', type: 'string', description: 'The name of the storage buffer uniform in the shader' },
+            { name: 'bufferOrSchema', type: 'p5.StorageBuffer|function|object', description: 'A storage buffer to bind, a function returning a storage buffer (called each frame), or a plain object describing the struct field layout', optional: true }
+        ],
+        returnType: 'any',
+        category: 'Strands'
+    },
+    {
+        name: 'getTexture',
+        description: 'Samples the color of a texture at the given coordinates inside a p5.strands shader',
+        signature: 'getTexture(texture, coords)',
+        parameters: [
+            { name: 'texture', type: 'sampler2D', description: 'The texture to sample from' },
+            { name: 'coords', type: 'vec2', description: 'The 2D coordinates to sample from, between [0,0] and [1,1]' }
+        ],
+        returnType: 'any',
+        category: 'Strands'
+    },
+    {
+        name: 'smoothstep',
+        description: 'Performs smooth Hermite interpolation between 0 and 1 inside a p5.strands shader',
+        signature: 'smoothstep(edge0, edge1, x)',
+        parameters: [
+            { name: 'edge0', type: 'number', description: 'Lower edge of the transition' },
+            { name: 'edge1', type: 'number', description: 'Upper edge of the transition' },
+            { name: 'x', type: 'number', description: 'Input value to interpolate' }
+        ],
+        returnType: 'number',
+        category: 'Strands'
+    },
+    {
+        name: 'mix',
+        description: 'Performs linear interpolation between two values',
+        signature: 'mix(x, y, a)',
+        parameters: [
+            { name: 'x', type: 'number|p5.Vector', description: 'First value to interpolate from' },
+            { name: 'y', type: 'number|p5.Vector', description: 'Second value to interpolate to' },
+            { name: 'a', type: 'number|boolean', description: 'Interpolation amount (0.0-1.0) or boolean selector' }
+        ],
+        returnType: 'number|p5.Vector',
+        category: 'Strands'
     }
 ];
 

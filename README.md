@@ -130,6 +130,14 @@ This extension does not add any VS Code settings. All configuration is done thro
 
 ## Release Notes
 
+### 1.1.4
+
+- Fixed autocomplete, hover documentation and parameter hints for `createVector()`
+- Added autocomplete for over 100 missing functions, including `push()`, `pop()`, `sin()`, `cos()`, `frameRate()`, `loadJSON()`, `lerpColor()`, `rotateX()`, `rotateY()`, `rotateZ()` and more
+- Added autocomplete for 3D lights and camera functions: `lights()`, `ambientLight()`, `pointLight()`, `camera()`, `perspective()`, `orbitControl()`, etc.
+- Added autocomplete for p5.js 2.x shader and compute functions: `buildMaterialShader()`, `buildFilterShader()`, `buildComputeShader()`, `compute()`, `createStorage()`, etc.
+- Updated function categories in hover documentation to match the p5.js reference
+
 ### 1.1.3
 
 - Updated p5.js library to version **2.3.4** for both CDN (online) and local library files (offline, minified and full)
